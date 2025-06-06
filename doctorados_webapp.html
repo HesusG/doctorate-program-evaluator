@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctorados - España</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #fff, #f093fb, #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .tab {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            border-color: transparent;
+            box-shadow: 0 8px 25px rgba(240, 147, 251, 0.3);
+        }
+
+        .filters {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .filters h3 {
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .filter-group input, .filter-group select {
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .filter-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-height: 600px;
+        }
+
+        /* Mapa */
+        #map {
+            width: 100%;
+            height: 600px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Vista Tabla */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 15px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .add-btn {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(240, 147, 251, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .editable {
+            background: transparent;
+            border: 1px solid transparent;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .editable:focus {
+            border-color: #f093fb;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        /* Info Panel */
+        .info-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95));
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+        }
+
+        .info-panel h2 {
+            margin-bottom: 10px;
+            color: #f093fb;
+        }
+
+        .info-panel h3 {
+            margin: 20px 0 10px 0;
+            color: #fff;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .program-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .program-item h4 {
+            color: #f5576c;
+            margin-bottom: 10px;
+        }
+
+        .program-item ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .program-item li {
+            padding: 3px 0;
+            opacity: 0.9;
+        }
+
+        .program-item li::before {
+            content: "• ";
+            color: #f093fb;
+            font-weight: bold;
+        }
+
+        /* Hidden classes */
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .info-panel {
+                max-width: 90vw;
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Doctorados</h1>
+            <p>Explora programas de doctorado en universidades españolas con un enfoque en ciencias químicas, biomédicas y relacionadas</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="mapa">🗺️ Mapa Interactivo</div>
+            <div class="tab" data-tab="tabla">📊 Vista Tabla</div>
+            <div class="tab" data-tab="analisis">📈 Análisis</div>
+        </div>
+
+        <div class="filters">
+            <h3>🔍 Filtros</h3>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>Buscar Universidad</label>
+                    <input type="text" id="search" placeholder="Buscar por nombre...">
+                </div>
+                <div class="filter-group">
+                    <label>Ciudad</label>
+                    <select id="ciudadFilter">
+                        <option value="">Todas las ciudades</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Índice de Atracción</label>
+                    <select id="atraccionFilter">
+                        <option value="">Todos</option>
+                        <option value="alto">Alto</option>
+                        <option value="medio">Medio</option>
+                        <option value="bajo">Bajo</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Costo de Vida</label>
+                    <select id="costoFilter">
+                        <option value="">Todos</option>
+                        <option value="alto">Alto</option>
+                        <option value="medio">Medio</option>
+                        <option value="bajo">Bajo</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select id="statusFilter">
+                        <option value="">Todos</option>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Vista Mapa -->
+            <div id="mapa-view" class="view">
+                <div id="map"></div>
+            </div>
+
+            <!-- Vista Tabla -->
+            <div id="tabla-view" class="view hidden">
+                <div class="table-header">
+                    <h3>Universidades y Programas</h3>
+                    <button class="add-btn" onclick="agregarUniversidad()">+ Agregar Universidad</button>
+                </div>
+                <div class="table-container">
+                    <table id="universidadesTable">
+                        <thead>
+                            <tr>
+                                <th>Universidad</th>
+                                <th>Ciudad</th>
+                                <th>Programas</th>
+                                <th>Índice Atracción</th>
+                                <th>Costo de Vida</th>
+                                <th>Status</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Vista Análisis -->
+            <div id="analisis-view" class="view hidden">
+                <div style="text-align: center; padding: 100px 20px;">
+                    <h3>📈 Análisis de Datos</h3>
+                    <p style="margin-top: 20px; opacity: 0.8;">Esta sección estará disponible próximamente...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="info-panel" id="infoPanel">
+        <button class="close-btn" onclick="closeInfoPanel()">×</button>
+        <div id="infoPanelContent"></div>
+    </div>
+
+    <script>
+        // Datos de universidades del JSON
+        const universidadesData = {
+            "programas_doctorado": {
+                "universidades": [
+                    {
+                        "nombre": "Universidad de Navarra",
+                        "ciudad": "Pamplona",
+                        "programas": [
+                            {
+                                "nombre": "Doctorado en Medicamentos y Salud",
+                                "url": "https://www.unav.edu/web/programa-de-doctorado-en-medicamentos-y-salud",
+                                "lineas_investigacion": [
+                                    "Línea 1: Nuevas moléculas con aplicabilidad biológica, estudios de farmacología básica y clínica",
+                                    "Línea 2: Diseño Galénico, Farmacocinética y uso racional de los medicamentos"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "nombre": "Universidad Carlos III de Madrid",
+                        "ciudad": "Madrid",
+                        "programas": [
+                            {
+                                "nombre": "Doctorado en Ciencia y Tecnología Biomédica",
+                                "url": "https://www.uc3m.es/doctorado/ciencia-tecnologia-biomedica",
+                                "lineas_investigacion": [
+                                    "Tissue Engineering and Regenerative Medicine",
+                                    "Bioimpresión 3-D de tejidos y órganos"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "nombre": "Universidad de Alicante",
+                        "ciudad": "Alicante",
+                        "programas": [
+                            {
+                                "nombre": "Doctorado en Ingeniería Química",
+                                "url": "https://web.ua.es/es/doctorados/ingenieria-quimica/",
+                                "lineas_investigacion": [
+                                    "Caracterización, tratamiento y aprovechamiento de residuos",
+                                    "Tecnología y aplicaciones de materiales de carbono y grafeno"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "nombre": "Universidad de Sevilla",
+                        "ciudad": "Sevilla",
+                        "programas": [
+                            {
+                                "nombre": "Doctorado en Química",
+                                "url": "https://quimica.us.es/docencia/titulaciones/doctorado/el-programa",
+                                "lineas_investigacion": [
+                                    "Química organometálica y catálisis homogénea",
+                                    "Química analítica ambiental"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "nombre": "Universidad de Santiago de Compostela",
+                        "ciudad": "Santiago de Compostela",
+                        "programas": [
+                            {
+                                "nombre": "Programa de Doctorado en Ciencia y Tecnología Química",
+                                "url": "https://www.usc.gal/es/estudios/doctorados/ciencias/programa-doctorado-ciencia-tecnologia-quimica",
+                                "lineas_investigacion": [
+                                    "Ciencia de materiales: estructura y funcionalidad",
+                                    "Síntesis y catálisis"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "nombre": "Universidad de Málaga",
+                        "ciudad": "Málaga",
+                        "programas": [
+                            {
+                                "nombre": "Química y Tecnologías Químicas. Materiales y Nanotecnología",
+                                "url": "https://www.uma.es/doctorado-quimica/",
+                                "lineas_investigacion": [
+                                    "Materiales funcionales",
+                                    "Nanotecnología aplicada"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // Coordenadas de las ciudades
+        const coordenadasCiudades = {
+            "Pamplona": [42.8125, -1.6458],
+            "Madrid": [40.4168, -3.7038],
+            "Alicante": [38.3452, -0.4810],
+            "Sevilla": [37.3886, -5.9823],
+            "Santiago de Compostela": [42.8782, -8.5449],
+            "Málaga": [36.7213, -4.4214],
+            "Zaragoza": [41.6488, -0.8891],
+            "Navarra": [42.6954, -1.6761]
+        };
+
+        let map;
+        let markers = [];
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            populateFilters();
+            populateTable();
+            setupTabs();
+            setupFilters();
+        });
+
+        // Inicializar mapa
+        function initMap() {
+            map = L.map('map').setView([40.0, -4.0], 6);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Agregar marcadores
+            universidadesData.programas_doctorado.universidades.forEach(universidad => {
+                const coords = coordenadasCiudades[universidad.ciudad];
+                if (coords) {
+                    const marker = L.marker(coords)
+                        .addTo(map)
+                        .bindPopup(`<b>${universidad.nombre}</b><br>${universidad.ciudad}`)
+                        .on('click', () => showUniversityInfo(universidad));
+                    
+                    markers.push(marker);
+                }
+            });
+        }
+
+        // Configurar pestañas
+        function setupTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetTab = this.dataset.tab;
+                    
+                    // Actualizar pestañas activas
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Mostrar vista correspondiente
+                    document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
+                    document.getElementById(targetTab + '-view').classList.remove('hidden');
+                    
+                    // Redimensionar mapa si es necesario
+                    if (targetTab === 'mapa') {
+                        setTimeout(() => map.invalidateSize(), 100);
+                    }
+                });
+            });
+        }
+
+        // Poblar filtros
+        function populateFilters() {
+            const ciudades = [...new Set(universidadesData.programas_doctorado.universidades.map(u => u.ciudad))];
+            const ciudadSelect = document.getElementById('ciudadFilter');
+            
+            ciudades.forEach(ciudad => {
+                const option = document.createElement('option');
+                option.value = ciudad;
+                option.textContent = ciudad;
+                ciudadSelect.appendChild(option);
+            });
+        }
+
+        // Configurar filtros
+        function setupFilters() {
+            const filters = ['search', 'ciudadFilter', 'atraccionFilter', 'costoFilter', 'statusFilter'];
+            filters.forEach(filterId => {
+                document.getElementById(filterId).addEventListener('input', applyFilters);
+            });
+        }
+
+        // Aplicar filtros
+        function applyFilters() {
+            // Esta función se implementará para filtrar tanto el mapa como la tabla
+            console.log('Aplicando filtros...');
+        }
+
+        // Poblar tabla
+        function populateTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            universidadesData.programas_doctorado.universidades.forEach((universidad, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input class="editable" value="${universidad.nombre}" data-field="nombre" data-index="${index}"></td>
+                    <td><input class="editable" value="${universidad.ciudad}" data-field="ciudad" data-index="${index}"></td>
+                    <td>${universidad.programas.length} programas</td>
+                    <td><input class="editable" value="${universidad.indice_atraccion || ''}" data-field="indice_atraccion" data-index="${index}"></td>
+                    <td><input class="editable" value="${universidad.costo_vida || ''}" data-field="costo_vida" data-index="${index}"></td>
+                    <td><input class="editable" value="${universidad.status || ''}" data-field="status" data-index="${index}"></td>
+                    <td>
+                        <button onclick="verDetalles(${index})" style="background: linear-gradient(45deg, #f093fb, #f5576c); border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Ver</button>
+                        <button onclick="eliminarUniversidad(${index})" style="background: #ff4757; border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-left: 5px;">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Configurar campos editables
+            document.querySelectorAll('.editable').forEach(input => {
+                input.addEventListener('blur', function() {
+                    const index = this.dataset.index;
+                    const field = this.dataset.field;
+                    const value = this.value;
+                    
+                    // Actualizar datos
+                    if (field === 'nombre') {
+                        universidadesData.programas_doctorado.universidades[index].nombre = value;
+                    } else if (field === 'ciudad') {
+                        universidadesData.programas_doctorado.universidades[index].ciudad = value;
+                    } else {
+                        universidadesData.programas_doctorado.universidades[index][field] = value;
+                    }
+                });
+            });
+        }
+
+        // Mostrar información de universidad
+        function showUniversityInfo(universidad) {
+            const panel = document.getElementById('infoPanel');
+            const content = document.getElementById('infoPanelContent');
+            
+            let html = `
+                <h2>${universidad.nombre}</h2>
+                <p><strong>📍 Ciudad:</strong> ${universidad.ciudad}</p>
+                <h3>📚 Programas de Doctorado</h3>
+            `;
+            
+            universidad.programas.forEach(programa => {
+                html += `
+                    <div class="program-item">
+                        <h4>${programa.nombre}</h4>
+                        <p><strong>🔗 URL:</strong> <a href="${programa.url}" target="_blank" style="color: #f093fb;">${programa.url}</a></p>
+                        <p><strong>🔬 Líneas de Investigación:</strong></p>
+                        <ul>
+                            ${programa.lineas_investigacion.map(linea => `<li>${linea}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html;
+            panel.style.display = 'block';
+        }
+
+        // Cerrar panel de información
+        function closeInfoPanel() {
+            document.getElementById('infoPanel').style.display = 'none';
+        }
+
+        // Ver detalles desde tabla
+        function verDetalles(index) {
+            const universidad = universidadesData.programas_doctorado.universidades[index];
+            showUniversityInfo(universidad);
+        }
+
+        // Agregar universidad
+        function agregarUniversidad() {
+            const nombre = prompt('Nombre de la universidad:');
+            const ciudad = prompt('Ciudad:');
+            
+            if (nombre && ciudad) {
+                const nuevaUniversidad = {
+                    nombre: nombre,
+                    ciudad: ciudad,
+                    programas: [],
+                    indice_atraccion: '',
+                    costo_vida: '',
+                    status: ''
+                };
+                
+                universidadesData.programas_doctorado.universidades.push(nuevaUniversidad);
+                populateTable();
+                populateFilters();
+            }
+        }
+
+        // Eliminar universidad
+        function eliminarUniversidad(index) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta universidad?')) {
+                universidadesData.programas_doctorado.universidades.splice(index, 1);
+                populateTable();
+            }
+        }
+
+        // Cerrar panel al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            const panel = document.getElementById('infoPanel');
+            if (e.target === panel) {
+                closeInfoPanel();
+            }
+        });
+    </script>
+
+    <!-- Leaflet CSS y JS para el mapa -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</body>
+</html>

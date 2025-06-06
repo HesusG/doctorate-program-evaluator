@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctorados - España</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Doctorados</h1>
+            <p>Explora programas de doctorado en universidades españolas con un enfoque en ciencias químicas, biomédicas y relacionadas</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="mapa">🗺️ Mapa Interactivo</div>
+            <div class="tab" data-tab="tabla">📊 Vista Tabla</div>
+            <div class="tab" data-tab="analisis">📈 Análisis</div>
+            <div class="tab" data-tab="calificar">⭐ Calificar</div>
+            <div class="tab" data-tab="ranking">🏆 Ranking</div>
+            <div class="tab" data-tab="admin">⚙️ Admin</div>
+        </div>
+
+        <div class="filters">
+            <h3>🔍 Filtros</h3>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>Buscar Universidad</label>
+                    <input type="text" id="search" placeholder="Buscar por nombre...">
+                </div>
+                <div class="filter-group">
+                    <label>Ciudad</label>
+                    <select id="ciudadFilter">
+                        <option value="">Todas las ciudades</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Índice de Atracción</label>
+                    <select id="atraccionFilter">
+                        <option value="">Todos</option>
+                        <option value="alto">Alto</option>
+                        <option value="medio">Medio</option>
+                        <option value="bajo">Bajo</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Costo de Vida</label>
+                    <select id="costoFilter">
+                        <option value="">Todos</option>
+                        <option value="alto">Alto</option>
+                        <option value="medio">Medio</option>
+                        <option value="bajo">Bajo</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select id="statusFilter">
+                        <option value="">Todos</option>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="advanced-search">
+                <button id="toggleAdvancedSearch" class="toggle-advanced-btn">Búsqueda Avanzada ↓</button>
+                <div id="advancedSearchPanel" class="advanced-search-panel hidden">
+                    <div class="advanced-search-row">
+                        <div class="filter-group">
+                            <label>Búsqueda General</label>
+                            <input type="text" id="searchTextAdvanced" placeholder="Buscar en todos los campos...">
+                        </div>
+                        <div class="filter-group">
+                            <label>Universidad</label>
+                            <input type="text" id="universidadAdvanced" placeholder="Nombre de universidad...">
+                        </div>
+                        <div class="filter-group">
+                            <label>Ciudad</label>
+                            <input type="text" id="ciudadAdvanced" placeholder="Nombre de ciudad...">
+                        </div>
+                        <div class="filter-group">
+                            <label>Programa</label>
+                            <input type="text" id="programaAdvanced" placeholder="Nombre de programa...">
+                        </div>
+                    </div>
+                    <div class="advanced-search-row">
+                        <div class="filter-group">
+                            <label>Líneas de Investigación</label>
+                            <input type="text" id="lineaAdvanced" placeholder="Palabras clave...">
+                        </div>
+                        <div class="filter-group">
+                            <label>Calificación Mínima</label>
+                            <select id="calificacionAdvanced">
+                                <option value="">Cualquiera</option>
+                                <option value="1">1+</option>
+                                <option value="3">3+</option>
+                                <option value="5">5+</option>
+                                <option value="7">7+</option>
+                                <option value="9">9+</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Innovación Mínima</label>
+                            <select id="innovacionAdvanced">
+                                <option value="">Cualquiera</option>
+                                <option value="1">1+</option>
+                                <option value="3">3+</option>
+                                <option value="5">5+</option>
+                                <option value="7">7+</option>
+                                <option value="9">9+</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select id="statusAdvanced">
+                                <option value="">Cualquiera</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="considerando">Considerando</option>
+                                <option value="interesado">Interesado</option>
+                                <option value="aplicando">Aplicando</option>
+                                <option value="descartado">Descartado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="advanced-search-buttons">
+                        <button id="advancedSearchButton" class="search-btn">Buscar</button>
+                        <button id="resetAdvancedSearch" class="reset-btn">Restablecer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Vista Mapa -->
+            <div id="mapa-view" class="view">
+                <div id="map"></div>
+            </div>
+
+            <!-- Vista Tabla -->
+            <div id="tabla-view" class="view hidden">
+                <div class="table-header">
+                    <h3>Universidades y Programas</h3>
+                    <button class="add-btn" onclick="agregarUniversidad()">+ Agregar Universidad</button>
+                </div>
+                <div class="table-container">
+                    <table id="universidadesTable">
+                        <thead>
+                            <tr>
+                                <th>Universidad</th>
+                                <th>Ciudad</th>
+                                <th>Programas</th>
+                                <th>Programas por Estado</th>
+                                <th>Índice Atracción</th>
+                                <th>Costo de Vida</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Vista Análisis -->
+            <div id="analisis-view" class="view hidden">
+                <div class="analysis-header">
+                    <h3>📈 Análisis de Programas de Doctorado</h3>
+                </div>
+                
+                <div id="analysisContent" class="analysis-content">
+                    <div class="stats-grid">
+                        <div class="stats-card">
+                            <h4>Universidades</h4>
+                            <div class="stats-number" id="universidadesCount">0</div>
+                        </div>
+                        <div class="stats-card">
+                            <h4>Programas</h4>
+                            <div class="stats-number" id="programasCount">0</div>
+                        </div>
+                        <div class="stats-card">
+                            <h4>Ciudades</h4>
+                            <div class="stats-number" id="ciudadesCount">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="charts-container">
+                        <div class="chart-wrapper">
+                            <h4>Métricas Académicas</h4>
+                            <div class="university-selector-container">
+                                <select id="universitySelector" onchange="updateCharts()">
+                                    <option value="">Seleccionar Universidad</option>
+                                </select>
+                            </div>
+                            <div class="radar-chart-container">
+                                <canvas id="radarChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-wrapper">
+                            <h4>Calidad de Vida</h4>
+                            <div class="radar-chart-container">
+                                <canvas id="cityRadarChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-container">
+                        <h4>Resumen</h4>
+                        <div id="universitySummary" class="summary-content">
+                            <p>Selecciona una universidad para ver su análisis detallado.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="alert info-alert hidden" id="noDataAlert">
+                        <p>No hay datos enriquecidos disponibles. Usa la sección de Admin para enriquecer los datos con IA.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vista Calificar -->
+            <div id="calificar-view" class="view hidden">
+                <div class="calificar-header">
+                    <h3>⭐ Calificar Programas</h3>
+                </div>
+                
+                <div class="calificar-content">
+                    <div class="calificar-filters">
+                        <div class="filter-group">
+                            <label>Filtrar por Universidad</label>
+                            <select id="calificarUniversityFilter" onchange="filterProgramsToRate()">
+                                <option value="">Todas las universidades</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Filtrar por Ciudad</label>
+                            <select id="calificarCityFilter" onchange="filterProgramsToRate()">
+                                <option value="">Todas las ciudades</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Estado de Calificación</label>
+                            <select id="calificarStatusFilter" onchange="filterProgramsToRate()">
+                                <option value="">Todos</option>
+                                <option value="pendiente">Pendientes</option>
+                                <option value="calificado">Calificados</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Buscar</label>
+                            <input type="text" id="calificarSearchFilter" placeholder="Buscar programas..." oninput="filterProgramsToRate()">
+                        </div>
+                    </div>
+                    
+                    <div class="favorite-section">
+                        <h4>Programas Favoritos</h4>
+                        <div id="favoritesContainer" class="favorites-container">
+                            <p class="no-favorites-message">No hay programas favoritos guardados.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="programsContainer" class="programs-container">
+                        <!-- Programs will be loaded here dynamically -->
+                        <div class="loading-message">Cargando programas...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vista Ranking -->
+            <div id="ranking-view" class="view hidden">
+                <div class="ranking-header">
+                    <h3>🏆 Ranking de Programas</h3>
+                </div>
+                
+                <div class="ranking-content">
+                    <div class="ranking-filters">
+                        <div class="filter-group">
+                            <label>Filtrar por Universidad</label>
+                            <select id="rankingUniversityFilter" onchange="filterRankings()">
+                                <option value="">Todas las universidades</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Filtrar por Ciudad</label>
+                            <select id="rankingCityFilter" onchange="filterRankings()">
+                                <option value="">Todas las ciudades</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Ver Top</label>
+                            <select id="rankingLimitFilter" onchange="filterRankings()">
+                                <option value="10">10 mejores</option>
+                                <option value="20">20 mejores</option>
+                                <option value="50">50 mejores</option>
+                                <option value="0">Todos</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-section">
+                        <div class="stats-grid">
+                            <div class="stats-card">
+                                <h4>Programas Calificados</h4>
+                                <div class="stats-number" id="programasCalificadosCount">0</div>
+                            </div>
+                            <div class="stats-card">
+                                <h4>Calificación Promedio</h4>
+                                <div class="stats-number" id="calificacionPromedio">0.0</div>
+                            </div>
+                            <div class="stats-card">
+                                <h4>Top Universidad</h4>
+                                <div class="stats-text" id="topUniversidad">-</div>
+                            </div>
+                            <div class="stats-card">
+                                <h4>Top Ciudad</h4>
+                                <div class="stats-text" id="topCiudad">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ranking-table-container">
+                        <h4>Programas Mejor Calificados</h4>
+                        <table id="rankingTable" class="ranking-table">
+                            <thead>
+                                <tr>
+                                    <th>Posición</th>
+                                    <th>Programa</th>
+                                    <th>Universidad</th>
+                                    <th>Ciudad</th>
+                                    <th>Calificación</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rankingTableBody">
+                                <!-- Ranking rows will be added here -->
+                                <tr>
+                                    <td colspan="7" class="no-data">No hay programas calificados</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="chart-section">
+                        <h4>Distribución de Calificaciones</h4>
+                        <div class="chart-container">
+                            <canvas id="gradesDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vista Admin -->
+            <div id="admin-view" class="view hidden">
+                <div class="admin-header">
+                    <h3>⚙️ Panel de Administración</h3>
+                </div>
+                
+                <div class="admin-content">
+                    <div class="admin-section">
+                        <h4>🔄 Enriquecimiento de Datos</h4>
+                        <p>Esta función utiliza inteligencia artificial para enriquecer los datos existentes con:</p>
+                        <ul>
+                            <li>Coordenadas geográficas para cada ciudad</li>
+                            <li>Resúmenes de programas y líneas de investigación</li>
+                            <li>Métricas académicas para cada universidad</li>
+                            <li>Datos de calidad de vida para cada ciudad</li>
+                        </ul>
+                        <div class="action-container">
+                            <button id="enrichButton" class="enrich-btn" onclick="confirmEnrichData()">
+                                🔄 Enriquecer Datos con IA
+                            </button>
+                            <div id="loadingIndicator" class="loading-indicator hidden">
+                                <div class="loading-spinner"></div>
+                                <span>Procesando datos...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-section">
+                        <h4>📍 Corrección de Datos Geográficos</h4>
+                        <p>Esta función corrige los siguientes problemas en los datos geográficos:</p>
+                        <ul>
+                            <li>Coordenadas incorrectas o faltantes de ciudades</li>
+                            <li>Distancias erróneas a Madrid</li>
+                            <li>Métricas incoherentes relacionadas con la ubicación</li>
+                        </ul>
+                        <p>Utiliza una base de datos verificada de coordenadas de ciudades españolas.</p>
+                        <div class="action-container">
+                            <button id="fixGeoButton" class="fix-geo-btn" onclick="confirmFixGeographicData()">
+                                🗺️ Corregir Datos Geográficos
+                            </button>
+                            <div id="geoFixProgressContainer" class="progress-container hidden">
+                                <div class="progress-bar">
+                                    <div id="geoFixProgressBar" class="progress-bar-fill" style="width: 0%"></div>
+                                </div>
+                                <div id="geoFixProgressText" class="progress-text">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="info-panel" id="infoPanel">
+        <button class="close-btn" onclick="closeInfoPanel()">×</button>
+        <div id="infoPanelContent"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
