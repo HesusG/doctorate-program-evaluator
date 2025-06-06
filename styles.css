@@ -316,51 +316,57 @@ tr:hover {
 
 .university-btn {
     background: linear-gradient(45deg, #20bf6b, #0fb9b1);
+    min-width: 150px;
+    justify-content: center;
 }
 
 .city-btn {
     background: linear-gradient(45deg, #2e86de, #54a0ff);
+    min-width: 150px;
+    justify-content: center;
 }
 
 .image-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    opacity: 0.9;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    opacity: 0.95;
 }
 
 .close-btn {
-    position: absolute;
-    top: 18px;
-    right: 18px;
-    background: #f8f8f8;
-    border: none;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #fff;
+    border: 1px solid #eaeaea;
     color: #764ba2;
     font-size: 24px;
     cursor: pointer;
-    width: 35px;
-    height: 35px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transition: all 0.2s ease;
+    z-index: 1100;
 }
 
 .close-btn:hover {
-    background: #f0f0f0;
+    background: #f5f5f5;
     transform: scale(1.1);
-    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
 }
 
 .program-item {
-    background: #f2f2f7; /* Fondo ligeramente más oscuro para reducir fatiga visual */
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 22px;
-    border-left: 4px solid #f093fb;
+    background: #2a2d3e; /* Fondo oscuro para contraste */
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border-left: 5px solid #f093fb;
     transition: all 0.3s ease;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    color: #e0e0e0; /* Texto claro para contrastar con el fondo oscuro */
 }
 
 /* Status-specific left borders */
@@ -401,41 +407,50 @@ tr:hover {
 }
 
 .program-item h4 {
-    color: #e03e6f; /* Color más oscuro para mejor legibilidad */
+    color: #f5576c; /* Color del título que contrasta con fondo oscuro */
     margin: 0 0 5px 0;
-    font-size: 1.3rem;
-    font-weight: 600;
+    font-size: 1.4rem;
+    font-weight: 700;
 }
 
 .program-item p {
     margin-bottom: 16px;
 }
 
+.program-item strong {
+    color: #b0b0c0; /* Color para etiquetas en texto claro */
+    font-weight: 600;
+}
+
 .program-summary {
-    color: #444;
-    line-height: 1.5;
-    font-size: 1rem;
+    color: #e0e0e0; /* Texto claro para el resumen */
+    line-height: 1.6;
+    font-size: 1.05rem;
 }
 
 .program-item a {
-    color: #8e44ad; /* Color de enlace más legible */
+    color: #bb86fc; /* Color de enlace para fondo oscuro */
     font-weight: 500;
     text-decoration: none;
 }
 
 .program-item a:hover {
     text-decoration: underline;
+    color: #d9b2ff; /* Color más claro al hover */
 }
 
 .program-rating-row {
     display: flex;
     align-items: center;
-    margin-bottom: 16px;
-    gap: 10px;
+    margin-bottom: 20px;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.07);
+    padding: 12px 15px;
+    border-radius: 8px;
 }
 
 .program-rating-label {
-    min-width: 100px;
+    min-width: 120px;
 }
 
 .program-stars {
@@ -445,18 +460,20 @@ tr:hover {
 }
 
 .rating-value {
-    font-size: 0.9rem;
-    color: #666;
-    margin-left: 5px;
+    font-size: 0.95rem;
+    color: #bb86fc;
+    margin-left: 10px;
+    font-weight: 600;
 }
 
 .program-item .star {
-    color: #ddd;
-    font-size: 1.2rem;
+    color: #50525e; /* Estrella vacía más oscura para fondo oscuro */
+    font-size: 1.3rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .program-item .star.filled {
-    color: #f5576c;
+    color: #ffb957; /* Amarillo/dorado para las estrellas llenas */
 }
 
 .program-summary-section {
@@ -465,17 +482,18 @@ tr:hover {
 }
 
 .program-item .no-data {
-    color: #888;
+    color: #8d8d9e;
     font-style: italic;
     padding: 5px 0;
     display: inline-block;
 }
 
 .program-status {
-    font-size: 0.75rem;
-    padding: 4px 10px;
+    font-size: 0.8rem;
+    padding: 4px 12px;
     border-radius: 20px;
     font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Status styles */
