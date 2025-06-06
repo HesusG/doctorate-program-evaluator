@@ -1,5 +1,7 @@
 // API URLs
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = window.location.hostname === 'localhost' ? 
+    'http://localhost:3000/api' : 
+    `${window.location.protocol}//${window.location.host}/api`;
 const UNIVERSIDADES_URL = `${API_BASE_URL}/universidades`;
 const PROGRAMAS_URL = `${API_BASE_URL}/programas`;
 const ENRICH_URL = `${API_BASE_URL}/enrich`;
@@ -14,8 +16,9 @@ let markers = [];
 let radarChart = null;
 let cityRadarChart = null;
 
-// Coordenadas de las ciudades
+// Coordenadas de las ciudades (incluidas ciudades de Portugal)
 const coordenadasCiudades = {
+    // España
     "Pamplona": [42.8125, -1.6458],
     "Madrid": [40.4168, -3.7038],
     "Alicante": [38.3452, -0.4810],
@@ -27,7 +30,14 @@ const coordenadasCiudades = {
     "Barcelona": [41.3851, 2.1734],
     "Valencia": [39.4699, -0.3763],
     "Granada": [37.1773, -3.5986],
-    "Bilbao": [43.2630, -2.9350]
+    "Bilbao": [43.2630, -2.9350],
+    // Portugal
+    "Lisboa": [38.7223, -9.1393],
+    "Porto": [41.1579, -8.6291],
+    "Coimbra": [40.2033, -8.4103],
+    "Braga": [41.5454, -8.4265],
+    "Aveiro": [40.6405, -8.6538],
+    "Faro": [37.0193, -7.9304]
 };
 
 // Inicialización
@@ -143,7 +153,8 @@ async function fetchAnalysisData() {
 
 // Inicializar mapa
 function initMap() {
-    map = L.map('map').setView([40.0, -4.0], 6);
+    // Centrar el mapa en la península ibérica para mostrar tanto España como Portugal
+    map = L.map('map').setView([40.0, -5.0], 5);
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
@@ -162,7 +173,28 @@ function updateMapMarkers() {
     // Add new markers
     universidadesData.programas_doctorado.universidades.forEach(universidad => {
         // Try to use coords from enriched data if available
-        let coords = universidad.coords ? [universidad.coords.lat, universidad.coords.lon] : coordenadasCiudades[universidad.ciudad];
+        let coords = null;
+        
+        // First check if universidad has coords object
+        if (universidad.coords && universidad.coords.lat && universidad.coords.lon) {
+            coords = [universidad.coords.lat, universidad.coords.lon];
+        } 
+        // Then try to get coords from the predefined coordinates
+        else if (universidad.ciudad && coordenadasCiudades[universidad.ciudad]) {
+            coords = coordenadasCiudades[universidad.ciudad];
+        }
+        // For universities in Portugal, try to guess the city
+        else if (universidad.ciudad) {
+            // Check if any city name contains this one (for handling variations)
+            const cityKeys = Object.keys(coordenadasCiudades);
+            for (const cityKey of cityKeys) {
+                if (universidad.ciudad.includes(cityKey) || cityKey.includes(universidad.ciudad)) {
+                    coords = coordenadasCiudades[cityKey];
+                    console.log(`Using coordinates for ${cityKey} for university in ${universidad.ciudad}`);
+                    break;
+                }
+            }
+        }
         
         if (coords) {
             const marker = L.marker(coords)
@@ -171,6 +203,8 @@ function updateMapMarkers() {
                 .on('click', () => showUniversityInfo(universidad));
             
             markers.push(marker);
+        } else {
+            console.warn(`Coordenadas no encontradas para ${universidad.ciudad}. La universidad no aparecerá en el mapa.`);
         }
     });
 }
@@ -314,7 +348,27 @@ function applyFilters() {
         
         if (matchesFilters(universidad.nombre, universidad.ciudad, universidad.indice_atraccion, universidad.costo_vida, status)) {
             // Try to use coords from enriched data if available
-            let coords = universidad.coords ? [universidad.coords.lat, universidad.coords.lon] : coordenadasCiudades[universidad.ciudad];
+            let coords = null;
+            
+            // First check if universidad has coords object
+            if (universidad.coords && universidad.coords.lat && universidad.coords.lon) {
+                coords = [universidad.coords.lat, universidad.coords.lon];
+            } 
+            // Then try to get coords from the predefined coordinates
+            else if (universidad.ciudad && coordenadasCiudades[universidad.ciudad]) {
+                coords = coordenadasCiudades[universidad.ciudad];
+            }
+            // For universities in Portugal, try to guess the city
+            else if (universidad.ciudad) {
+                // Check if any city name contains this one (for handling variations)
+                const cityKeys = Object.keys(coordenadasCiudades);
+                for (const cityKey of cityKeys) {
+                    if (universidad.ciudad.includes(cityKey) || cityKey.includes(universidad.ciudad)) {
+                        coords = coordenadasCiudades[cityKey];
+                        break;
+                    }
+                }
+            }
             
             if (coords) {
                 const marker = L.marker(coords)
@@ -451,7 +505,6 @@ function resetAdvancedSearch() {
     });
 }
 
-// Add custom styles
 function addCustomStyles() {
     // Add any custom styles here that are needed dynamically
     const styleElement = document.createElement('style');
@@ -544,7 +597,13 @@ function showUniversityInfo(universidad) {
     const content = document.getElementById('infoPanelContent');
     
     let html = `
-        <h2>${universidad.nombre}</h2>
+        <div class="university-header">
+            <h2>${universidad.nombre}</h2>
+            <div class="image-buttons">
+                <button class="image-btn university-btn" onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(universidad.nombre)}&tbm=isch', '_blank')">🏛️ Ver Universidad</button>
+                <button class="image-btn city-btn" onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(universidad.ciudad)}&tbm=isch', '_blank')">🏙️ Ver Ciudad</button>
+            </div>
+        </div>
         <p><strong>📍 Ciudad:</strong> ${universidad.ciudad}</p>
         <h3>📚 Programas de Doctorado</h3>
     `;

@@ -40,18 +40,42 @@ async function connectToMongo() {
 /**
  * Get coordinates for a city using Nominatim/OpenStreetMap
  * @param {string} city - City name
- * @param {string} [country='Spain'] - Country name
+ * @param {string} [country=null] - Country name, will be determined from city if null
  * @returns {Promise<Object|null>} Coordinates object or null
  */
-async function getCoordinates(city, country = 'Spain') {
+async function getCoordinates(city, country = null) {
   try {
+    // Determine country based on city name if not provided
+    if (!country) {
+      // Portuguese cities
+      const portugueseCities = ['Lisboa', 'Porto', 'Coimbra', 'Braga', 'Aveiro', 'Faro'];
+      if (portugueseCities.includes(city) || 
+          portugueseCities.some(pCity => city.includes(pCity)) ||
+          city.includes('Portugal')) {
+        country = 'Portugal';
+      } else {
+        // Default to Spain
+        country = 'Spain';
+      }
+    }
+    
+    const params = {
+      format: 'json',
+      limit: 1
+    };
+    
+    // If we have a city name, use it
+    if (city) {
+      params.city = city;
+    }
+    
+    // Add country parameter
+    if (country) {
+      params.country = country;
+    }
+    
     const response = await axios.get('https://nominatim.openstreetmap.org/search', {
-      params: {
-        city: city,
-        country: country,
-        format: 'json',
-        limit: 1
-      },
+      params: params,
       headers: {
         'User-Agent': 'GraduateProgramsEvaluator/1.0'
       }
@@ -65,7 +89,7 @@ async function getCoordinates(city, country = 'Spain') {
     }
     return null;
   } catch (error) {
-    console.error(`Error getting coordinates for ${city}: ${error}`);
+    console.error(`Error getting coordinates for ${city} in ${country}: ${error}`);
     return null;
   }
 }
@@ -172,13 +196,24 @@ async function getCityMetrics(ciudad) {
   try {
     const metrics = {};
     
+    // Determine if the city is in Portugal
+    const portugueseCities = ['Lisboa', 'Porto', 'Coimbra', 'Braga', 'Aveiro', 'Faro'];
+    const isPortugueseCity = portugueseCities.includes(ciudad) || 
+                            portugueseCities.some(pCity => ciudad.includes(pCity)) ||
+                            ciudad.includes('Portugal');
+    
+    // Country-specific assistant content
+    const countryContext = isPortugueseCity ? 
+      "Eres un asistente especializado en economía y datos de ciudades portuguesas." : 
+      "Eres un asistente especializado en economía y datos de ciudades españolas.";
+    
     // Costo de vida
     const costoVidaResponse = await openaiClient.post('/chat/completions', {
       model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
-          content: "Eres un asistente especializado en economía y datos de ciudades españolas."
+          content: countryContext
         },
         {
           role: "user",
@@ -194,7 +229,10 @@ async function getCityMetrics(ciudad) {
     metrics.costo_vida = costoVidaMatch ? parseInt(costoVidaMatch[0]) : 70;
     metrics.costo_vida_comentario = costoVidaText;
     
-    // Distancia a Madrid
+    // Reference city for distance - Madrid for Spain, Lisboa for Portugal
+    const referenceCity = isPortugueseCity ? "Lisboa" : "Madrid";
+    
+    // Distancia a la ciudad de referencia
     const distanciaResponse = await openaiClient.post('/chat/completions', {
       model: "gpt-3.5-turbo",
       messages: [
@@ -204,7 +242,7 @@ async function getCityMetrics(ciudad) {
         },
         {
           role: "user",
-          content: `Calcula la distancia aérea en kilómetros entre ${ciudad} y Madrid, basándote en coordenadas. Devuélvela como número entero.`
+          content: `Calcula la distancia aérea en kilómetros entre ${ciudad} y ${referenceCity}, basándote en coordenadas. Devuélvela como número entero.`
         }
       ],
       max_tokens: 50,
@@ -215,12 +253,16 @@ async function getCityMetrics(ciudad) {
     metrics.distancia_a_madrid_km = distanciaMatch ? parseInt(distanciaMatch[0]) : 300;
     
     // Calidad del servicio médico
+    const medicoSystemContent = isPortugueseCity ? 
+      "Eres un asistente especializado en sistemas sanitarios portugueses." : 
+      "Eres un asistente especializado en sistemas sanitarios españoles.";
+      
     const medicoResponse = await openaiClient.post('/chat/completions', {
       model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
-          content: "Eres un asistente especializado en sistemas sanitarios españoles."
+          content: medicoSystemContent
         },
         {
           role: "user",
@@ -279,7 +321,7 @@ async function getCityMetrics(ciudad) {
     
     return metrics;
   } catch (error) {
-    console.error(`Error getting city metrics: ${error}`);
+    console.error(`Error getting city metrics for ${ciudad}: ${error}`);
     return {
       costo_vida: 70,
       distancia_a_madrid_km: 300,
