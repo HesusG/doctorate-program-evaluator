@@ -363,22 +363,58 @@ tr:hover {
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
 }
 
-.program-header {
+/* Status-specific left borders */
+.program-item.status-aplicando {
+    border-left-color: #0abde3;
+}
+
+.program-item.status-interesado {
+    border-left-color: #3c40c6;
+}
+
+.program-item.status-considerando {
+    border-left-color: #4b6584;
+}
+
+.program-item.status-pendiente {
+    border-left-color: #778ca3;
+}
+
+.program-item.status-descartado {
+    border-left-color: #ee5253;
+    opacity: 0.85;
+}
+
+.program-item-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.program-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .program-item h4 {
     color: #e03e6f; /* Color más oscuro para mejor legibilidad */
-    margin: 0 0 12px 0;
+    margin: 0 0 5px 0;
     font-size: 1.3rem;
     font-weight: 600;
 }
 
 .program-item p {
     margin-bottom: 16px;
+}
+
+.program-summary {
+    color: #444;
+    line-height: 1.5;
+    font-size: 1rem;
 }
 
 .program-item a {
@@ -391,28 +427,55 @@ tr:hover {
     text-decoration: underline;
 }
 
-.program-item ul {
-    list-style: none;
-    padding-left: 5px;
-    margin-top: 12px;
+.program-rating-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 10px;
 }
 
-.program-item li {
-    padding: 5px 0;
-    color: #444;
-    line-height: 1.4;
+.program-rating-label {
+    min-width: 100px;
 }
 
-.program-item li::before {
-    content: "• ";
-    color: #f093fb;
-    font-weight: bold;
+.program-stars {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rating-value {
+    font-size: 0.9rem;
+    color: #666;
+    margin-left: 5px;
+}
+
+.program-item .star {
+    color: #ddd;
+    font-size: 1.2rem;
+}
+
+.program-item .star.filled {
+    color: #f5576c;
+}
+
+.program-summary-section {
+    margin-top: 10px;
+    padding-top: 5px;
 }
 
 .program-item .no-data {
     color: #888;
     font-style: italic;
-    padding: 10px 0;
+    padding: 5px 0;
+    display: inline-block;
+}
+
+.program-status {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
 }
 
 /* Status styles */

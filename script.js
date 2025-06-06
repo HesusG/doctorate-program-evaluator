@@ -609,29 +609,58 @@ function showUniversityInfo(universidad) {
     `;
     
     universidad.programas.forEach(programa => {
-        // Verificar si hay líneas de investigación
-        let lineasHtml = '';
-        if (programa.lineas_investigacion && programa.lineas_investigacion.length > 0 && programa.lineas_investigacion[0] !== '') {
-            lineasHtml = `
-                <ul>
-                    ${programa.lineas_investigacion.map(linea => `<li>${linea}</li>`).join('')}
-                </ul>
-            `;
-        } else {
-            lineasHtml = `<p class="no-data">No se han proporcionado líneas de investigación para este programa.</p>`;
-        }
+        // Determinar el estado del programa
+        const status = programa.status || 'pendiente';
+        const statusLabels = {
+            'pendiente': 'Pendiente',
+            'considerando': 'Considerando',
+            'interesado': 'Interesado',
+            'aplicando': 'Aplicando',
+            'descartado': 'Descartado'
+        };
+        const statusLabel = statusLabels[status] || 'Pendiente';
+        
+        // Verificar si hay resumen
+        const resumenHtml = programa.resumen ? 
+            `<p class="program-summary">${programa.resumen}</p>` : 
+            `<p class="no-data">No hay resumen disponible para este programa.</p>`;
         
         // Verificar si hay URL
         const urlHtml = programa.url ? 
             `<p><strong>🔗 URL:</strong> <a href="${programa.url}" target="_blank">${programa.url}</a></p>` : 
             `<p><strong>🔗 URL:</strong> <span class="no-data">No disponible</span></p>`;
         
+        // Obtener calificación en estrellas
+        const rating = programa.calificacion ? programa.calificacion.valor : 0;
+        const starsHtml = `
+            <div class="program-stars">
+                ${getStarsHTML(rating)}
+                <span class="rating-value">${rating > 0 ? rating + '/5' : 'Sin calificar'}</span>
+            </div>
+        `;
+        
         html += `
-            <div class="program-item">
-                <h4>${programa.nombre}</h4>
+            <div class="program-item status-${status}">
+                <div class="program-item-header">
+                    <h4>${programa.nombre}</h4>
+                    <div class="program-meta">
+                        <span class="program-status status-badge status-${status}">${statusLabel}</span>
+                    </div>
+                </div>
+                
                 ${urlHtml}
-                <p><strong>🔬 Líneas de Investigación:</strong></p>
-                ${lineasHtml}
+                
+                <div class="program-rating-row">
+                    <div class="program-rating-label">
+                        <strong>⭐ Calificación:</strong>
+                    </div>
+                    ${starsHtml}
+                </div>
+                
+                <div class="program-summary-section">
+                    <p><strong>📝 Resumen:</strong></p>
+                    ${resumenHtml}
+                </div>
             </div>
         `;
     });
