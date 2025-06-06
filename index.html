@@ -6,8 +6,19 @@
     <title>Doctorados - España</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/rowgroup/1.4.1/css/rowGroup.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.min.css">
     <!-- Chart.js para gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jQuery y DataTables JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/rowgroup/1.4.1/js/dataTables.rowGroup.min.js"></script>
+    <script src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -148,24 +159,224 @@
             <div id="tabla-view" class="view hidden">
                 <div class="table-header">
                     <h3>Universidades y Programas</h3>
-                    <button class="add-btn" onclick="agregarUniversidad()">+ Agregar Universidad</button>
+                    <div class="table-actions">
+                        <button class="add-btn" onclick="agregarUniversidad()">+ Agregar Universidad</button>
+                        <button class="add-program-btn" onclick="mostrarAgregarPrograma()">+ Agregar Programa</button>
+                        <button class="save-btn" id="saveTableChanges">💾 Guardar Cambios</button>
+                    </div>
                 </div>
-                <div class="table-container">
-                    <table id="universidadesTable">
-                        <thead>
-                            <tr>
-                                <th>Universidad</th>
-                                <th>Ciudad</th>
-                                <th>Programas</th>
-                                <th>Programas por Estado</th>
-                                <th>Calificación</th>
-                                <th>Costo de Vida</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                        </tbody>
-                    </table>
+                
+                <!-- Panel principal de universidades -->
+                <div class="universities-container">
+                    <!-- Las universidades se cargarán dinámicamente -->
+                </div>
+                
+                <!-- Plantilla para los paneles de universidad -->
+                <template id="university-panel-template">
+                    <div class="university-panel">
+                        <div class="university-header">
+                            <h4 class="university-name">Nombre de Universidad</h4>
+                            <div class="university-meta">
+                                <span class="university-city">Ciudad</span>
+                                <span class="program-count">0 programas</span>
+                            </div>
+                            <div class="university-actions">
+                                <button class="add-program-uni-btn">+ Programa</button>
+                                <button class="edit-university-btn">✏️ Editar</button>
+                            </div>
+                        </div>
+                        <div class="programs-container">
+                            <!-- Los programas se cargarán dinámicamente -->
+                        </div>
+                    </div>
+                </template>
+                
+                <!-- Plantilla para las tarjetas de programa -->
+                <template id="program-card-template">
+                    <div class="program-card">
+                        <div class="program-header">
+                            <div class="program-title-container">
+                                <h5 class="program-name">Nombre del Programa</h5>
+                                <a href="#" target="_blank" class="program-link">🔗 Link</a>
+                            </div>
+                            <div class="program-status-container">
+                                <select class="status-select">
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="considerando">Considerando</option>
+                                    <option value="interesado">Interesado</option>
+                                    <option value="aplicando">Aplicando</option>
+                                    <option value="descartado">Descartado</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="program-content">
+                            <div class="program-rating-section">
+                                <div class="section-label">Calificación:</div>
+                                <div class="rating-stars"></div>
+                            </div>
+                            
+                            <div class="program-summary-section">
+                                <div class="section-label">Resumen:</div>
+                                <div class="editable-field resumen-field" data-field="resumen">
+                                    <div class="field-content">Sin resumen disponible</div>
+                                    <button class="edit-field-btn">✏️</button>
+                                </div>
+                            </div>
+                            
+                            <div class="program-metrics-section">
+                                <div class="section-header">
+                                    <div class="section-label">Métricas Académicas:</div>
+                                    <button class="toggle-metrics-btn">▼</button>
+                                </div>
+                                <div class="metrics-content">
+                                    <div class="metric-row">
+                                        <span class="metric-label">Innovación:</span>
+                                        <div class="editable-field metric-field" data-field="innovacion">
+                                            <div class="field-content">N/A</div>
+                                            <button class="edit-field-btn">✏️</button>
+                                        </div>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">Interdisciplinariedad:</span>
+                                        <div class="editable-field metric-field" data-field="interdisciplinariedad">
+                                            <div class="field-content">N/A</div>
+                                            <button class="edit-field-btn">✏️</button>
+                                        </div>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">Impacto:</span>
+                                        <div class="editable-field metric-field" data-field="impacto">
+                                            <div class="field-content">N/A</div>
+                                            <button class="edit-field-btn">✏️</button>
+                                        </div>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">Internacional:</span>
+                                        <div class="editable-field metric-field" data-field="internacional">
+                                            <div class="field-content">N/A</div>
+                                            <button class="edit-field-btn">✏️</button>
+                                        </div>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">Aplicabilidad:</span>
+                                        <div class="editable-field metric-field" data-field="aplicabilidad">
+                                            <div class="field-content">N/A</div>
+                                            <button class="edit-field-btn">✏️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="program-city-section">
+                                <div class="section-header">
+                                    <div class="section-label">Datos de Ciudad:</div>
+                                    <button class="toggle-city-btn">▼</button>
+                                </div>
+                                <div class="city-content">
+                                    <div class="metric-row">
+                                        <span class="metric-label">Costo de Vida:</span>
+                                        <div class="editable-field costo-field" data-field="costo_vida">
+                                            <div class="field-content">N/A</div>
+                                            <button class="edit-field-btn">✏️</button>
+                                        </div>
+                                    </div>
+                                    <div class="metric-row city-description">
+                                        <span class="metric-label">Descripción:</span>
+                                        <div class="city-description-content">Sin descripción disponible</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="program-actions">
+                                <button class="view-program-btn">👁️ Ver</button>
+                                <button class="edit-program-btn">✏️ Editar</button>
+                                <button class="delete-program-btn">🗑️ Eliminar</button>
+                                <button class="enrich-program-btn">🧠 Enrich with AI</button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            
+            <!-- Modal de Confirmación para Guardar -->
+            <div id="saveConfirmModal" class="modal">
+                <div class="modal-content">
+                    <h4>Confirmar Cambios</h4>
+                    <p>¿Estás seguro de que quieres guardar todos los cambios realizados?</p>
+                    <div class="modal-actions">
+                        <button id="confirmSaveBtn" class="confirm-btn">Sí, guardar cambios</button>
+                        <button id="cancelSaveBtn" class="cancel-btn">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal para Agregar Programa -->
+            <div id="addProgramModal" class="modal">
+                <div class="modal-content">
+                    <h4>Agregar Nuevo Programa</h4>
+                    <div class="form-group">
+                        <label>Universidad:</label>
+                        <select id="universidadSelect">
+                            <!-- Las universidades se cargarán dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre del Programa:</label>
+                        <input type="text" id="programaNombre" placeholder="Nombre del programa de doctorado">
+                    </div>
+                    <div class="form-group">
+                        <label>URL:</label>
+                        <input type="text" id="programaURL" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label>Resumen:</label>
+                        <textarea id="programaResumen" placeholder="Descripción del programa..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Status:</label>
+                        <select id="programaStatus">
+                            <option value="pendiente">Pendiente</option>
+                            <option value="considerando">Considerando</option>
+                            <option value="interesado">Interesado</option>
+                            <option value="aplicando">Aplicando</option>
+                            <option value="descartado">Descartado</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button id="saveProgramBtn" class="confirm-btn">Guardar Programa</button>
+                        <button id="cancelProgramBtn" class="cancel-btn">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal para Enriquecimiento con IA (individual) -->
+            <div id="enrichProgramModal" class="modal">
+                <div class="modal-content">
+                    <h4>Enriquecer Programa con IA</h4>
+                    <p>Selecciona el modelo de IA y las opciones de enriquecimiento:</p>
+                    
+                    <div class="form-group">
+                        <label>Modelo de IA:</label>
+                        <select id="aiModelSelect">
+                            <option value="gpt-3.5">GPT-3.5 (Rápido)</option>
+                            <option value="omni-light">Omni Light (Económico)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Opciones:</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" id="enrichResumen" checked> Generar resumen</label>
+                            <label><input type="checkbox" id="enrichMetrics" checked> Calcular métricas</label>
+                            <label><input type="checkbox" id="enrichCiudad" checked> Datos de ciudad</label>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button id="startEnrichBtn" class="confirm-btn">Iniciar enriquecimiento</button>
+                        <button id="cancelEnrichBtn" class="cancel-btn">Cancelar</button>
+                    </div>
                 </div>
             </div>
 
@@ -419,5 +630,6 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="script.js"></script>
+    <script src="table-view-new.js"></script>
 </body>
 </html>
