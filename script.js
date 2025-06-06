@@ -609,14 +609,29 @@ function showUniversityInfo(universidad) {
     `;
     
     universidad.programas.forEach(programa => {
-        html += `
-            <div class="program-item">
-                <h4>${programa.nombre}</h4>
-                <p><strong>🔗 URL:</strong> <a href="${programa.url}" target="_blank" style="color: #f093fb;">${programa.url}</a></p>
-                <p><strong>🔬 Líneas de Investigación:</strong></p>
+        // Verificar si hay líneas de investigación
+        let lineasHtml = '';
+        if (programa.lineas_investigacion && programa.lineas_investigacion.length > 0 && programa.lineas_investigacion[0] !== '') {
+            lineasHtml = `
                 <ul>
                     ${programa.lineas_investigacion.map(linea => `<li>${linea}</li>`).join('')}
                 </ul>
+            `;
+        } else {
+            lineasHtml = `<p class="no-data">No se han proporcionado líneas de investigación para este programa.</p>`;
+        }
+        
+        // Verificar si hay URL
+        const urlHtml = programa.url ? 
+            `<p><strong>🔗 URL:</strong> <a href="${programa.url}" target="_blank">${programa.url}</a></p>` : 
+            `<p><strong>🔗 URL:</strong> <span class="no-data">No disponible</span></p>`;
+        
+        html += `
+            <div class="program-item">
+                <h4>${programa.nombre}</h4>
+                ${urlHtml}
+                <p><strong>🔬 Líneas de Investigación:</strong></p>
+                ${lineasHtml}
             </div>
         `;
     });

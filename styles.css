@@ -248,9 +248,10 @@ tr:hover {
     transform: translate(-50%, -50%);
     background: white; /* Fondo sólido */
     border-radius: 20px;
-    padding: 30px;
-    max-width: 600px;
-    max-height: 80vh;
+    padding: 35px;
+    width: 90%;
+    max-width: 700px; /* Panel más ancho */
+    max-height: 85vh;
     overflow-y: auto;
     border: 1px solid #e0e0e0;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
@@ -260,40 +261,57 @@ tr:hover {
 }
 
 .info-panel h2 {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     color: #f093fb;
+    font-size: 1.9rem;
 }
 
 .info-panel h3 {
-    margin: 20px 0 10px 0;
+    margin: 25px 0 15px 0;
     color: #764ba2; /* Color para mantener consistencia */
+    font-size: 1.4rem;
 }
 
 .university-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
+    align-items: flex-start;
+    margin-bottom: 20px;
     flex-wrap: wrap;
+    border-bottom: 1px solid #eaeaea;
+    padding-bottom: 15px;
+}
+
+.info-panel p {
+    font-size: 1.05rem;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    color: #444;
+}
+
+.info-panel strong {
+    font-weight: 600;
+    color: #555;
 }
 
 .image-buttons {
     display: flex;
-    gap: 10px;
-    margin-top: 10px;
+    gap: 12px;
+    margin-top: 5px;
 }
 
 .image-btn {
     display: inline-flex;
     align-items: center;
-    padding: 8px 15px;
+    padding: 10px 18px;
     border: none;
     border-radius: 30px;
     cursor: pointer;
-    font-weight: 500;
-    font-size: 0.9rem;
+    font-weight: 600;
+    font-size: 0.95rem;
     transition: all 0.3s ease;
     color: white;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
 .university-btn {
@@ -312,61 +330,89 @@ tr:hover {
 
 .close-btn {
     position: absolute;
-    top: 15px;
-    right: 20px;
-    background: #f5f5f5;
+    top: 18px;
+    right: 18px;
+    background: #f8f8f8;
     border: none;
     color: #764ba2;
     font-size: 24px;
     cursor: pointer;
-    width: 30px;
-    height: 30px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
 }
 
 .close-btn:hover {
-    background: #eee;
+    background: #f0f0f0;
+    transform: scale(1.1);
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.15);
 }
 
 .program-item {
-    background: #f8f8f8; /* Fondo sólido claro */
-    padding: 15px;
+    background: #f2f2f7; /* Fondo ligeramente más oscuro para reducir fatiga visual */
+    padding: 20px;
     border-radius: 10px;
-    margin-bottom: 15px;
-    border-left: 3px solid #f093fb;
+    margin-bottom: 22px;
+    border-left: 4px solid #f093fb;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
 }
 
 .program-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
 .program-item h4 {
-    color: #f5576c;
-    margin: 0;
+    color: #e03e6f; /* Color más oscuro para mejor legibilidad */
+    margin: 0 0 12px 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.program-item p {
+    margin-bottom: 16px;
+}
+
+.program-item a {
+    color: #8e44ad; /* Color de enlace más legible */
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.program-item a:hover {
+    text-decoration: underline;
 }
 
 .program-item ul {
     list-style: none;
-    padding-left: 0;
+    padding-left: 5px;
+    margin-top: 12px;
 }
 
 .program-item li {
-    padding: 3px 0;
-    color: #555;
+    padding: 5px 0;
+    color: #444;
+    line-height: 1.4;
 }
 
 .program-item li::before {
     content: "• ";
     color: #f093fb;
     font-weight: bold;
+}
+
+.program-item .no-data {
+    color: #888;
+    font-style: italic;
+    padding: 10px 0;
 }
 
 /* Status styles */
