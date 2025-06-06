@@ -256,7 +256,7 @@ function populateFilters() {
 
 // Configurar filtros
 function setupFilters() {
-    const filters = ['search', 'ciudadFilter', 'atraccionFilter', 'costoFilter', 'statusFilter'];
+    const filters = ['search', 'ciudadFilter', 'calificacionFilter', 'costoFilter', 'statusFilter'];
     filters.forEach(filterId => {
         document.getElementById(filterId).addEventListener('input', applyFilters);
     });
@@ -266,19 +266,49 @@ function setupFilters() {
 function applyFilters() {
     const searchTerm = document.getElementById('search').value.toLowerCase();
     const ciudadFilter = document.getElementById('ciudadFilter').value;
-    const atraccionFilter = document.getElementById('atraccionFilter').value.toLowerCase();
-    const costoFilter = document.getElementById('costoFilter').value.toLowerCase();
+    const calificacionFilter = parseInt(document.getElementById('calificacionFilter').value) || 0;
+    const costoFilter = parseInt(document.getElementById('costoFilter').value) || 0;
     const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
     
     // Función auxiliar para determinar si un elemento coincide con los filtros
-    function matchesFilters(nombre, ciudad, atraccion, costo, status) {
-        const matchesSearch = nombre.toLowerCase().includes(searchTerm);
+    function matchesFilters(universidad, ciudad, status) {
+        const matchesSearch = universidad.nombre.toLowerCase().includes(searchTerm);
         const matchesCiudad = !ciudadFilter || ciudad === ciudadFilter;
-        const matchesAtraccion = !atraccionFilter || (atraccion || '').toLowerCase() === atraccionFilter;
-        const matchesCosto = !costoFilter || (costo || '').toLowerCase() === costoFilter;
+        
+        // Verificar calificación mínima (buscamos el rating máximo entre todos los programas de la universidad)
+        let maxRating = 0;
+        if (universidad.programas && universidad.programas.length > 0) {
+            universidad.programas.forEach(programa => {
+                if (programa.calificacion && programa.calificacion.valor) {
+                    maxRating = Math.max(maxRating, programa.calificacion.valor);
+                }
+            });
+        }
+        const matchesCalificacion = calificacionFilter === 0 || maxRating >= calificacionFilter;
+        
+        // Verificar costo de vida (usando el valor numérico de ciudad_metrics.costo_vida)
+        let costoVida = 0;
+        if (universidad.ciudad_metrics && universidad.ciudad_metrics.costo_vida !== undefined) {
+            costoVida = universidad.ciudad_metrics.costo_vida;
+        }
+        
+        let matchesCosto = true;
+        if (costoFilter > 0) {
+            if (costoFilter === 50) {
+                // Alto: 50+
+                matchesCosto = costoVida >= 50;
+            } else if (costoFilter === 30) {
+                // Medio: 30-50
+                matchesCosto = costoVida >= 30 && costoVida < 50;
+            } else if (costoFilter === 0) {
+                // Bajo: 0-30
+                matchesCosto = costoVida < 30;
+            }
+        }
+        
         const matchesStatus = !statusFilter || (status || '').toLowerCase() === statusFilter;
         
-        return matchesSearch && matchesCiudad && matchesAtraccion && matchesCosto && matchesStatus;
+        return matchesSearch && matchesCiudad && matchesCalificacion && matchesCosto && matchesStatus;
     }
     
     // Filter table rows
@@ -288,8 +318,6 @@ function applyFilters() {
             // Usando la estructura según el populateTable
             const universidadInput = row.querySelector('td:nth-child(1) input');
             const ciudadInput = row.querySelector('td:nth-child(2) input');
-            const atraccionInput = row.querySelector('td:nth-child(5) input');
-            const costoInput = row.querySelector('td:nth-child(6) input');
             
             // La columna 4 contiene el status pero no como input sino como badges
             const statusBadges = row.querySelector('td:nth-child(4) .status-counts');
@@ -300,12 +328,14 @@ function applyFilters() {
                  statusBadges.querySelector('.status-pendiente') ? 'pendiente' : 'descartado') : '';
             
             if (universidadInput && ciudadInput) {
-                const universidad = universidadInput.value;
+                const universidad_nombre = universidadInput.value;
                 const ciudad = ciudadInput.value;
-                const atraccion = atraccionInput ? atraccionInput.value : '';
-                const costo = costoInput ? costoInput.value : '';
                 
-                if (matchesFilters(universidad, ciudad, atraccion, costo, status)) {
+                // Buscar la universidad correspondiente en los datos
+                const universidad = universidadesData.programas_doctorado.universidades.find(u => 
+                    u.nombre === universidad_nombre && u.ciudad === ciudad);
+                
+                if (universidad && matchesFilters(universidad, ciudad, status)) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
@@ -346,7 +376,7 @@ function applyFilters() {
             else if (statusCounts.descartado > 0) status = 'descartado';
         }
         
-        if (matchesFilters(universidad.nombre, universidad.ciudad, universidad.indice_atraccion, universidad.costo_vida, status)) {
+        if (matchesFilters(universidad, universidad.ciudad, status)) {
             // Try to use coords from enriched data if available
             let coords = null;
             
@@ -586,6 +616,54 @@ function addCustomStyles() {
         .search-notification {
             margin-bottom: 15px;
         }
+        
+        /* Table rating styles */
+        #tableBody .rating-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        #tableBody .rating-stars {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #tableBody .rating-value {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        #tableBody .rated-programs {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        /* Table costo de vida styles */
+        #tableBody .costo-display {
+            text-align: center;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        #tableBody .costo-alto {
+            background-color: rgba(255, 94, 98, 0.2);
+            color: #ff5e62;
+        }
+        
+        #tableBody .costo-medio {
+            background-color: rgba(255, 221, 89, 0.2);
+            color: #ffdd59;
+        }
+        
+        #tableBody .costo-bajo {
+            background-color: rgba(38, 222, 129, 0.2);
+            color: #26de81;
+        }
     `;
     
     document.head.appendChild(styleElement);
@@ -713,13 +791,62 @@ function populateTable() {
             </div>
         `;
         
+        // Preparar display para calificación (promedio de calificaciones de programas)
+        let totalRating = 0;
+        let ratedProgramsCount = 0;
+        
+        if (universidad.programas && universidad.programas.length > 0) {
+            universidad.programas.forEach(programa => {
+                if (programa.calificacion && programa.calificacion.valor) {
+                    totalRating += programa.calificacion.valor;
+                    ratedProgramsCount++;
+                }
+            });
+        }
+        
+        const avgRating = ratedProgramsCount > 0 ? (totalRating / ratedProgramsCount).toFixed(1) : 0;
+        const ratingStarsHtml = getStarsHTML(avgRating);
+        const ratingCellHtml = `
+            <div class="rating-display">
+                <div class="rating-stars">${ratingStarsHtml}</div>
+                <div class="rating-value">${avgRating > 0 ? avgRating + '/5' : 'Sin calificar'}</div>
+                <div class="rated-programs">${ratedProgramsCount}/${universidad.programas.length} programas</div>
+            </div>
+        `;
+        
+        // Preparar display para costo de vida (usando ciudad_metrics)
+        const costoVidaValue = universidad.ciudad_metrics && universidad.ciudad_metrics.costo_vida !== undefined ? 
+            universidad.ciudad_metrics.costo_vida : '';
+            
+        let costoLabel = 'No especificado';
+        let costoClass = '';
+        
+        if (costoVidaValue !== '') {
+            if (costoVidaValue >= 50) {
+                costoLabel = `Alto (${costoVidaValue})`;
+                costoClass = 'costo-alto';
+            } else if (costoVidaValue >= 30) {
+                costoLabel = `Medio (${costoVidaValue})`;
+                costoClass = 'costo-medio';
+            } else {
+                costoLabel = `Bajo (${costoVidaValue})`;
+                costoClass = 'costo-bajo';
+            }
+        }
+        
+        const costoCellHtml = `
+            <div class="costo-display ${costoClass}">
+                ${costoLabel}
+            </div>
+        `;
+        
         row.innerHTML = `
             <td><input class="editable" value="${universidad.nombre}" data-field="nombre" data-index="${index}"></td>
             <td><input class="editable" value="${universidad.ciudad}" data-field="ciudad" data-index="${index}"></td>
             <td>${universidad.programas.length} programas</td>
             <td>${statusBadgesHTML}</td>
-            <td><input class="editable" value="${universidad.indice_atraccion || ''}" data-field="indice_atraccion" data-index="${index}"></td>
-            <td><input class="editable" value="${universidad.costo_vida || ''}" data-field="costo_vida" data-index="${index}"></td>
+            <td>${ratingCellHtml}</td>
+            <td>${costoCellHtml}</td>
             <td>
                 <button onclick="showUniversityInfo(universidadesData.programas_doctorado.universidades[${index}])" class="btn-ver">Ver</button>
                 <button onclick="agregarPrograma('${universidad.nombre}', '${universidad.ciudad}')" class="btn-agregar">+ Programa</button>
@@ -731,13 +858,19 @@ function populateTable() {
     
     // Configurar campos editables
     document.querySelectorAll('.editable').forEach(input => {
-        input.addEventListener('blur', function() {
+        const eventType = input.tagName.toLowerCase() === 'select' ? 'change' : 'blur';
+        input.addEventListener(eventType, function() {
             const index = this.dataset.index;
             const field = this.dataset.field;
             const value = this.value;
             
             // Actualizar datos
             universidadesData.programas_doctorado.universidades[index][field] = value;
+            
+            // Si es un cambio en indice_atraccion o costo_vida, actualizar también el mapa
+            if (field === 'indice_atraccion' || field === 'costo_vida') {
+                applyFilters();
+            }
         });
     });
 }
