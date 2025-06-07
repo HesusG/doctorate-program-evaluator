@@ -318,22 +318,70 @@ function createProgramCard(programa, universidad) {
             }
         }
         
-        // Mostrar distancia a Madrid
+        // Verificar si es una ciudad portuguesa para mostrar la distancia adecuada
+        const portugueseCities = ['Lisboa', 'Porto', 'Coimbra', 'Braga', 'Aveiro', 'Faro'];
+        const isPortugueseCity = (universidad.ciudad && 
+                                (portugueseCities.includes(universidad.ciudad) || 
+                                portugueseCities.some(pc => universidad.ciudad.includes(pc)) ||
+                                universidad.ciudad.includes('Portugal')));
+        
+        // Mostrar distancia a Madrid o Lisboa según corresponda
         const distanciaElement = card.querySelector('[data-field="distancia_a_madrid_km"] .field-content');
-        if (distanciaElement && universidad.ciudad_metrics.distancia_a_madrid_km !== undefined) {
-            distanciaElement.textContent = universidad.ciudad_metrics.distancia_a_madrid_km + ' km';
-            hasAnyMetric = true;
+        if (distanciaElement) {
+            if (isPortugueseCity && universidad.ciudad_metrics.distancia_a_lisboa_km !== undefined) {
+                // Para ciudades portuguesas, mostrar distancia a Lisboa
+                distanciaElement.textContent = universidad.ciudad_metrics.distancia_a_lisboa_km + ' km a Lisboa';
+                hasAnyMetric = true;
+            } else if (!isPortugueseCity && universidad.ciudad_metrics.distancia_a_madrid_km !== undefined) {
+                // Para ciudades españolas, mostrar distancia a Madrid
+                distanciaElement.textContent = universidad.ciudad_metrics.distancia_a_madrid_km + ' km a Madrid';
+                hasAnyMetric = true;
+            } else {
+                // Fallback si no hay distancia definida
+                distanciaElement.textContent = 'No disponible';
+            }
         }
         
-        // Mostrar la descripción (comentario de costo de vida o descripción general)
-        if (universidad.ciudad_metrics.descripcion) {
-            const cityDescription = card.querySelector('.city-description-content');
-            cityDescription.textContent = universidad.ciudad_metrics.descripcion;
-            hasAnyMetric = true;
-        } else if (universidad.ciudad_metrics.costo_vida_comentario) {
-            const cityDescription = card.querySelector('.city-description-content');
-            cityDescription.textContent = universidad.ciudad_metrics.costo_vida_comentario;
-            hasAnyMetric = true;
+        // Concatenar todos los campos _comentario para mostrarlos como descripción
+        const cityDescription = card.querySelector('.city-description-content');
+        if (cityDescription) {
+            // Crear un array con todos los comentarios disponibles
+            const comentarios = [];
+            
+            // Añadir cada comentario disponible al array
+            if (universidad.ciudad_metrics.costo_vida_comentario) {
+                comentarios.push(universidad.ciudad_metrics.costo_vida_comentario);
+            }
+
+            if (universidad.ciudad_metrics.calidad_aire_comentario) {
+                comentarios.push(universidad.ciudad_metrics.calidad_aire_comentario);
+            }
+
+            if (universidad.ciudad_metrics.calidad_transporte_comentario) {
+                comentarios.push(universidad.ciudad_metrics.calidad_transporte_comentario);
+            }
+
+            if (universidad.ciudad_metrics.calidad_servicio_medico_comentario) {
+                comentarios.push(universidad.ciudad_metrics.calidad_servicio_medico_comentario);
+            }
+            
+
+            // Si hay comentarios, mostrarlos
+            if (comentarios.length > 0) {
+                const formattedDesc = comentarios.join('<br><br>');
+                cityDescription.innerHTML = formattedDesc;
+                hasAnyMetric = true;
+            } 
+            // Si hay descripción, mostrarla (como fallback)
+            else if (universidad.ciudad_metrics.descripcion) {
+                // Procesar markdown: formato bold con ** y convertir bullets con *
+                let formattedDesc = universidad.ciudad_metrics.descripcion
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Bold text
+                    .replace(/^\* (.*?)$/gm, '<span>$1</span>');       // Bullet points
+                
+                cityDescription.innerHTML = formattedDesc;
+                hasAnyMetric = true;
+            }
         }
         
         // Mostrar sección si hay alguna métrica disponible
@@ -519,6 +567,13 @@ function setupPanelEvents() {
             const programId = programCard.dataset.id;
             
             showEnrichProgramModal(programId);
+        });
+    });
+    
+    // Eventos para botón de test data
+    document.querySelectorAll('.test-data-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            addTestData();
         });
     });
     
@@ -1000,4 +1055,117 @@ function startProgramEnrichment() {
         // Mostrar confirmación
         alert('Programa enriquecido correctamente');
     }, 2000);
+}
+
+// Función para generar datos de prueba
+function addTestData() {
+    // Verificar si universidadesData existe
+    if (!universidadesData || !universidadesData.programas_doctorado || !universidadesData.programas_doctorado.universidades) {
+        alert('Error: No hay datos disponibles para añadir el programa de prueba');
+        return;
+    }
+
+    // Contar documentos antes
+    const documentosAntes = countTotalPrograms();
+    
+    // Buscar si ya existe la universidad NOVA
+    let novaUniversidad = universidadesData.programas_doctorado.universidades.find(u => 
+        u.nombre === "NOVA Universidad de Lisboa");
+    
+    // Si no existe, crearla
+    if (!novaUniversidad) {
+        novaUniversidad = {
+            nombre: "NOVA Universidad de Lisboa",
+            ciudad: "Lisboa",
+            programas: [],
+            coords: {
+                lat: 38.6662,
+                lon: -9.1753
+            },
+            stats: {
+                innovacion: 8.5,
+                interdisciplinariedad: 7.8,
+                impacto: 8.2,
+                internacional: 9.0,
+                aplicabilidad: 7.5
+            },
+            ciudad_metrics: {
+                costo_vida: 7,
+                costo_vida_comentario: "Lisboa tiene un costo de vida moderado comparado con otras capitales europeas. El alojamiento puede ser costoso en el centro, pero la alimentación y transporte son relativamente económicos.",
+                calidad_servicio_medico: 8,
+                calidad_servicio_medico_comentario: "Portugal cuenta con un buen sistema de salud público (Serviço Nacional de Saúde) y excelentes hospitales privados. Lisboa ofrece atención médica de alta calidad con profesionales bien formados.",
+                calidad_transporte: 9,
+                calidad_transporte_comentario: "Lisboa dispone de un excelente sistema de transporte público que incluye metro, tranvías históricos, autobuses y ferries. La red es eficiente y cubre bien toda la ciudad.",
+                calidad_aire: 8,
+                calidad_aire_comentario: "La calidad del aire en Lisboa es generalmente buena, beneficiándose de la brisa atlántica que ayuda a dispersar la contaminación. Las zonas costeras tienen aire especialmente limpio.",
+                distancia_a_lisboa_km: 0,
+                ciudad_referencia: "Lisboa",
+                descripcion: "* **Población**: Aproximadamente 505.000 habitantes en la ciudad y 2.8 millones en el área metropolitana\n* **Conocida por**: Su impresionante ubicación sobre siete colinas junto al río Tajo, los tranvías amarillos históricos, y su rica historia marítima\n* **Clima**: Temperatura media anual de 17°C, con veranos cálidos (hasta 35°C) e inviernos suaves (raramente por debajo de 5°C)\n* **Economía**: Centrada en servicios, tecnología, turismo y comercio marítimo\n* **Educación**: Alberga varias instituciones de prestigio como la Universidad de Lisboa, NOVA, y el Instituto Superior Técnico\n* **Cultura**: Rica en patrimonio histórico, con barrios medievales como Alfama, museos de clase mundial y tradición de fado\n* **Transporte**: Excelente red de metro, tranvías, autobuses y conexiones ferroviarias internacionales\n* **Costo de vida**: Moderado en comparación con otras capitales europeas occidentales\n* **Seguridad**: Una de las capitales más seguras de Europa con bajo índice de criminalidad\n* **Dato curioso**: El Puente 25 de Abril se parece al Golden Gate de San Francisco y fue construido por la misma empresa"
+            }
+        };
+        universidadesData.programas_doctorado.universidades.push(novaUniversidad);
+    }
+    
+    // Crear nuevo programa
+    const nuevoPrograma = {
+        _id: 'test_' + Date.now(),
+        nombre: "Biochemistry",
+        url: "https://guia.unl.pt/en/2024/fct/program/944#structure",
+        linea_investigacion: "Specialty Biotechnology; Specialty Physical Biochemistry; Specialty Structural and Molecular Biochemistry",
+        resumen: "- **Specialty Biotechnology**: Esta línea de investigación se enfoca en aplicaciones biotecnológicas de procesos bioquímicos, incluyendo bioremediación, producción de enzimas industriales y desarrollo de bioprocesos sostenibles.\n\n- **Specialty Physical Biochemistry**: Esta área examina las propiedades físicas y la termodinámica de moléculas biológicas, utilizando técnicas espectroscópicas y calorimetría para entender interacciones moleculares.\n\n- **Specialty Structural and Molecular Biochemistry**: Centrada en la determinación y análisis de estructuras de proteínas y ácidos nucleicos, estudiando la relación entre estructura y función en sistemas biológicos.",
+        stats: {
+            innovacion: 8.5,
+            interdisciplinariedad: 7.8,
+            impacto: 8.2,
+            internacional: 9.0,
+            aplicabilidad: 7.5
+        },
+        ultimo_enriquecimiento: new Date().toISOString(),
+        university_summary: "Universidad: NOVA Universidad de Lisboa (Lisboa)\n\nFundada en 1977, es una de las instituciones más prestigiosas de Portugal, reconocida por su enfoque innovador y su alta calidad en investigación. Destaca en áreas como ciencias biomédicas, tecnología y ciencias sociales.",
+        ciudad_metrics: {
+            costo_vida: 7,
+            costo_vida_comentario: "Lisboa tiene un costo de vida moderado comparado con otras capitales europeas. El alojamiento puede ser costoso en el centro, pero la alimentación y transporte son relativamente económicos.",
+            calidad_servicio_medico: 8,
+            calidad_servicio_medico_comentario: "Portugal cuenta con un buen sistema de salud público (Serviço Nacional de Saúde) y excelentes hospitales privados. Lisboa ofrece atención médica de alta calidad con profesionales bien formados.",
+            calidad_transporte: 9,
+            calidad_transporte_comentario: "Lisboa dispone de un excelente sistema de transporte público que incluye metro, tranvías históricos, autobuses y ferries. La red es eficiente y cubre bien toda la ciudad.",
+            calidad_aire: 8,
+            calidad_aire_comentario: "La calidad del aire en Lisboa es generalmente buena, beneficiándose de la brisa atlántica que ayuda a dispersar la contaminación. Las zonas costeras tienen aire especialmente limpio.",
+            distancia_a_lisboa_km: 0,
+            ciudad_referencia: "Lisboa",
+            descripcion: "* **Población**: Aproximadamente 505.000 habitantes en la ciudad y 2.8 millones en el área metropolitana\n* **Conocida por**: Su impresionante ubicación sobre siete colinas junto al río Tajo, los tranvías amarillos históricos, y su rica historia marítima\n* **Clima**: Temperatura media anual de 17°C, con veranos cálidos (hasta 35°C) e inviernos suaves (raramente por debajo de 5°C)\n* **Economía**: Centrada en servicios, tecnología, turismo y comercio marítimo\n* **Educación**: Alberga varias instituciones de prestigio como la Universidad de Lisboa, NOVA, y el Instituto Superior Técnico\n* **Cultura**: Rica en patrimonio histórico, con barrios medievales como Alfama, museos de clase mundial y tradición de fado\n* **Transporte**: Excelente red de metro, tranvías, autobuses y conexiones ferroviarias internacionales\n* **Costo de vida**: Moderado en comparación con otras capitales europeas occidentales\n* **Seguridad**: Una de las capitales más seguras de Europa con bajo índice de criminalidad\n* **Dato curioso**: El Puente 25 de Abril se parece al Golden Gate de San Francisco y fue construido por la misma empresa"
+        },
+        calificacion: {
+            valor: 4,
+            fecha: new Date().toISOString()
+        },
+        status: "considerando",
+        city_description: "Lisboa es la capital y mayor ciudad de Portugal. Conocida por su rica historia, arquitectura impresionante y ambiente vibrante, combina tradición y modernidad. Con aproximadamente 505.000 habitantes en la ciudad y 2.8 millones en su área metropolitana, Lisboa ofrece un entorno cultural dinámico y diverso, ideal para estudiantes internacionales."
+    };
+    
+    // Añadir programa a la universidad
+    novaUniversidad.programas.push(nuevoPrograma);
+    
+    // Contar documentos después
+    const documentosDespues = countTotalPrograms();
+    
+    // Actualizar UI
+    loadUniversities();
+    
+    // Mostrar confirmación
+    alert(`Programa de prueba añadido correctamente.\nDocumentos antes: ${documentosAntes}\nDocumentos después: ${documentosDespues}`);
+}
+
+// Función para contar el total de programas
+function countTotalPrograms() {
+    if (!universidadesData || !universidadesData.programas_doctorado || !universidadesData.programas_doctorado.universidades) {
+        return 0;
+    }
+    
+    let total = 0;
+    universidadesData.programas_doctorado.universidades.forEach(universidad => {
+        total += universidad.programas.length;
+    });
+    
+    return total;
 }

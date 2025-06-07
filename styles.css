@@ -1418,7 +1418,7 @@ tr:hover {
     margin-top: 10px;
 }
 
-.edit-program-btn, .save-program-btn, .delete-program-btn, .enrich-program-btn {
+.edit-program-btn, .save-program-btn, .delete-program-btn, .enrich-program-btn, .test-data-btn {
     border: none;
     border-radius: 6px;
     padding: 8px 12px;
@@ -1452,7 +1452,11 @@ tr:hover {
     background: #2ecc71;
 }
 
-.edit-program-btn:hover, .save-program-btn:hover, .delete-program-btn:hover, .enrich-program-btn:hover {
+.test-data-btn {
+    background: #9b59b6;
+}
+
+.edit-program-btn:hover, .save-program-btn:hover, .delete-program-btn:hover, .enrich-program-btn:hover, .test-data-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
@@ -1737,10 +1741,44 @@ tr:hover {
 }
 
 .city-description-content {
-    font-style: italic;
-    line-height: 1.4;
+    font-style: normal;
+    line-height: 1.5;
     color: #555;
     text-align: left;
+    padding: 12px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+.city-description-content strong {
+    color: #764ba2;
+    font-weight: 600;
+}
+
+/* Styling for bullet points in city description */
+.city-description-content ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.city-description-content li,
+.city-description-content * {
+    margin-bottom: 8px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.city-description-content * {
+    display: block;
+}
+
+.city-description-content *::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #764ba2;
+    font-weight: bold;
 }
 
 /* Admin view */
