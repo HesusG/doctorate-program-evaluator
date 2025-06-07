@@ -215,8 +215,32 @@ function createProgramCard(programa, universidad) {
     const resumenField = card.querySelector('.resumen-field .field-content');
     resumenField.textContent = programa.resumen || 'Sin resumen disponible';
     
-    // NOTA: Secciones de métricas académicas y datos de ciudad removidas temporalmente
-    // para simplificar y solucionar problemas
+    // Sólo configurar datos de ciudad - siguiendo el modelo de la sección de análisis
+    // Buscar en universidad
+    if (universidad.ciudad_metrics) {
+        console.log(`Ciudad metrics encontrados en universidad: ${JSON.stringify(universidad.ciudad_metrics)}`);
+        
+        // Mostrar costo de vida
+        const costoVidaElement = card.querySelector('[data-field="costo_vida"] .field-content');
+        if (costoVidaElement && universidad.ciudad_metrics.costo_vida !== undefined) {
+            costoVidaElement.textContent = universidad.ciudad_metrics.costo_vida;
+            
+            // Mostrar sección
+            const cityContent = card.querySelector('.city-content');
+            const toggleCityBtn = card.querySelector('.toggle-city-btn');
+            cityContent.classList.remove('hidden');
+            toggleCityBtn.textContent = '▼';
+            toggleCityBtn.classList.remove('collapsed');
+            
+            // Configurar descripción
+            if (universidad.ciudad_metrics.costo_vida_comentario) {
+                const cityDescription = card.querySelector('.city-description-content');
+                cityDescription.textContent = universidad.ciudad_metrics.costo_vida_comentario;
+            }
+        }
+    } else {
+        console.log(`No se encontraron ciudad_metrics en universidad: ${universidad.nombre}`);
+    }
     
     return card;
 }
