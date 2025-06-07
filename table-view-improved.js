@@ -132,19 +132,6 @@ function loadAllUniversityPrograms(universidad, universityPanel) {
     
     // Mostrar todos los programas
     sortedPrograms.forEach((programa, index) => {
-        // Asegurarse de que cada programa tenga acceso a las métricas de la universidad
-        // si no tiene sus propias métricas
-        // Crear una copia profunda para evitar referencias compartidas
-        if (!programa.stats && universidad.stats) {
-            programa.stats = JSON.parse(JSON.stringify(universidad.stats));
-            console.log(`Asignando stats de universidad a programa: ${programa.nombre}`);
-        }
-        
-        if (!programa.ciudad_metrics && universidad.ciudad_metrics) {
-            programa.ciudad_metrics = JSON.parse(JSON.stringify(universidad.ciudad_metrics));
-            console.log(`Asignando ciudad_metrics de universidad a programa: ${programa.nombre}`);
-        }
-        
         // Debug: Verificar datos de programa
         if (index === 0) {
             console.log(`Primer programa: ${programa.nombre}`);
@@ -228,49 +215,8 @@ function createProgramCard(programa, universidad) {
     const resumenField = card.querySelector('.resumen-field .field-content');
     resumenField.textContent = programa.resumen || 'Sin resumen disponible';
     
-    // Configurar métricas académicas - ya deberían estar asignadas en el programa desde loadAllUniversityPrograms
-    const stats = programa.stats || {};
-    console.log(`- Stats obtenidos para tarjeta: ${JSON.stringify(stats)}`);
-    
-    // Mostrar los valores disponibles
-    card.querySelector('[data-field="innovacion"] .field-content').textContent = 
-        stats.innovacion !== undefined ? stats.innovacion : 'N/A';
-    card.querySelector('[data-field="interdisciplinariedad"] .field-content').textContent = 
-        stats.interdisciplinariedad !== undefined ? stats.interdisciplinariedad : 'N/A';
-    card.querySelector('[data-field="impacto"] .field-content').textContent = 
-        stats.impacto !== undefined ? stats.impacto : 'N/A';
-    card.querySelector('[data-field="internacional"] .field-content').textContent = 
-        stats.internacional !== undefined ? stats.internacional : 'N/A';
-    card.querySelector('[data-field="aplicabilidad"] .field-content').textContent = 
-        stats.aplicabilidad !== undefined ? stats.aplicabilidad : 'N/A';
-    
-    // Configurar datos de ciudad - ya deberían estar asignados en el programa desde loadAllUniversityPrograms
-    const ciudadMetrics = programa.ciudad_metrics || {};
-    console.log(`- Ciudad metrics obtenidos: ${JSON.stringify(ciudadMetrics)}`);
-    
-    // Mostrar los valores disponibles
-    card.querySelector('[data-field="costo_vida"] .field-content').textContent = 
-        ciudadMetrics.costo_vida !== undefined ? ciudadMetrics.costo_vida : 'N/A';
-    
-    // Configurar descripción de ciudad
-    const cityDescription = card.querySelector('.city-description-content');
-    cityDescription.textContent = ciudadMetrics.costo_vida_comentario || 'Sin descripción disponible';
-    
-    // Asegurar que las secciones de métricas y ciudad estén visibles inicialmente
-    const metricsContent = card.querySelector('.metrics-content');
-    const cityContent = card.querySelector('.city-content');
-    
-    // Si hay datos, mostrar las secciones automáticamente
-    if (stats.innovacion || stats.interdisciplinariedad || stats.impacto || 
-        stats.internacional || stats.aplicabilidad) {
-        metricsContent.classList.remove('hidden');
-        card.querySelector('.toggle-metrics-btn').textContent = '▼';
-    }
-    
-    if (ciudadMetrics.costo_vida || ciudadMetrics.costo_vida_comentario) {
-        cityContent.classList.remove('hidden');
-        card.querySelector('.toggle-city-btn').textContent = '▼';
-    }
+    // NOTA: Secciones de métricas académicas y datos de ciudad removidas temporalmente
+    // para simplificar y solucionar problemas
     
     return card;
 }
