@@ -1061,6 +1061,32 @@ tr:hover {
     background: #f5f7fa;
     padding: 15px 20px;
     border-bottom: 1px solid #e4e8f0;
+    cursor: pointer;
+}
+
+.university-title-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.toggle-university-btn {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    color: #555;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-university-btn.collapsed {
+    transform: rotate(-90deg);
 }
 
 .university-name {
@@ -1140,6 +1166,51 @@ tr:hover {
     display: flex;
     flex-direction: column;
     gap: 20px;
+}
+
+.programs-container.hidden {
+    display: none;
+}
+
+/* Add new styles for university pagination */
+.university-pagination, .universities-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 5px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Global pagination styles for both program-level and university-level pagination */
+.pagination-prev, .pagination-next, .pagination-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin: 0 5px;
+}
+
+.pagination-prev:disabled, .pagination-next:disabled, .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-info {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8rem;
+    margin: 0 10px;
+}
+
+/* University-level pagination specific styles */
+.universities-pagination {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
 }
 
 .program-card {
@@ -1300,6 +1371,10 @@ tr:hover {
     margin-top: 5px;
 }
 
+.metrics-content.hidden, .city-content.hidden {
+    display: none;
+}
+
 .metric-row {
     display: flex;
     align-items: center;
@@ -1343,7 +1418,7 @@ tr:hover {
     margin-top: 10px;
 }
 
-.view-program-btn, .edit-program-btn, .delete-program-btn, .enrich-program-btn {
+.edit-program-btn, .save-program-btn, .delete-program-btn, .enrich-program-btn {
     border: none;
     border-radius: 6px;
     padding: 8px 12px;
@@ -1356,12 +1431,17 @@ tr:hover {
     color: white;
 }
 
-.view-program-btn {
-    background: #764ba2;
-}
-
 .edit-program-btn {
     background: #3498db;
+}
+
+.save-program-btn {
+    background: #f093fb;
+}
+
+.save-program-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .delete-program-btn {
@@ -1372,9 +1452,18 @@ tr:hover {
     background: #2ecc71;
 }
 
-.view-program-btn:hover, .edit-program-btn:hover, .delete-program-btn:hover, .enrich-program-btn:hover {
+.edit-program-btn:hover, .save-program-btn:hover, .delete-program-btn:hover, .enrich-program-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.program-card.edit-mode .editable-field {
+    background-color: rgba(52, 152, 219, 0.1);
+    border: 1px dashed #3498db;
+}
+
+.program-card:not(.edit-mode) .editable-field {
+    cursor: default;
 }
 
 .add-program-btn {
@@ -1554,22 +1643,289 @@ tr:hover {
     box-shadow: 0 0 0 2px rgba(240, 147, 251, 0.5);
 }
 
-.editable-input {
-    width: 100%;
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background: white;
+/* Clases para costo de vida */
+.costo-alto {
+    color: #ff5e62;
 }
 
-.editable-textarea {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+.costo-medio {
+    color: #ffdd59;
+}
+
+.costo-bajo {
+    color: #26de81;
+}
+
+/* Clases para calidad (aire, transporte, servicio médico) */
+.calidad-alta {
+    color: #26de81;
+}
+
+.calidad-media {
+    color: #ffdd59;
+}
+
+.calidad-baja {
+    color: #ff5e62;
+}
+
+/* Clases para distancia a Madrid */
+.distancia-cerca {
+    color: #26de81;
+}
+
+.distancia-media {
+    color: #ffdd59;
+}
+
+.distancia-lejos {
+    color: #ff5e62;
+}
+
+/* Contenedores para métricas */
+.costo-container, .calidad-container, .distancia-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Estilos para tooltips en métricas de ciudad */
+.has-tooltip {
+    cursor: help;
+    position: relative;
+    border-bottom: 1px dashed #ccc;
+}
+
+/* Mejoras visuales para el contenido de ciudad */
+.city-content {
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 10px;
+    margin-top: 5px;
+}
+
+.city-content .metric-row {
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.city-content .metric-row:last-child {
+    border-bottom: none;
+}
+
+.city-content .metric-label {
+    font-weight: 600;
+    color: #555;
+    min-width: 150px;
+}
+
+.city-content .field-content {
+    font-weight: 500;
+    text-align: right;
+    flex-grow: 1;
+}
+
+.city-description {
+    margin-top: 15px;
+    background-color: rgba(255,255,255,0.5);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.city-description-content {
+    font-style: italic;
+    line-height: 1.4;
+    color: #555;
+    text-align: left;
+}
+
+/* Admin view */
+.admin-section {
     background: white;
-    min-height: 80px;
-    resize: vertical;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.admin-section h4 {
+    color: #764ba2;
+    margin-bottom: 15px;
+}
+
+.admin-section h5 {
+    color: #764ba2;
+    margin: 20px 0 10px;
+    font-size: 1.1rem;
+}
+
+.admin-section p {
+    margin-bottom: 15px;
+    color: #555;
+}
+
+.admin-section ul {
+    margin-bottom: 20px;
+    margin-left: 20px;
+}
+
+.admin-section li {
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.enrich-controls {
+    background-color: #f8f8f8;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.enrich-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.enrich-options label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 15px;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.enrich-options label:hover {
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.last-enrichment-info {
+    background-color: white;
+    border-radius: 6px;
+    padding: 10px 15px;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 10px;
+    text-align: center;
+    border-left: 3px solid #26de81;
+}
+
+.action-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.enrich-btn, .fix-geo-btn {
+    background: linear-gradient(45deg, #26de81, #2bcbba);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.enrich-btn:hover, .fix-geo-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(38, 222, 129, 0.3);
+}
+
+.current-university-info {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: #555;
+}
+
+.progress-container {
+    background-color: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+.progress-bar {
+    height: 10px;
+    background-color: #eee;
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #26de81, #2bcbba);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-details {
+    font-size: 0.9rem;
+    color: #777;
+    display: flex;
+    justify-content: space-between;
+}
+
+.enrich-log-container {
+    margin-top: 20px;
+    background-color: #f8f8f8;
+    border-radius: 10px;
+    padding: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.enrich-log {
+    font-family: monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.enrich-log-entry {
+    padding: 8px;
+    margin-bottom: 5px;
+    border-left: 3px solid #26de81;
+    background-color: rgba(38, 222, 129, 0.05);
+}
+
+.enrich-log-entry.error {
+    border-left-color: #ff5e62;
+    background-color: rgba(255, 94, 98, 0.05);
+}
+
+.loading-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-top: 3px solid #26de81;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Responsive */

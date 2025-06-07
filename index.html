@@ -171,11 +171,21 @@
                     <!-- Las universidades se cargarán dinámicamente -->
                 </div>
                 
+                <!-- Paginación para universidades -->
+                <div class="universities-pagination">
+                    <button class="pagination-btn pagination-prev" disabled>&lt; Anterior</button>
+                    <span class="pagination-info">Página <span class="current-page">1</span> de <span class="total-pages">1</span></span>
+                    <button class="pagination-btn pagination-next" disabled>Siguiente &gt;</button>
+                </div>
+                
                 <!-- Plantilla para los paneles de universidad -->
                 <template id="university-panel-template">
                     <div class="university-panel">
                         <div class="university-header">
-                            <h4 class="university-name">Nombre de Universidad</h4>
+                            <div class="university-title-section">
+                                <button class="toggle-university-btn">▼</button>
+                                <h4 class="university-name">Nombre de Universidad</h4>
+                            </div>
                             <div class="university-meta">
                                 <span class="university-city">Ciudad</span>
                                 <span class="program-count">0 programas</span>
@@ -185,8 +195,13 @@
                                 <button class="edit-university-btn">✏️ Editar</button>
                             </div>
                         </div>
-                        <div class="programs-container">
+                        <div class="programs-container hidden">
                             <!-- Los programas se cargarán dinámicamente -->
+                        </div>
+                        <div class="university-pagination">
+                            <button class="pagination-prev" disabled>← Anterior</button>
+                            <span class="pagination-info">Página <span class="current-page">1</span> de <span class="total-pages">1</span></span>
+                            <button class="pagination-next" disabled>Siguiente →</button>
                         </div>
                     </div>
                 </template>
@@ -220,49 +235,43 @@
                                 <div class="section-label">Resumen:</div>
                                 <div class="editable-field resumen-field" data-field="resumen">
                                     <div class="field-content">Sin resumen disponible</div>
-                                    <button class="edit-field-btn">✏️</button>
                                 </div>
                             </div>
                             
                             <div class="program-metrics-section">
                                 <div class="section-header">
                                     <div class="section-label">Métricas Académicas:</div>
-                                    <button class="toggle-metrics-btn">▼</button>
+                                    <button class="toggle-metrics-btn">▶</button>
                                 </div>
-                                <div class="metrics-content">
+                                <div class="metrics-content hidden">
                                     <div class="metric-row">
                                         <span class="metric-label">Innovación:</span>
                                         <div class="editable-field metric-field" data-field="innovacion">
                                             <div class="field-content">N/A</div>
-                                            <button class="edit-field-btn">✏️</button>
                                         </div>
                                     </div>
                                     <div class="metric-row">
                                         <span class="metric-label">Interdisciplinariedad:</span>
                                         <div class="editable-field metric-field" data-field="interdisciplinariedad">
                                             <div class="field-content">N/A</div>
-                                            <button class="edit-field-btn">✏️</button>
                                         </div>
                                     </div>
                                     <div class="metric-row">
                                         <span class="metric-label">Impacto:</span>
                                         <div class="editable-field metric-field" data-field="impacto">
                                             <div class="field-content">N/A</div>
-                                            <button class="edit-field-btn">✏️</button>
                                         </div>
                                     </div>
                                     <div class="metric-row">
                                         <span class="metric-label">Internacional:</span>
                                         <div class="editable-field metric-field" data-field="internacional">
                                             <div class="field-content">N/A</div>
-                                            <button class="edit-field-btn">✏️</button>
                                         </div>
                                     </div>
                                     <div class="metric-row">
                                         <span class="metric-label">Aplicabilidad:</span>
                                         <div class="editable-field metric-field" data-field="aplicabilidad">
                                             <div class="field-content">N/A</div>
-                                            <button class="edit-field-btn">✏️</button>
                                         </div>
                                     </div>
                                 </div>
@@ -271,14 +280,37 @@
                             <div class="program-city-section">
                                 <div class="section-header">
                                     <div class="section-label">Datos de Ciudad:</div>
-                                    <button class="toggle-city-btn">▼</button>
+                                    <button class="toggle-city-btn">▶</button>
                                 </div>
-                                <div class="city-content">
+                                <div class="city-content hidden">
                                     <div class="metric-row">
                                         <span class="metric-label">Costo de Vida:</span>
                                         <div class="editable-field costo-field" data-field="costo_vida">
                                             <div class="field-content">N/A</div>
-                                            <button class="edit-field-btn">✏️</button>
+                                        </div>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">Calidad del Aire:</span>
+                                        <div class="editable-field calidad-field" data-field="calidad_aire">
+                                            <div class="field-content">N/A</div>
+                                        </div>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">Calidad del Transporte:</span>
+                                        <div class="editable-field calidad-field" data-field="calidad_transporte">
+                                            <div class="field-content">N/A</div>
+                                        </div>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">Calidad del Servicio Médico:</span>
+                                        <div class="editable-field calidad-field" data-field="calidad_servicio_medico">
+                                            <div class="field-content">N/A</div>
+                                        </div>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">Distancia a Madrid:</span>
+                                        <div class="editable-field distancia-field" data-field="distancia_a_madrid_km">
+                                            <div class="field-content">N/A</div>
                                         </div>
                                     </div>
                                     <div class="metric-row city-description">
@@ -289,8 +321,8 @@
                             </div>
                             
                             <div class="program-actions">
-                                <button class="view-program-btn">👁️ Ver</button>
                                 <button class="edit-program-btn">✏️ Editar</button>
+                                <button class="save-program-btn" disabled>💾 Guardar</button>
                                 <button class="delete-program-btn">🗑️ Eliminar</button>
                                 <button class="enrich-program-btn">🧠 Enrich with AI</button>
                             </div>
@@ -584,14 +616,41 @@
                             <li>Métricas académicas para cada universidad</li>
                             <li>Datos de calidad de vida para cada ciudad</li>
                         </ul>
-                        <div class="action-container">
-                            <button id="enrichButton" class="enrich-btn" onclick="confirmEnrichData()">
-                                🔄 Enriquecer Datos con IA
-                            </button>
-                            <div id="loadingIndicator" class="loading-indicator hidden">
-                                <div class="loading-spinner"></div>
-                                <span>Procesando datos...</span>
+                        
+                        <div class="enrich-controls">
+                            <div class="enrich-options">
+                                <label><input type="checkbox" id="adminEnrichResumen" checked> Resúmenes</label>
+                                <label><input type="checkbox" id="adminEnrichMetrics" checked> Métricas académicas</label>
+                                <label><input type="checkbox" id="adminEnrichCiudad" checked> Datos de ciudad</label>
                             </div>
+                            
+                            <div class="last-enrichment-info">
+                                <span id="lastEnrichmentText">Último enriquecimiento: No hay datos</span>
+                            </div>
+                            
+                            <div class="action-container">
+                                <button id="enrichButton" class="enrich-btn" onclick="confirmEnrichData()">
+                                    🔄 Enriquecer Datos con IA
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="enrichProgressContainer" class="progress-container hidden">
+                            <div class="current-university-info">
+                                <strong>Procesando:</strong> <span id="currentUniversityName">-</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div id="enrichProgressBar" class="progress-bar-fill" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-details">
+                                <span id="currentUniversityNumber">0</span> de <span id="totalUniversities">0</span> universidades
+                                (<span id="enrichProgressText">0%</span>)
+                            </div>
+                        </div>
+                        
+                        <div id="enrichLogContainer" class="enrich-log-container hidden">
+                            <h5>Registro de Actividad</h5>
+                            <div id="enrichLog" class="enrich-log"></div>
                         </div>
                     </div>
                     
@@ -604,16 +663,29 @@
                             <li>Métricas incoherentes relacionadas con la ubicación</li>
                         </ul>
                         <p>Utiliza una base de datos verificada de coordenadas de ciudades españolas.</p>
+                        
                         <div class="action-container">
                             <button id="fixGeoButton" class="fix-geo-btn" onclick="confirmFixGeographicData()">
                                 🗺️ Corregir Datos Geográficos
                             </button>
-                            <div id="geoFixProgressContainer" class="progress-container hidden">
-                                <div class="progress-bar">
-                                    <div id="geoFixProgressBar" class="progress-bar-fill" style="width: 0%"></div>
-                                </div>
-                                <div id="geoFixProgressText" class="progress-text">0%</div>
+                        </div>
+                        
+                        <div id="geoFixProgressContainer" class="progress-container hidden">
+                            <div class="current-university-info">
+                                <strong>Procesando:</strong> <span id="currentGeoCity">-</span>
                             </div>
+                            <div class="progress-bar">
+                                <div id="geoFixProgressBar" class="progress-bar-fill" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-details">
+                                <span id="currentGeoNumber">0</span> de <span id="totalGeoCities">0</span> ciudades
+                                (<span id="geoFixProgressText">0%</span>)
+                            </div>
+                        </div>
+                        
+                        <div id="geoFixLogContainer" class="enrich-log-container hidden">
+                            <h5>Registro de Actividad</h5>
+                            <div id="geoFixLog" class="enrich-log"></div>
                         </div>
                     </div>
                 </div>
@@ -630,6 +702,6 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="script.js"></script>
-    <script src="table-view-new.js"></script>
+    <script src="table-view-improved.js"></script>
 </body>
 </html>

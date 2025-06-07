@@ -207,7 +207,7 @@ async function getCityMetrics(ciudad) {
       "Eres un asistente especializado en economía y datos de ciudades portuguesas." : 
       "Eres un asistente especializado en economía y datos de ciudades españolas.";
     
-    // Costo de vida
+    // Costo de vida - Valores más bajos son mejor puntuados (escala invertida)
     const costoVidaResponse = await openaiClient.post('/chat/completions', {
       model: "gpt-3.5-turbo",
       messages: [
@@ -217,10 +217,15 @@ async function getCityMetrics(ciudad) {
         },
         {
           role: "user",
-          content: `¿Cuál es el costo de vida aproximado en ${ciudad} (sin incluir alquiler) en relación a Ciudad de México? Devuélvelo como un índice numérico 0–100, y un breve comentario.`
+          content: `¿Cuál es el costo de vida aproximado en ${ciudad} (sin incluir alquiler)? Considerando que Ciudad de México tendría un valor de 100, asigna un valor entre 0 y 100, donde valores más bajos indican menor costo de vida. 
+          
+          Necesito:
+          1. Un valor numérico entre 0 y 100 (donde menos es mejor)
+          2. Un breve comentario explicando este costo comparado con otras ciudades similares
+          3. Menciona al menos 2-3 factores específicos que afectan el costo de vida en esta ciudad (ej. transporte, alimentación, servicios)`
         }
       ],
-      max_tokens: 100,
+      max_tokens: 150,
       temperature: 0.5
     });
     const costoVidaText = costoVidaResponse.data.choices[0].message.content.trim();
@@ -250,7 +255,19 @@ async function getCityMetrics(ciudad) {
     });
     const distanciaText = distanciaResponse.data.choices[0].message.content.trim();
     const distanciaMatch = distanciaText.match(/\b([0-9]{1,4})\b/);
-    metrics.distancia_a_madrid_km = distanciaMatch ? parseInt(distanciaMatch[0]) : 300;
+    const distanciaValue = distanciaMatch ? parseInt(distanciaMatch[0]) : 300;
+    
+    // Store appropriate distance field based on country
+    if (isPortugueseCity) {
+      metrics.distancia_a_lisboa_km = distanciaValue;
+      metrics.distancia_a_madrid_km = null; // Not applicable for Portuguese cities
+    } else {
+      metrics.distancia_a_madrid_km = distanciaValue;
+      metrics.distancia_a_lisboa_km = null; // Not applicable for Spanish cities
+    }
+    
+    // Store the reference city used
+    metrics.ciudad_referencia = referenceCity;
     
     // Calidad del servicio médico
     const medicoSystemContent = isPortugueseCity ? 
@@ -441,10 +458,16 @@ async function enrichData(collectionName = 'programas', createBackup = true) {
       const stats = await generateStats(universidad, processedProgramas);
       console.log(`Stats generated for ${universidad}`);
       
-      // Update all programs with the university stats
+      // Update all programs with the university stats and timestamp
+      const ultimo_enriquecimiento = new Date().toISOString();
       await db.collection(collectionName).updateMany(
         { universidad },
-        { $set: { stats } }
+        { 
+          $set: { 
+            stats,
+            ultimo_enriquecimiento 
+          }
+        }
       );
     }
     
@@ -453,7 +476,8 @@ async function enrichData(collectionName = 'programas', createBackup = true) {
     return {
       message: 'Data enrichment completed',
       updated: totalUpdated,
-      universities: processedUniversities
+      universities: processedUniversities,
+      timestamp: new Date().toISOString()
     };
   } catch (error) {
     console.error(`Error enriching data: ${error}`);

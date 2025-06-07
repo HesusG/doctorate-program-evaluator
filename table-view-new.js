@@ -158,12 +158,63 @@ function createProgramCard(programa, universidad) {
     
     // Configurar datos de ciudad
     const ciudadMetrics = universidad.ciudad_metrics || {};
-    card.querySelector('[data-field="costo_vida"] .field-content').textContent = 
-        ciudadMetrics.costo_vida !== undefined ? ciudadMetrics.costo_vida : 'N/A';
+    
+    // Costo de vida
+    const costoVidaElement = card.querySelector('[data-field="costo_vida"] .field-content');
+    if (costoVidaElement) {
+        costoVidaElement.textContent = ciudadMetrics.costo_vida !== undefined ? ciudadMetrics.costo_vida : 'N/A';
+        // Añadir tooltip con comentario si existe
+        if (ciudadMetrics.costo_vida_comentario) {
+            costoVidaElement.title = ciudadMetrics.costo_vida_comentario;
+            costoVidaElement.classList.add('has-tooltip');
+        }
+    }
+    
+    // Calidad del aire
+    const calidadAireElement = card.querySelector('[data-field="calidad_aire"] .field-content');
+    if (calidadAireElement) {
+        calidadAireElement.textContent = ciudadMetrics.calidad_aire !== undefined ? ciudadMetrics.calidad_aire : 'N/A';
+        // Añadir tooltip con comentario si existe
+        if (ciudadMetrics.calidad_aire_comentario) {
+            calidadAireElement.title = ciudadMetrics.calidad_aire_comentario;
+            calidadAireElement.classList.add('has-tooltip');
+        }
+    }
+    
+    // Calidad del transporte
+    const calidadTransporteElement = card.querySelector('[data-field="calidad_transporte"] .field-content');
+    if (calidadTransporteElement) {
+        calidadTransporteElement.textContent = ciudadMetrics.calidad_transporte !== undefined ? ciudadMetrics.calidad_transporte : 'N/A';
+        // Añadir tooltip con comentario si existe
+        if (ciudadMetrics.calidad_transporte_comentario) {
+            calidadTransporteElement.title = ciudadMetrics.calidad_transporte_comentario;
+            calidadTransporteElement.classList.add('has-tooltip');
+        }
+    }
+    
+    // Calidad del servicio médico
+    const calidadServicioMedicoElement = card.querySelector('[data-field="calidad_servicio_medico"] .field-content');
+    if (calidadServicioMedicoElement) {
+        calidadServicioMedicoElement.textContent = ciudadMetrics.calidad_servicio_medico !== undefined ? ciudadMetrics.calidad_servicio_medico : 'N/A';
+        // Añadir tooltip con comentario si existe
+        if (ciudadMetrics.calidad_servicio_medico_comentario) {
+            calidadServicioMedicoElement.title = ciudadMetrics.calidad_servicio_medico_comentario;
+            calidadServicioMedicoElement.classList.add('has-tooltip');
+        }
+    }
+    
+    // Distancia a Madrid
+    const distanciaElement = card.querySelector('[data-field="distancia_a_madrid_km"] .field-content');
+    if (distanciaElement) {
+        distanciaElement.textContent = 
+            ciudadMetrics.distancia_a_madrid_km !== undefined ? ciudadMetrics.distancia_a_madrid_km + ' km' : 'N/A';
+    }
     
     // Configurar descripción de ciudad
     const cityDescription = card.querySelector('.city-description-content');
-    cityDescription.textContent = ciudadMetrics.costo_vida_comentario || 'Sin descripción disponible';
+    cityDescription.textContent = ciudadMetrics.descripcion || 
+                                ciudadMetrics.costo_vida_comentario || 
+                                'Sin descripción disponible';
     
     return card;
 }

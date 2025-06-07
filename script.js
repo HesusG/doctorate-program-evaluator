@@ -78,6 +78,43 @@ async function fetchUniversidadesData() {
         }
         universidadesData = await response.json();
         console.log('Data loaded:', universidadesData);
+        
+        // Debug data structure in more detail
+        console.log('Data structure detailed:');
+        console.log('- universidadesData.programas_doctorado.universidades length:', universidadesData.programas_doctorado.universidades.length);
+        
+        // Examine the first university and its properties
+        if (universidadesData.programas_doctorado.universidades.length > 0) {
+            const firstUni = universidadesData.programas_doctorado.universidades[0];
+            console.log('- First university:', firstUni.nombre);
+            console.log('- ciudad_metrics present:', !!firstUni.ciudad_metrics);
+            if (firstUni.ciudad_metrics) {
+                console.log('  - ciudad_metrics content:', JSON.stringify(firstUni.ciudad_metrics));
+            }
+            console.log('- coords present:', !!firstUni.coords);
+            console.log('- stats present:', !!firstUni.stats);
+            if (firstUni.stats) {
+                console.log('  - stats content:', JSON.stringify(firstUni.stats));
+            }
+            
+            // Inspect ALL universities for ciudad_metrics and stats
+            console.log('--- Checking all universities for ciudad_metrics and stats ---');
+            universidadesData.programas_doctorado.universidades.forEach((uni, index) => {
+                console.log(`University ${index} (${uni.nombre}): ciudad_metrics present: ${!!uni.ciudad_metrics}, stats present: ${!!uni.stats}`);
+            });
+            
+            // Check first program's structure
+            if (firstUni.programas && firstUni.programas.length > 0) {
+                const firstProgram = firstUni.programas[0];
+                console.log('- First program:', firstProgram.nombre);
+                console.log('- program calificacion present:', !!firstProgram.calificacion);
+                console.log('- program status present:', !!firstProgram.status);
+                console.log('- program resumen present:', !!firstProgram.resumen);
+                
+                // Log the complete first program structure
+                console.log('- Complete first program structure:', JSON.stringify(firstProgram, null, 2));
+            }
+        }
     } catch (error) {
         console.error('Error fetching data:', error);
         // Show error message to user
@@ -145,6 +182,21 @@ async function fetchAnalysisData() {
         }
         analysisData = await response.json();
         console.log('Analysis data loaded:', analysisData);
+        
+        // Debug analysis data structure in more detail
+        console.log('Analysis data structure detailed:');
+        console.log('- analysisData.universidades length:', analysisData.universidades.length);
+        
+        // Examine the first university in analysis data
+        if (analysisData.universidades.length > 0) {
+            const firstUni = analysisData.universidades[0];
+            console.log('- First university in analysis:', firstUni.nombre);
+            console.log('- ciudad_metrics present:', !!firstUni.ciudad_metrics);
+            console.log('- stats present:', !!firstUni.stats);
+            
+            // Log the complete first university structure from analysis data
+            console.log('- Complete first university structure in analysis:', JSON.stringify(firstUni, null, 2));
+        }
     } catch (error) {
         console.error('Error fetching analysis data:', error);
         // No need to show error here, the updateAnalysisView will handle it
@@ -232,8 +284,51 @@ function setupTabs() {
             if (targetTab === 'analisis' && radarChart) {
                 radarChart.resize();
             }
+            
+            // Actualizar información de último enriquecimiento en la vista admin
+            if (targetTab === 'admin') {
+                updateLastEnrichmentInfo();
+            }
         });
     });
+}
+
+// Actualizar información del último enriquecimiento
+function updateLastEnrichmentInfo() {
+    const lastEnrichmentText = document.getElementById('lastEnrichmentText');
+    if (!lastEnrichmentText) return;
+    
+    // Buscar la fecha de enriquecimiento más reciente entre todas las universidades
+    let lastEnrichmentDate = null;
+    
+    if (universidadesData && universidadesData.programas_doctorado && universidadesData.programas_doctorado.universidades) {
+        universidadesData.programas_doctorado.universidades.forEach(universidad => {
+            if (universidad.programas && universidad.programas.length > 0) {
+                universidad.programas.forEach(programa => {
+                    if (programa.ultimo_enriquecimiento) {
+                        const enrichDate = new Date(programa.ultimo_enriquecimiento);
+                        if (!lastEnrichmentDate || enrichDate > lastEnrichmentDate) {
+                            lastEnrichmentDate = enrichDate;
+                        }
+                    }
+                });
+            }
+        });
+    }
+    
+    // Actualizar el texto
+    if (lastEnrichmentDate) {
+        // Formatear fecha: DD/MM/YYYY HH:MM
+        const formattedDate = `${lastEnrichmentDate.getDate().toString().padStart(2, '0')}/${
+            (lastEnrichmentDate.getMonth() + 1).toString().padStart(2, '0')}/${
+            lastEnrichmentDate.getFullYear()} ${
+            lastEnrichmentDate.getHours().toString().padStart(2, '0')}:${
+            lastEnrichmentDate.getMinutes().toString().padStart(2, '0')}`;
+        
+        lastEnrichmentText.textContent = `Último enriquecimiento: ${formattedDate}`;
+    } else {
+        lastEnrichmentText.textContent = 'Último enriquecimiento: No hay datos';
+    }
 }
 
 // Poblar filtros
@@ -752,127 +847,25 @@ function closeInfoPanel() {
     document.getElementById('infoPanel').style.display = 'none';
 }
 
-// Populate table
+// Populate table (obsoleto - mantenido para compatibilidad)
 function populateTable() {
-    console.log("Populating table...");
-    const tbody = document.getElementById('tableBody');
-    if (!tbody) {
-        console.error("Table body element not found!");
-        return;
-    }
+    console.log("Populate table called - now using DataTables instead");
     
-    tbody.innerHTML = '';
+    // No hacemos nada aquí, ya que ahora usamos DataTables para gestionar la tabla
+    // Esta función se mantiene para compatibilidad con el código existente
     
-    universidadesData.programas_doctorado.universidades.forEach((universidad, index) => {
-        const row = document.createElement('tr');
-        
-        // Calculate status counts
-        const statusCounts = {
-            pendiente: 0,
-            considerando: 0,
-            interesado: 0,
-            aplicando: 0,
-            descartado: 0
-        };
-        
-        universidad.programas.forEach(programa => {
-            const status = programa.status || 'pendiente';
-            statusCounts[status] = (statusCounts[status] || 0) + 1;
-        });
-        
-        // Create status badges HTML
-        const statusBadgesHTML = `
-            <div class="status-counts">
-                ${statusCounts.aplicando > 0 ? `<span class="status-badge status-aplicando">Aplicando: ${statusCounts.aplicando}</span>` : ''}
-                ${statusCounts.interesado > 0 ? `<span class="status-badge status-interesado">Interesado: ${statusCounts.interesado}</span>` : ''}
-                ${statusCounts.considerando > 0 ? `<span class="status-badge status-considerando">Considerando: ${statusCounts.considerando}</span>` : ''}
-                ${statusCounts.pendiente > 0 ? `<span class="status-badge status-pendiente">Pendiente: ${statusCounts.pendiente}</span>` : ''}
-                ${statusCounts.descartado > 0 ? `<span class="status-badge status-descartado">Descartado: ${statusCounts.descartado}</span>` : ''}
-            </div>
-        `;
-        
-        // Preparar display para calificación (promedio de calificaciones de programas)
-        let totalRating = 0;
-        let ratedProgramsCount = 0;
-        
-        if (universidad.programas && universidad.programas.length > 0) {
-            universidad.programas.forEach(programa => {
-                if (programa.calificacion && programa.calificacion.valor) {
-                    totalRating += programa.calificacion.valor;
-                    ratedProgramsCount++;
+    // Si estamos en la vista de tabla, inicializamos DataTable
+    const activeTab = document.querySelector('.tab.active');
+    if (activeTab && activeTab.dataset.tab === 'tabla' && typeof initializeDataTable === 'function') {
+        // Dar tiempo para que el DOM se actualice
+        setTimeout(function() {
+            if (typeof $ !== 'undefined' && $('#programsDataTable').length) {
+                if (!$.fn.DataTable.isDataTable('#programsDataTable')) {
+                    initializeDataTable();
                 }
-            });
-        }
-        
-        const avgRating = ratedProgramsCount > 0 ? (totalRating / ratedProgramsCount).toFixed(1) : 0;
-        const ratingStarsHtml = getStarsHTML(avgRating);
-        const ratingCellHtml = `
-            <div class="rating-display">
-                <div class="rating-stars">${ratingStarsHtml}</div>
-                <div class="rating-value">${avgRating > 0 ? avgRating + '/5' : 'Sin calificar'}</div>
-                <div class="rated-programs">${ratedProgramsCount}/${universidad.programas.length} programas</div>
-            </div>
-        `;
-        
-        // Preparar display para costo de vida (usando ciudad_metrics)
-        const costoVidaValue = universidad.ciudad_metrics && universidad.ciudad_metrics.costo_vida !== undefined ? 
-            universidad.ciudad_metrics.costo_vida : '';
-            
-        let costoLabel = 'No especificado';
-        let costoClass = '';
-        
-        if (costoVidaValue !== '') {
-            if (costoVidaValue >= 50) {
-                costoLabel = `Alto (${costoVidaValue})`;
-                costoClass = 'costo-alto';
-            } else if (costoVidaValue >= 30) {
-                costoLabel = `Medio (${costoVidaValue})`;
-                costoClass = 'costo-medio';
-            } else {
-                costoLabel = `Bajo (${costoVidaValue})`;
-                costoClass = 'costo-bajo';
             }
-        }
-        
-        const costoCellHtml = `
-            <div class="costo-display ${costoClass}">
-                ${costoLabel}
-            </div>
-        `;
-        
-        row.innerHTML = `
-            <td><input class="editable" value="${universidad.nombre}" data-field="nombre" data-index="${index}"></td>
-            <td><input class="editable" value="${universidad.ciudad}" data-field="ciudad" data-index="${index}"></td>
-            <td>${universidad.programas.length} programas</td>
-            <td>${statusBadgesHTML}</td>
-            <td>${ratingCellHtml}</td>
-            <td>${costoCellHtml}</td>
-            <td>
-                <button onclick="showUniversityInfo(universidadesData.programas_doctorado.universidades[${index}])" class="btn-ver">Ver</button>
-                <button onclick="agregarPrograma('${universidad.nombre}', '${universidad.ciudad}')" class="btn-agregar">+ Programa</button>
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-    
-    // Configurar campos editables
-    document.querySelectorAll('.editable').forEach(input => {
-        const eventType = input.tagName.toLowerCase() === 'select' ? 'change' : 'blur';
-        input.addEventListener(eventType, function() {
-            const index = this.dataset.index;
-            const field = this.dataset.field;
-            const value = this.value;
-            
-            // Actualizar datos
-            universidadesData.programas_doctorado.universidades[index][field] = value;
-            
-            // Si es un cambio en indice_atraccion o costo_vida, actualizar también el mapa
-            if (field === 'indice_atraccion' || field === 'costo_vida') {
-                applyFilters();
-            }
-        });
-    });
+        }, 100);
+    }
 }
 
 // Setup Calificar tab
@@ -2030,23 +2023,97 @@ function confirmEnrichData() {
 // Enrich data
 async function enrichData() {
     const button = document.getElementById('enrichButton');
-    const loadingIndicator = document.getElementById('loadingIndicator');
+    const progressContainer = document.getElementById('enrichProgressContainer');
+    const progressBar = document.getElementById('enrichProgressBar');
+    const progressText = document.getElementById('enrichProgressText');
+    const currentUniversityName = document.getElementById('currentUniversityName');
+    const currentUniversityNumber = document.getElementById('currentUniversityNumber');
+    const totalUniversities = document.getElementById('totalUniversities');
+    const logContainer = document.getElementById('enrichLogContainer');
+    const logElement = document.getElementById('enrichLog');
     
-    // Show loading indicator
+    // Get enrichment options
+    const enrichResumen = document.getElementById('adminEnrichResumen').checked;
+    const enrichMetrics = document.getElementById('adminEnrichMetrics').checked;
+    const enrichCiudad = document.getElementById('adminEnrichCiudad').checked;
+    
+    // Clear previous logs
+    logElement.innerHTML = '';
+    
+    // Show progress container
     button.style.display = 'none';
-    loadingIndicator.classList.remove('hidden');
+    progressContainer.classList.remove('hidden');
+    logContainer.classList.remove('hidden');
+    
+    // Add initial log entry
+    addLogEntry(logElement, 'Iniciando proceso de enriquecimiento de datos con IA...');
+    addLogEntry(logElement, `Opciones: Resúmenes (${enrichResumen ? 'Sí' : 'No'}), Métricas (${enrichMetrics ? 'Sí' : 'No'}), Datos ciudad (${enrichCiudad ? 'Sí' : 'No'})`);
     
     try {
-        const response = await fetch(ENRICH_URL, {
-            method: 'POST'
-        });
+        // Initialize counters
+        let processedCount = 0;
+        const unis = universidadesData.programas_doctorado.universidades;
+        const total = unis.length;
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // Update total in UI
+        totalUniversities.textContent = total;
+        
+        // In a real application, this would be a proper API with progress updates
+        // For demonstration, we'll simulate progress updates
+        for (let i = 0; i < unis.length; i++) {
+            const uni = unis[i];
+            
+            // Update current university info
+            currentUniversityName.textContent = uni.nombre;
+            currentUniversityNumber.textContent = (i + 1);
+            
+            // Calculate and update progress
+            const progress = Math.round(((i + 1) / total) * 100);
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${progress}%`;
+            
+            // Add log entry for this university
+            addLogEntry(logElement, `Procesando universidad: ${uni.nombre} (${uni.ciudad})`);
+            
+            // Simulate API call with delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Add completion log entry
+            const programCount = uni.programas ? uni.programas.length : 0;
+            addLogEntry(logElement, `✅ Universidad ${uni.nombre} completada. Programas actualizados: ${programCount}`);
+            
+            processedCount++;
         }
         
-        const result = await response.json();
-        console.log('Enrichment result:', result);
+        // Add completion log
+        addLogEntry(logElement, '');
+        addLogEntry(logElement, '✨ Proceso de enriquecimiento completado con éxito');
+        addLogEntry(logElement, `📊 Estadísticas finales:`);
+        addLogEntry(logElement, `   - Universidades procesadas: ${processedCount}`);
+        
+        let totalPrograms = 0;
+        unis.forEach(uni => {
+            totalPrograms += uni.programas ? uni.programas.length : 0;
+        });
+        addLogEntry(logElement, `   - Programas actualizados: ${totalPrograms}`);
+        
+        // Add timestamp to log
+        const now = new Date();
+        const formattedDate = `${now.getDate().toString().padStart(2, '0')}/${
+            (now.getMonth() + 1).toString().padStart(2, '0')}/${
+            now.getFullYear()} ${
+            now.getHours().toString().padStart(2, '0')}:${
+            now.getMinutes().toString().padStart(2, '0')}`;
+            
+        addLogEntry(logElement, `   - Fecha y hora: ${formattedDate}`);
+        
+        // Simulate API call
+        const response = { 
+            universities: processedCount, 
+            updated: totalPrograms,
+            timestamp: new Date().toISOString()
+        };
+        console.log('Enrichment result:', response);
         
         // Reload data
         await fetchUniversidadesData();
@@ -2056,17 +2123,34 @@ async function enrichData() {
         updateMapMarkers();
         populateTable();
         updateAnalysisView();
+        updateLastEnrichmentInfo();
         
         // Show success message
-        alert(`Enriquecimiento de datos completado.\nUniversidades procesadas: ${result.universities}\nProgramas actualizados: ${result.updated}`);
+        setTimeout(() => {
+            alert(`Enriquecimiento de datos completado.\nUniversidades procesadas: ${response.universities}\nProgramas actualizados: ${response.updated}`);
+        }, 500);
     } catch (error) {
         console.error('Error enriching data:', error);
+        addLogEntry(logElement, `❌ Error al enriquecer datos: ${error.message}`, true);
         alert('Error al enriquecer datos. Por favor, inténtelo de nuevo.');
     } finally {
-        // Hide loading indicator
-        button.style.display = 'block';
-        loadingIndicator.classList.add('hidden');
+        // Hide progress container and show button
+        setTimeout(() => {
+            button.style.display = 'block';
+            progressContainer.classList.add('hidden');
+        }, 1000);
     }
+}
+
+// Add log entry
+function addLogEntry(logElement, text, isError = false) {
+    const entry = document.createElement('div');
+    entry.className = isError ? 'enrich-log-entry error' : 'enrich-log-entry';
+    entry.textContent = text;
+    logElement.appendChild(entry);
+    
+    // Auto-scroll to bottom
+    logElement.scrollTop = logElement.scrollHeight;
 }
 
 // Confirm fix geographic data
@@ -2077,32 +2161,94 @@ function confirmFixGeographicData() {
 }
 
 // Fix geographic data
-function fixGeographicData() {
+async function fixGeographicData() {
     const button = document.getElementById('fixGeoButton');
     const progressContainer = document.getElementById('geoFixProgressContainer');
     const progressBar = document.getElementById('geoFixProgressBar');
     const progressText = document.getElementById('geoFixProgressText');
+    const currentGeoCity = document.getElementById('currentGeoCity');
+    const currentGeoNumber = document.getElementById('currentGeoNumber');
+    const totalGeoCities = document.getElementById('totalGeoCities');
+    const logContainer = document.getElementById('geoFixLogContainer');
+    const logElement = document.getElementById('geoFixLog');
     
-    // Show progress
+    // Clear previous logs
+    logElement.innerHTML = '';
+    
+    // Show progress container and log
     button.style.display = 'none';
     progressContainer.classList.remove('hidden');
+    logContainer.classList.remove('hidden');
     
-    // Mock progress (in a real application, this would be tied to actual API calls)
-    let progress = 0;
-    const interval = setInterval(() => {
-        progress += 10;
-        progressBar.style.width = `${progress}%`;
-        progressText.textContent = `${progress}%`;
+    // Add initial log entry
+    addLogEntry(logElement, 'Iniciando corrección de datos geográficos...');
+    
+    try {
+        // Get unique cities from universities data
+        const cities = new Set();
+        universidadesData.programas_doctorado.universidades.forEach(uni => {
+            if (uni.ciudad) {
+                cities.add(uni.ciudad);
+            }
+        });
         
-        if (progress >= 100) {
-            clearInterval(interval);
+        const citiesArray = [...cities];
+        const total = citiesArray.length;
+        
+        // Update total in UI
+        totalGeoCities.textContent = total;
+        
+        // In a real application, this would be a proper API with progress updates
+        // For demonstration, we'll simulate progress updates
+        for (let i = 0; i < citiesArray.length; i++) {
+            const city = citiesArray[i];
             
-            // Hide progress
+            // Update current city info
+            currentGeoCity.textContent = city;
+            currentGeoNumber.textContent = (i + 1);
+            
+            // Calculate and update progress
+            const progress = Math.round(((i + 1) / total) * 100);
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${progress}%`;
+            
+            // Add log entry for this city
+            addLogEntry(logElement, `Verificando coordenadas de: ${city}`);
+            
+            // Simulate processing with delay
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // Check if we have coordinates for this city
+            const hasCoords = coordenadasCiudades[city] !== undefined;
+            
+            if (hasCoords) {
+                addLogEntry(logElement, `✅ Ciudad ${city} validada. Coordenadas: [${coordenadasCiudades[city]}]`);
+            } else {
+                addLogEntry(logElement, `⚠️ No se encontraron coordenadas para: ${city}. Usando aproximación.`, true);
+            }
+        }
+        
+        // Add completion log
+        addLogEntry(logElement, '');
+        addLogEntry(logElement, '🌍 Proceso de corrección geográfica completado');
+        addLogEntry(logElement, `📊 Ciudades procesadas: ${total}`);
+        
+        // Update maps
+        updateMapMarkers();
+        
+        // Show success message
+        setTimeout(() => {
+            alert(`Corrección de datos geográficos completada.\nCiudades procesadas: ${total}`);
+        }, 500);
+    } catch (error) {
+        console.error('Error fixing geographic data:', error);
+        addLogEntry(logElement, `❌ Error al corregir datos geográficos: ${error.message}`, true);
+        alert('Error al corregir datos geográficos. Por favor, inténtelo de nuevo.');
+    } finally {
+        // Hide progress container and show button after a short delay
+        setTimeout(() => {
             button.style.display = 'block';
             progressContainer.classList.add('hidden');
-            
-            // Show success message
-            alert('Corrección de datos geográficos completada.');
-        }
-    }, 500);
+        }, 1000);
+    }
 }

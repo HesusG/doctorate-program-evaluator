@@ -261,23 +261,86 @@ function createProgramCard(programa, universidad) {
     if (universidad.ciudad_metrics) {
         console.log(`Ciudad metrics encontrados en universidad: ${JSON.stringify(universidad.ciudad_metrics)}`);
         
+        // Mostrar sección
+        const cityContent = card.querySelector('.city-content');
+        const toggleCityBtn = card.querySelector('.toggle-city-btn');
+        let hasAnyMetric = false;
+        
         // Mostrar costo de vida
         const costoVidaElement = card.querySelector('[data-field="costo_vida"] .field-content');
         if (costoVidaElement && universidad.ciudad_metrics.costo_vida !== undefined) {
             costoVidaElement.textContent = universidad.ciudad_metrics.costo_vida;
+            hasAnyMetric = true;
             
-            // Mostrar sección
-            const cityContent = card.querySelector('.city-content');
-            const toggleCityBtn = card.querySelector('.toggle-city-btn');
+            // Añadir tooltip con comentario si existe
+            if (universidad.ciudad_metrics.costo_vida_comentario) {
+                costoVidaElement.title = universidad.ciudad_metrics.costo_vida_comentario;
+                costoVidaElement.classList.add('has-tooltip');
+            }
+        }
+        
+        // Mostrar calidad del aire
+        const calidadAireElement = card.querySelector('[data-field="calidad_aire"] .field-content');
+        if (calidadAireElement && universidad.ciudad_metrics.calidad_aire !== undefined) {
+            calidadAireElement.textContent = universidad.ciudad_metrics.calidad_aire;
+            hasAnyMetric = true;
+            
+            // Añadir tooltip con comentario si existe
+            if (universidad.ciudad_metrics.calidad_aire_comentario) {
+                calidadAireElement.title = universidad.ciudad_metrics.calidad_aire_comentario;
+                calidadAireElement.classList.add('has-tooltip');
+            }
+        }
+        
+        // Mostrar calidad del transporte
+        const calidadTransporteElement = card.querySelector('[data-field="calidad_transporte"] .field-content');
+        if (calidadTransporteElement && universidad.ciudad_metrics.calidad_transporte !== undefined) {
+            calidadTransporteElement.textContent = universidad.ciudad_metrics.calidad_transporte;
+            hasAnyMetric = true;
+            
+            // Añadir tooltip con comentario si existe
+            if (universidad.ciudad_metrics.calidad_transporte_comentario) {
+                calidadTransporteElement.title = universidad.ciudad_metrics.calidad_transporte_comentario;
+                calidadTransporteElement.classList.add('has-tooltip');
+            }
+        }
+        
+        // Mostrar calidad del servicio médico
+        const calidadServicioMedicoElement = card.querySelector('[data-field="calidad_servicio_medico"] .field-content');
+        if (calidadServicioMedicoElement && universidad.ciudad_metrics.calidad_servicio_medico !== undefined) {
+            calidadServicioMedicoElement.textContent = universidad.ciudad_metrics.calidad_servicio_medico;
+            hasAnyMetric = true;
+            
+            // Añadir tooltip con comentario si existe
+            if (universidad.ciudad_metrics.calidad_servicio_medico_comentario) {
+                calidadServicioMedicoElement.title = universidad.ciudad_metrics.calidad_servicio_medico_comentario;
+                calidadServicioMedicoElement.classList.add('has-tooltip');
+            }
+        }
+        
+        // Mostrar distancia a Madrid
+        const distanciaElement = card.querySelector('[data-field="distancia_a_madrid_km"] .field-content');
+        if (distanciaElement && universidad.ciudad_metrics.distancia_a_madrid_km !== undefined) {
+            distanciaElement.textContent = universidad.ciudad_metrics.distancia_a_madrid_km + ' km';
+            hasAnyMetric = true;
+        }
+        
+        // Mostrar la descripción (comentario de costo de vida o descripción general)
+        if (universidad.ciudad_metrics.descripcion) {
+            const cityDescription = card.querySelector('.city-description-content');
+            cityDescription.textContent = universidad.ciudad_metrics.descripcion;
+            hasAnyMetric = true;
+        } else if (universidad.ciudad_metrics.costo_vida_comentario) {
+            const cityDescription = card.querySelector('.city-description-content');
+            cityDescription.textContent = universidad.ciudad_metrics.costo_vida_comentario;
+            hasAnyMetric = true;
+        }
+        
+        // Mostrar sección si hay alguna métrica disponible
+        if (hasAnyMetric) {
             cityContent.classList.remove('hidden');
             toggleCityBtn.textContent = '▼';
             toggleCityBtn.classList.remove('collapsed');
-            
-            // Configurar descripción
-            if (universidad.ciudad_metrics.costo_vida_comentario) {
-                const cityDescription = card.querySelector('.city-description-content');
-                cityDescription.textContent = universidad.ciudad_metrics.costo_vida_comentario;
-            }
         }
     } else {
         console.log(`No se encontraron ciudad_metrics en universidad: ${universidad.nombre}`);
