@@ -212,7 +212,8 @@ app.get('/api/universidades', async (req, res) => {
             }
           },
           coords: { $first: "$coords" },
-          stats: { $first: "$stats" }
+          stats: { $first: "$stats" },
+          ciudad_metrics: { $first: "$ciudad_metrics" }
         }
       },
       {
@@ -222,7 +223,8 @@ app.get('/api/universidades', async (req, res) => {
           ciudad: "$_id.ciudad",
           programas: 1,
           coords: 1,
-          stats: 1
+          stats: 1,
+          ciudad_metrics: 1
         }
       }
     ]).toArray();
@@ -264,22 +266,42 @@ app.post('/api/programas', async (req, res) => {
       return res.status(400).json({ message: 'Universidad, ciudad y programa son requeridos' });
     }
     
+    // Buscar la universidad para obtener stats y ciudad_metrics
     const db = client.db();
-    const result = await db.collection('programas').insertOne({
+    const existingPrograms = await db.collection('programas')
+      .find({ universidad: universidad, ciudad: ciudad })
+      .limit(1)
+      .toArray();
+    
+    // Obtener stats y ciudad_metrics si existen
+    let stats = null;
+    let ciudad_metrics = null;
+    let coords = null;
+    
+    if (existingPrograms.length > 0) {
+      stats = existingPrograms[0].stats || null;
+      ciudad_metrics = existingPrograms[0].ciudad_metrics || null;
+      coords = existingPrograms[0].coords || null;
+    }
+    
+    // Crear nuevo programa con stats y ciudad_metrics si están disponibles
+    const newProgram = {
       universidad,
       ciudad,
       programa,
       linea_investigacion: linea_investigacion || "",
-      url: url || ""
-    });
+      url: url || "",
+      // Siempre incluir estos campos aunque sean null para mantener consistencia
+      stats: stats,
+      ciudad_metrics: ciudad_metrics,
+      coords: coords
+    };
+    
+    const result = await db.collection('programas').insertOne(newProgram);
     
     res.status(201).json({ 
       _id: result.insertedId,
-      universidad,
-      ciudad,
-      programa,
-      linea_investigacion,
-      url
+      ...newProgram
     });
   } catch (error) {
     console.error('Error adding programa:', error);
@@ -678,7 +700,8 @@ app.get('/api/busqueda', async (req, res) => {
           ciudad: programa.ciudad,
           programas: [],
           coords: programa.coords,
-          stats: programa.stats
+          stats: programa.stats,
+          ciudad_metrics: programa.ciudad_metrics
         });
       }
       
@@ -690,7 +713,9 @@ app.get('/api/busqueda', async (req, res) => {
         lineas_investigacion: programa.linea_investigacion ? programa.linea_investigacion.split('\n\n') : [],
         resumen: programa.resumen,
         status: programa.status,
-        calificacion: programa.calificacion
+        calificacion: programa.calificacion,
+        stats: programa.stats || universidadesMap.get(uniKey).stats,
+        ciudad_metrics: programa.ciudad_metrics || universidadesMap.get(uniKey).ciudad_metrics
       });
     });
     
