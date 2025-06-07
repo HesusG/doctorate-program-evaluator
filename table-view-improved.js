@@ -215,7 +215,48 @@ function createProgramCard(programa, universidad) {
     const resumenField = card.querySelector('.resumen-field .field-content');
     resumenField.textContent = programa.resumen || 'Sin resumen disponible';
     
-    // Sólo configurar datos de ciudad - siguiendo el modelo de la sección de análisis
+    // Configurar métricas académicas - siguiendo el modelo de la sección de análisis
+    // Buscar en universidad
+    if (universidad.stats) {
+        console.log(`Stats encontrados en universidad: ${JSON.stringify(universidad.stats)}`);
+        
+        // Verificar si hay datos para mostrar
+        const tieneMetricas = universidad.stats.innovacion !== undefined || 
+                            universidad.stats.interdisciplinariedad !== undefined ||
+                            universidad.stats.impacto !== undefined ||
+                            universidad.stats.internacional !== undefined ||
+                            universidad.stats.aplicabilidad !== undefined;
+        
+        if (tieneMetricas) {
+            // Asignar los valores a los elementos correspondientes
+            if (universidad.stats.innovacion !== undefined) {
+                card.querySelector('[data-field="innovacion"] .field-content').textContent = universidad.stats.innovacion;
+            }
+            if (universidad.stats.interdisciplinariedad !== undefined) {
+                card.querySelector('[data-field="interdisciplinariedad"] .field-content').textContent = universidad.stats.interdisciplinariedad;
+            }
+            if (universidad.stats.impacto !== undefined) {
+                card.querySelector('[data-field="impacto"] .field-content').textContent = universidad.stats.impacto;
+            }
+            if (universidad.stats.internacional !== undefined) {
+                card.querySelector('[data-field="internacional"] .field-content').textContent = universidad.stats.internacional;
+            }
+            if (universidad.stats.aplicabilidad !== undefined) {
+                card.querySelector('[data-field="aplicabilidad"] .field-content').textContent = universidad.stats.aplicabilidad;
+            }
+            
+            // Mostrar sección
+            const metricsContent = card.querySelector('.metrics-content');
+            const toggleMetricsBtn = card.querySelector('.toggle-metrics-btn');
+            metricsContent.classList.remove('hidden');
+            toggleMetricsBtn.textContent = '▼';
+            toggleMetricsBtn.classList.remove('collapsed');
+        }
+    } else {
+        console.log(`No se encontraron stats en universidad: ${universidad.nombre}`);
+    }
+    
+    // Configurar datos de ciudad - siguiendo el modelo de la sección de análisis
     // Buscar en universidad
     if (universidad.ciudad_metrics) {
         console.log(`Ciudad metrics encontrados en universidad: ${JSON.stringify(universidad.ciudad_metrics)}`);
