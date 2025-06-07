@@ -211,15 +211,12 @@ function createProgramCard(programa, universidad) {
     const resumenField = card.querySelector('.resumen-field .field-content');
     resumenField.textContent = programa.resumen || 'Sin resumen disponible';
     
-    // Configurar métricas académicas
-    // Comprobar si stats está en el programa o en la universidad
-    // Asegurarse de que programa.stats existe o inicializarlo
-    if (!programa.stats && universidad.stats) {
-        programa.stats = {...universidad.stats}; // Copia stats de la universidad al programa
-    }
+    // Configurar métricas académicas usando el enfoque simple
+    // Obtener stats del programa o universidad, lo que esté disponible
     const stats = programa.stats || universidad.stats || {};
     console.log(`- Stats obtenidos para tarjeta: ${JSON.stringify(stats)}`);
     
+    // Simplemente mostrar los valores disponibles
     card.querySelector('[data-field="innovacion"] .field-content').textContent = 
         stats.innovacion !== undefined ? stats.innovacion : 'N/A';
     card.querySelector('[data-field="interdisciplinariedad"] .field-content').textContent = 
@@ -231,14 +228,12 @@ function createProgramCard(programa, universidad) {
     card.querySelector('[data-field="aplicabilidad"] .field-content').textContent = 
         stats.aplicabilidad !== undefined ? stats.aplicabilidad : 'N/A';
     
-    // Configurar datos de ciudad
-    // Asegurarse de que programa.ciudad_metrics existe o inicializarlo desde la universidad
-    if (!programa.ciudad_metrics && universidad.ciudad_metrics) {
-        programa.ciudad_metrics = {...universidad.ciudad_metrics}; // Copia ciudad_metrics de la universidad al programa
-    }
+    // Configurar datos de ciudad usando el enfoque simple
+    // Obtener ciudad_metrics del programa o universidad, lo que esté disponible
     const ciudadMetrics = programa.ciudad_metrics || universidad.ciudad_metrics || {};
     console.log(`- Ciudad metrics obtenidos: ${JSON.stringify(ciudadMetrics)}`);
     
+    // Simplemente mostrar los valores disponibles
     card.querySelector('[data-field="costo_vida"] .field-content').textContent = 
         ciudadMetrics.costo_vida !== undefined ? ciudadMetrics.costo_vida : 'N/A';
     
