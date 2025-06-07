@@ -162,9 +162,9 @@ function initializeDataTable() {
                         
                         let costoClass = '';
                         if (costoData !== 'N/A') {
-                            if (costoData >= 50) costoClass = 'costo-alto';
-                            else if (costoData >= 30) costoClass = 'costo-medio';
-                            else costoClass = 'costo-bajo';
+                            if (costoData >= 8) costoClass = 'costo-bajo';   // 8-10 = costo bajo (bueno)
+                            else if (costoData >= 4) costoClass = 'costo-medio'; // 4-7 = costo medio
+                            else costoClass = 'costo-alto';  // 1-3 = costo alto (malo)
                         }
                         
                         return `

@@ -369,7 +369,7 @@ async function getCityMetrics(ciudad) {
       "Eres un asistente especializado en economía y datos de ciudades portuguesas." : 
       "Eres un asistente especializado en economía y datos de ciudades españolas.";
     
-    // Costo de vida - Valores más bajos son mejor puntuados (escala invertida)
+    // Costo de vida - Escala invertida de 1-10 (más bajo costo = 10 puntos, más alto costo = 1 punto)
     const costoVidaResponse = await openaiClient.post('/chat/completions', {
       model: "gpt-3.5-turbo",
       messages: [
@@ -379,21 +379,27 @@ async function getCityMetrics(ciudad) {
         },
         {
           role: "user",
-          content: `¿Cuál es el costo de vida aproximado en ${ciudad} (sin incluir alquiler)? Considerando que Ciudad de México tendría un valor de 100, asigna un valor entre 0 y 100, donde valores más bajos indican menor costo de vida. 
+          content: `Evalúa el costo de vida en ${ciudad} (sin incluir alquiler) en una escala INVERTIDA del 1 al 10, donde:
+          - 10 puntos = costo de vida muy bajo (más económico)
+          - 1 punto = costo de vida muy alto (más caro)
           
-          Necesito:
-          1. Un valor numérico entre 0 y 100 (donde menos es mejor)
-          2. Un breve comentario explicando este costo comparado con otras ciudades similares
-          3. Menciona al menos 2-3 factores específicos que afectan el costo de vida en esta ciudad (ej. transporte, alimentación, servicios)`
+          Primero compara con Ciudad de México como referencia y luego asigna una puntuación.
+          
+          Responde con:
+          1. Un número entero del 1 al 10 (recuerda: mayor puntuación = menor costo de vida)
+          2. Un comentario que explique el porcentaje aproximado de diferencia con Ciudad de México
+          3. Menciona 2-3 factores específicos que afectan el costo de vida en esta ciudad
+          
+          Ejemplo de respuesta: "8. El costo de vida en [ciudad] es aproximadamente un 30% menor que en Ciudad de México. Destacan los bajos precios en transporte público y alimentación, aunque los servicios básicos son relativamente costosos."`
         }
       ],
-      max_tokens: 150,
+      max_tokens: 200,
       temperature: 0.5
     });
     const costoVidaText = costoVidaResponse.data.choices[0].message.content.trim();
-    // Extract number from response
-    const costoVidaMatch = costoVidaText.match(/\b([0-9]{1,3})\b/);
-    metrics.costo_vida = costoVidaMatch ? parseInt(costoVidaMatch[0]) : 70;
+    // Extract number from response (looking for digits 1-10)
+    const costoVidaMatch = costoVidaText.match(/\b([1-9]|10)\b/);
+    metrics.costo_vida = costoVidaMatch ? parseInt(costoVidaMatch[0]) : 5;
     metrics.costo_vida_comentario = costoVidaText;
     
     // Reference city for distance - Madrid for Spain, Lisboa for Portugal
