@@ -897,10 +897,35 @@ function hideSaveConfirmModal() {
 }
 
 // Guardar todos los cambios
-function saveAllChanges() {
+async function saveAllChanges() {
     console.log('Guardando todos los cambios:', changedFields);
     
-    // Aplicar cambios a los datos
+    // Contador para éxitos y errores
+    let successCount = 0;
+    let errorCount = 0;
+    
+    // Procesar cada programa con cambios
+    for (const programId in changedFields) {
+        const changes = changedFields[programId];
+        
+        try {
+            // Si el programa está marcado para eliminación
+            if (changes.deleted) {
+                await deleteProgram(programId);
+                successCount++;
+                continue;
+            }
+            
+            // Guardar cambios en el programa
+            await updateProgram(programId, changes);
+            successCount++;
+        } catch (error) {
+            console.error(`Error al guardar cambios para programa ${programId}:`, error);
+            errorCount++;
+        }
+    }
+    
+    // Aplicar cambios a los datos locales para mantener sincronía
     for (const programId in changedFields) {
         const changes = changedFields[programId];
         
@@ -937,7 +962,209 @@ function saveAllChanges() {
     programsInEditMode = {};
     
     // Mostrar confirmación
-    alert('Todos los cambios guardados correctamente');
+    if (errorCount > 0) {
+        alert(`Cambios guardados con algunos problemas: ${successCount} éxitos, ${errorCount} errores`);
+    } else {
+        alert('Todos los cambios guardados correctamente');
+    }
+}
+
+// Función para actualizar un programa en el servidor
+async function updateProgram(programId, changes) {
+    // Verificar si el ID es temporal (nuevo programa)
+    if (programId.startsWith('temp_') || programId.startsWith('duplicate_')) {
+        // Para nuevos programas, debemos hacer un POST
+        // Buscar el programa completo en los datos para enviarlo completo
+        let programData = null;
+        let universidadData = null;
+        
+        for (const universidad of universidadesData.programas_doctorado.universidades) {
+            for (const programa of universidad.programas) {
+                if (programa._id === programId) {
+                    programData = programa;
+                    universidadData = universidad;
+                    break;
+                }
+            }
+            if (programData) break;
+        }
+        
+        if (!programData) {
+            throw new Error('Programa no encontrado en los datos locales');
+        }
+        
+        // Crear objeto con datos para la API
+        const nuevoPrograma = {
+            universidad: universidadData.nombre,
+            ciudad: universidadData.ciudad,
+            programa: programData.nombre,
+            linea_investigacion: programData.linea_investigacion || '',
+            url: programData.url || '',
+            resumen: programData.resumen || '',
+            status: programData.status || 'pendiente'
+        };
+        
+        // Si tiene calificación, añadirla
+        if (programData.calificacion) {
+            nuevoPrograma.calificacion = programData.calificacion;
+        }
+        
+        // Enviar petición al servidor
+        const response = await fetch('/api/programas', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(nuevoPrograma)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Error al crear nuevo programa');
+        }
+        
+        return await response.json();
+    } else {
+        // Para programas existentes, usamos PATCH o PUT según los cambios
+        
+        // Si solo hay cambio de estado, usamos el endpoint específico
+        if (Object.keys(changes).length === 1 && changes.status) {
+            const response = await fetch(`/api/programas/${programId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: changes.status })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Error al actualizar estado del programa');
+            }
+            
+            return await response.json();
+        }
+        
+        // Si hay cambio de calificación, usamos el endpoint específico
+        if (Object.keys(changes).length === 1 && changes.rating) {
+            const response = await fetch(`/api/programas/${programId}/calificacion`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    calificacion: {
+                        valor: changes.rating,
+                        fecha: new Date().toISOString()
+                    }
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Error al actualizar calificación del programa');
+            }
+            
+            return await response.json();
+        }
+        
+        // Para otros cambios más complejos, usar el nuevo endpoint PUT /api/programas/:id
+        try {
+            // Convertir los cambios al formato esperado por el servidor
+            const updateData = {};
+            
+            // Convertir cada campo al formato esperado
+            if (changes.resumen !== undefined) {
+                updateData.resumen = changes.resumen;
+            }
+            
+            if (changes.status !== undefined) {
+                updateData.status = changes.status;
+            }
+            
+            // Si hay cambios en stats, añadirlos como campos individuales
+            if (changes.innovacion !== undefined ||
+                changes.interdisciplinariedad !== undefined ||
+                changes.impacto !== undefined ||
+                changes.internacional !== undefined ||
+                changes.aplicabilidad !== undefined) {
+                
+                // Inicializar stats si no existe
+                if (!updateData.stats) updateData.stats = {};
+                
+                if (changes.innovacion !== undefined) {
+                    updateData.stats.innovacion = parseFloat(changes.innovacion);
+                }
+                
+                if (changes.interdisciplinariedad !== undefined) {
+                    updateData.stats.interdisciplinariedad = parseFloat(changes.interdisciplinariedad);
+                }
+                
+                if (changes.impacto !== undefined) {
+                    updateData.stats.impacto = parseFloat(changes.impacto);
+                }
+                
+                if (changes.internacional !== undefined) {
+                    updateData.stats.internacional = parseFloat(changes.internacional);
+                }
+                
+                if (changes.aplicabilidad !== undefined) {
+                    updateData.stats.aplicabilidad = parseFloat(changes.aplicabilidad);
+                }
+            }
+            
+            // Si hay cambios en las métricas de ciudad
+            if (changes.costo_vida !== undefined) {
+                // Inicializar ciudad_metrics si no existe
+                if (!updateData.ciudad_metrics) updateData.ciudad_metrics = {};
+                
+                updateData.ciudad_metrics.costo_vida = parseFloat(changes.costo_vida);
+            }
+            
+            console.log('Enviando actualización al servidor:', updateData);
+            
+            // Enviar actualización al servidor
+            const response = await fetch(`/api/programas/${programId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Error del servidor: ${errorData.message || response.statusText}`);
+            }
+            
+            const result = await response.json();
+            console.log('Respuesta del servidor:', result);
+            
+            return result;
+        } catch (error) {
+            console.error('Error al actualizar múltiples campos:', error);
+            // Seguir permitiendo la actualización local, pero mostrar un aviso
+            alert(`Error al actualizar en el servidor: ${error.message}. Los cambios se aplicarán solo localmente.`);
+            return { message: 'Cambios aplicados solo localmente', error: error.message };
+        }
+    }
+}
+
+// Función para eliminar un programa en el servidor
+async function deleteProgram(programId) {
+    // Verificar si el ID es temporal (no existe en la BD)
+    if (programId.startsWith('temp_') || programId.startsWith('duplicate_')) {
+        // No necesitamos hacer nada en el servidor para programas temporales
+        return { message: 'Programa temporal eliminado' };
+    }
+    
+    // Para programas existentes, enviar petición de eliminación
+    const response = await fetch(`/api/programas/${programId}`, {
+        method: 'DELETE'
+    });
+    
+    if (!response.ok) {
+        throw new Error('Error al eliminar programa');
+    }
+    
+    return await response.json();
 }
 
 // Mostrar modal para agregar programa
@@ -1117,7 +1344,7 @@ function startProgramEnrichment() {
 }
 
 // Función para duplicar un programa
-function duplicateProgram(programId) {
+async function duplicateProgram(programId) {
     // Buscar el programa original en los datos
     let originalPrograma = null;
     let originalUniversidad = null;
@@ -1151,9 +1378,51 @@ function duplicateProgram(programId) {
     // Añadir programa duplicado a la misma universidad
     originalUniversidad.programas.push(nuevoPrograma);
     
+    try {
+        // Crear objeto con datos para la API
+        const nuevoProgramaData = {
+            universidad: originalUniversidad.nombre,
+            ciudad: originalUniversidad.ciudad,
+            programa: nuevoPrograma.nombre,
+            linea_investigacion: nuevoPrograma.linea_investigacion || originalPrograma.linea_investigacion || '',
+            url: nuevoPrograma.url || originalPrograma.url || '',
+            resumen: nuevoPrograma.resumen || originalPrograma.resumen || '',
+            status: nuevoPrograma.status || 'pendiente'
+        };
+        
+        // Si tiene calificación, añadirla
+        if (nuevoPrograma.calificacion) {
+            nuevoProgramaData.calificacion = nuevoPrograma.calificacion;
+        }
+        
+        // Enviar petición al servidor
+        const response = await fetch('/api/programas', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(nuevoProgramaData)
+        });
+        
+        if (response.ok) {
+            // Obtener la respuesta con el ID real asignado por la BD
+            const result = await response.json();
+            
+            // Actualizar el ID temporal con el real
+            nuevoPrograma._id = result._id;
+            
+            // Mostrar confirmación
+            alert(`Programa duplicado correctamente: ${nuevoPrograma.nombre}`);
+        } else {
+            // Si falla, mantener el ID temporal y mostrar error
+            console.error('Error al guardar el programa duplicado en la base de datos');
+            alert(`Programa duplicado localmente, pero no se pudo guardar en la base de datos: ${nuevoPrograma.nombre}`);
+        }
+    } catch (error) {
+        console.error('Error al duplicar programa:', error);
+        alert(`Error al duplicar programa: ${error.message}`);
+    }
+    
     // Actualizar UI
     loadUniversities();
-    
-    // Mostrar confirmación
-    alert(`Programa duplicado correctamente: ${nuevoPrograma.nombre}`);
 }

@@ -208,7 +208,12 @@ app.get('/api/universidades', async (req, res) => {
               lineas_investigacion: {
                 $split: ["$linea_investigacion", "\n\n"]
               },
-              resumen: "$resumen"
+              resumen: "$university_summary",
+              status: "$status",
+              calificacion: "$calificacion",
+              university_summary: "$university_summary",
+              city_description: "$city_description",
+              university_description: "$university_description"
             }
           },
           coords: { $first: "$coords" },
@@ -350,6 +355,52 @@ app.patch('/api/programas/:id/status', async (req, res) => {
   } catch (error) {
     console.error('Error updating programa status:', error);
     res.status(500).json({ message: 'Error updating programa status' });
+  }
+});
+
+// Update multiple fields in a programa
+app.put('/api/programas/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    
+    // Verificar que hay campos para actualizar
+    if (!updates || Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: 'No updates provided' });
+    }
+    
+    // Campos que no se pueden actualizar directamente
+    const restrictedFields = ['_id', 'universidad', 'ciudad'];
+    
+    // Eliminar campos restringidos
+    restrictedFields.forEach(field => {
+      if (updates[field]) delete updates[field];
+    });
+    
+    // Si no quedan campos para actualizar
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: 'No valid updates provided' });
+    }
+    
+    const db = client.db();
+    const result = await db.collection('programas').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updates }
+    );
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'Programa not found' });
+    }
+    
+    res.json({ 
+      message: 'Programa updated successfully',
+      updated: Object.keys(updates),
+      matchedCount: result.matchedCount,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    console.error('Error updating programa:', error);
+    res.status(500).json({ message: 'Error updating programa', error: error.message });
   }
 });
 
@@ -744,7 +795,10 @@ app.get('/api/busqueda', async (req, res) => {
         status: programa.status,
         calificacion: programa.calificacion,
         stats: programa.stats || universidadesMap.get(uniKey).stats,
-        ciudad_metrics: programa.ciudad_metrics || universidadesMap.get(uniKey).ciudad_metrics
+        ciudad_metrics: programa.ciudad_metrics || universidadesMap.get(uniKey).ciudad_metrics,
+        university_summary: programa.university_summary,
+        city_description: programa.city_description,
+        university_description: programa.university_description
       });
     });
     
