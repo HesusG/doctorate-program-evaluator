@@ -1349,7 +1349,7 @@ tr:hover {
     cursor: pointer;
 }
 
-.toggle-metrics-btn, .toggle-city-btn {
+.toggle-metrics-btn, .toggle-city-btn, .toggle-lines-btn {
     background: none;
     border: none;
     color: #555;
@@ -1357,11 +1357,11 @@ tr:hover {
     transition: transform 0.2s ease;
 }
 
-.toggle-metrics-btn.collapsed, .toggle-city-btn.collapsed {
+.toggle-metrics-btn.collapsed, .toggle-city-btn.collapsed, .toggle-lines-btn.collapsed {
     transform: rotate(-90deg);
 }
 
-.metrics-content, .city-content {
+.metrics-content, .city-content, .lines-content {
     background: #f9f9f9;
     border-radius: 0 0 8px 8px;
     padding: 15px;
@@ -1371,7 +1371,7 @@ tr:hover {
     margin-top: 5px;
 }
 
-.metrics-content.hidden, .city-content.hidden {
+.metrics-content.hidden, .city-content.hidden, .lines-content.hidden {
     display: none;
 }
 
@@ -1418,7 +1418,7 @@ tr:hover {
     margin-top: 10px;
 }
 
-.edit-program-btn, .save-program-btn, .delete-program-btn, .enrich-program-btn, .test-data-btn {
+.edit-program-btn, .save-program-btn, .delete-program-btn, .duplicate-program-btn {
     border: none;
     border-radius: 6px;
     padding: 8px 12px;
@@ -1448,15 +1448,11 @@ tr:hover {
     background: #e74c3c;
 }
 
-.enrich-program-btn {
-    background: #2ecc71;
+.duplicate-program-btn {
+    background: #f39c12;
 }
 
-.test-data-btn {
-    background: #9b59b6;
-}
-
-.edit-program-btn:hover, .save-program-btn:hover, .delete-program-btn:hover, .enrich-program-btn:hover, .test-data-btn:hover {
+.edit-program-btn:hover, .save-program-btn:hover, .delete-program-btn:hover, .duplicate-program-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
