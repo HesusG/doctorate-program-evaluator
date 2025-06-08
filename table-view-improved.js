@@ -178,6 +178,14 @@ function createProgramCard(programa, universidad) {
     console.log(`- Ciudad metrics en programa: ${!!programa.ciudad_metrics}`);
     console.log(`- Ciudad metrics en universidad: ${!!universidad.ciudad_metrics}`);
     
+    // Debugging específico para líneas de investigación
+    console.log(`- linea_investigacion presente: ${!!programa.linea_investigacion}`);
+    if (programa.linea_investigacion) {
+        console.log(`- linea_investigacion valor: "${programa.linea_investigacion.substring(0, 50)}..."`);
+        console.log(`- linea_investigacion tipo: ${typeof programa.linea_investigacion}`);
+        console.log(`- linea_investigacion longitud: ${programa.linea_investigacion.length}`);
+    }
+    
     // Clonar la plantilla
     const template = document.getElementById('program-card-template');
     const card = template.content.cloneNode(true);
@@ -217,12 +225,26 @@ function createProgramCard(programa, universidad) {
     
     // Configurar líneas de investigación
     const lineasField = card.querySelector('.lines-field .field-content');
+    const linesContent = card.querySelector('.lines-content');
+    const toggleLinesBtn = card.querySelector('.toggle-lines-btn');
+    
     if (lineasField && programa.linea_investigacion) {
         // Procesar el texto para preservar saltos de línea
         const formattedLineas = programa.linea_investigacion
             .replace(/\n\n/g, '<br><br>')  // Doble salto de línea
             .replace(/\n/g, '<br>');       // Salto de línea simple
         lineasField.innerHTML = formattedLineas;
+        
+        // Mostrar la sección de líneas automáticamente
+        if (linesContent) {
+            linesContent.classList.remove('hidden');
+        }
+        
+        // Actualizar botón de toggle
+        if (toggleLinesBtn) {
+            toggleLinesBtn.textContent = '▼';
+            toggleLinesBtn.classList.remove('collapsed');
+        }
     } else if (lineasField) {
         lineasField.textContent = 'Sin líneas de investigación disponibles';
     }
