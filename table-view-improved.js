@@ -178,12 +178,21 @@ function createProgramCard(programa, universidad) {
     console.log(`- Ciudad metrics en programa: ${!!programa.ciudad_metrics}`);
     console.log(`- Ciudad metrics en universidad: ${!!universidad.ciudad_metrics}`);
     
-    // Debugging específico para líneas de investigación
-    console.log(`- linea_investigacion presente: ${!!programa.linea_investigacion}`);
+    // Debugging exhaustivo para entender la estructura de los datos
+    console.log('=== DEBUGGING PROGRAMA Y UNIVERSIDAD ===');
+    console.log('PROGRAMA COMPLETO:', JSON.stringify(programa, null, 2).substring(0, 500) + '...');
+    console.log('UNIVERSIDAD COMPLETO:', JSON.stringify(universidad, null, 2).substring(0, 500) + '...');
+    console.log(`- Programa tiene linea_investigacion? ${!!programa.linea_investigacion}`);
+    console.log(`- Las keys del objeto programa son: ${Object.keys(programa)}`);
+    
+    // Verificar todos los campos clave para ver qué está disponible
+    const camposImportantes = ['_id', 'nombre', 'url', 'linea_investigacion', 'resumen', 'status', 'calificacion'];
+    camposImportantes.forEach(campo => {
+        console.log(`- Programa tiene '${campo}'? ${!!programa[campo]}`);
+    });
+    
     if (programa.linea_investigacion) {
         console.log(`- linea_investigacion valor: "${programa.linea_investigacion.substring(0, 50)}..."`);
-        console.log(`- linea_investigacion tipo: ${typeof programa.linea_investigacion}`);
-        console.log(`- linea_investigacion longitud: ${programa.linea_investigacion.length}`);
     }
     
     // Clonar la plantilla
@@ -228,12 +237,25 @@ function createProgramCard(programa, universidad) {
     const linesContent = card.querySelector('.lines-content');
     const toggleLinesBtn = card.querySelector('.toggle-lines-btn');
     
-    if (lineasField && programa.linea_investigacion) {
-        // Procesar el texto para preservar saltos de línea
-        const formattedLineas = programa.linea_investigacion
-            .replace(/\n\n/g, '<br><br>')  // Doble salto de línea
-            .replace(/\n/g, '<br>');       // Salto de línea simple
-        lineasField.innerHTML = formattedLineas;
+    // Comprobar tanto lineas_investigacion (API) como linea_investigacion (DB)
+    if (lineasField && (programa.lineas_investigacion || programa.linea_investigacion)) {
+        let contenidoLineas = '';
+        
+        if (programa.lineas_investigacion) {
+            // Si es un array, unirlo con saltos de línea
+            if (Array.isArray(programa.lineas_investigacion)) {
+                contenidoLineas = programa.lineas_investigacion.join('<br><br>');
+            } else {
+                contenidoLineas = programa.lineas_investigacion;
+            }
+        } else if (programa.linea_investigacion) {
+            // Procesar el texto para preservar saltos de línea
+            contenidoLineas = programa.linea_investigacion
+                .replace(/\n\n/g, '<br><br>')  // Doble salto de línea
+                .replace(/\n/g, '<br>');       // Salto de línea simple
+        }
+        
+        lineasField.innerHTML = contenidoLineas;
         
         // Mostrar la sección de líneas automáticamente
         if (linesContent) {
