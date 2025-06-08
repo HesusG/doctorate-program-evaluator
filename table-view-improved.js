@@ -218,7 +218,11 @@ function createProgramCard(programa, universidad) {
     // Configurar líneas de investigación
     const lineasField = card.querySelector('.lines-field .field-content');
     if (lineasField && programa.linea_investigacion) {
-        lineasField.textContent = programa.linea_investigacion;
+        // Procesar el texto para preservar saltos de línea
+        const formattedLineas = programa.linea_investigacion
+            .replace(/\n\n/g, '<br><br>')  // Doble salto de línea
+            .replace(/\n/g, '<br>');       // Salto de línea simple
+        lineasField.innerHTML = formattedLineas;
     } else if (lineasField) {
         lineasField.textContent = 'Sin líneas de investigación disponibles';
     }

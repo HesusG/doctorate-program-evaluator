@@ -1736,7 +1736,7 @@ tr:hover {
     padding: 10px;
 }
 
-.city-description-content {
+.city-description-content, .lines-field .field-content {
     font-style: normal;
     line-height: 1.5;
     color: #555;
