@@ -487,43 +487,158 @@
                 </div>
                 
                 <div class="calificar-content">
+                    <!-- Statistics Panel -->
+                    <div class="stats-panel">
+                        <div class="stats-card">
+                            <div class="stats-label">Universidades</div>
+                            <div class="stats-value" id="university-count">0</div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-label">Documentos</div>
+                            <div class="stats-value" id="document-count">0</div>
+                        </div>
+                        <div class="status-distribution" id="status-distribution">
+                            <!-- Status counts will be loaded here dynamically -->
+                        </div>
+                        <div class="export-buttons">
+                            <button id="export-json" class="export-btn json-btn">📥 Exportar JSON</button>
+                            <button id="export-csv" class="export-btn csv-btn">📊 Exportar CSV</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Simple Filter Panel -->
                     <div class="calificar-filters">
-                        <div class="filter-group">
-                            <label>Filtrar por Universidad</label>
-                            <select id="calificarUniversityFilter" onchange="filterProgramsToRate()">
-                                <option value="">Todas las universidades</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>Filtrar por Ciudad</label>
-                            <select id="calificarCityFilter" onchange="filterProgramsToRate()">
-                                <option value="">Todas las ciudades</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>Estado de Calificación</label>
-                            <select id="calificarStatusFilter" onchange="filterProgramsToRate()">
-                                <option value="">Todos</option>
-                                <option value="pendiente">Pendientes</option>
-                                <option value="calificado">Calificados</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>Buscar</label>
-                            <input type="text" id="calificarSearchFilter" placeholder="Buscar programas..." oninput="filterProgramsToRate()">
+                        <div class="filter-section">
+                            <div class="filter-group">
+                                <label>Filtrar por Calificación</label>
+                                <div class="rating-filter-buttons">
+                                    <button id="filter-not-rated" class="filter-btn active" onclick="filterByRating('not-rated')">No Calificados</button>
+                                    <button id="filter-rated" class="filter-btn" onclick="filterByRating('rated')">Calificados</button>
+                                    <button id="filter-all-ratings" class="filter-btn" onclick="filterByRating('all')">Todos</button>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <label>Filtrar por Estado</label>
+                                <select id="simpleStatusFilter" onchange="filterProgramsByStatus()">
+                                    <option value="">Todos los estados</option>
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="considerando">Considerando</option>
+                                    <option value="interesado">Interesado</option>
+                                    <option value="aplicando">Aplicando</option>
+                                    <option value="descartado">Descartado</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="favorite-section">
-                        <h4>Programas Favoritos</h4>
-                        <div id="favoritesContainer" class="favorites-container">
-                            <p class="no-favorites-message">No hay programas favoritos guardados.</p>
+                    <!-- Programs Table -->
+                    <div class="programs-table-container">
+                        <table id="programs-table" class="programs-table">
+                            <thead>
+                                <tr>
+                                    <th>Programa</th>
+                                    <th>Estado</th>
+                                    <th>Calificación</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="programs-table-body">
+                                <!-- Programs will be loaded here dynamically -->
+                                <tr>
+                                    <td colspan="4" class="loading-cell">Cargando programas...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Program Edit Modal -->
+                <div id="program-edit-modal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4>Editar Programa</h4>
+                            <span class="close-modal">&times;</span>
+                        </div>
+                        <div class="modal-body">
+                            <form id="program-edit-form">
+                                <input type="hidden" id="edit-program-id">
+                                
+                                <div class="form-group">
+                                    <label>Nombre del Programa</label>
+                                    <input type="text" id="edit-program-name" disabled>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Universidad</label>
+                                    <input type="text" id="edit-program-university" disabled>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Ciudad</label>
+                                    <input type="text" id="edit-program-city" disabled>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Estado</label>
+                                    <select id="edit-program-status">
+                                        <option value="pendiente">Pendiente</option>
+                                        <option value="considerando">Considerando</option>
+                                        <option value="interesado">Interesado</option>
+                                        <option value="aplicando">Aplicando</option>
+                                        <option value="descartado">Descartado</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Calificación</label>
+                                    <div class="rating-input">
+                                        <div class="star-rating" id="edit-program-rating">
+                                            <span class="star" data-value="1">★</span>
+                                            <span class="star" data-value="2">★</span>
+                                            <span class="star" data-value="3">★</span>
+                                            <span class="star" data-value="4">★</span>
+                                            <span class="star" data-value="5">★</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>URL</label>
+                                    <input type="text" id="edit-program-url">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Líneas de Investigación</label>
+                                    <textarea id="edit-program-lines" rows="5"></textarea>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="button" id="save-program-changes" class="save-btn">Guardar Cambios</button>
+                                    <button type="button" id="duplicate-program" class="duplicate-btn">Duplicar Programa</button>
+                                    <button type="button" id="cancel-program-edit" class="cancel-btn">Cancelar</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                    
-                    <div id="programsContainer" class="programs-container">
-                        <!-- Programs will be loaded here dynamically -->
-                        <div class="loading-message">Cargando programas...</div>
+                </div>
+                
+                <!-- Rating Confirmation Modal -->
+                <div id="rating-confirm-modal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4>Confirmar Calificación</h4>
+                            <span class="close-rating-modal">&times;</span>
+                        </div>
+                        <div class="modal-body">
+                            <p>¿Estás seguro de calificar este programa con <span id="rating-value-text">0</span> estrellas?</p>
+                            <input type="hidden" id="rating-program-id">
+                            <input type="hidden" id="rating-value">
+                            
+                            <div class="form-actions">
+                                <button type="button" id="confirm-rating" class="save-btn">Confirmar</button>
+                                <button type="button" id="cancel-rating" class="cancel-btn">Cancelar</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -715,5 +830,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="script.js"></script>
     <script src="table-view-improved.js"></script>
+    <script src="calificar-view.js"></script>
 </body>
 </html>
