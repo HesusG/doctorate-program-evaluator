@@ -13,6 +13,7 @@ let universidadesData = { programas_doctorado: { universidades: [] } };
 let analysisData = { universidades: [] };
 let map;
 let markers = [];
+let markerClusterGroup = null; // For clustering markers
 let radarChart = null;
 let cityRadarChart = null;
 
@@ -205,59 +206,266 @@ async function fetchAnalysisData() {
 
 // Inicializar mapa
 function initMap() {
-    // Centrar el mapa en la península ibérica para mostrar tanto España como Portugal
-    map = L.map('map').setView([40.0, -5.0], 5);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    // Agregar marcadores
-    updateMapMarkers();
+    try {
+        console.log("Inicializando mapa...");
+        
+        // Centrar el mapa en la península ibérica para mostrar tanto España como Portugal
+        map = L.map('map', {
+            center: [40.0, -5.0],
+            zoom: 5,
+            zoomControl: true,
+            attributionControl: true
+        });
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Crear una instancia del grupo de marcadores para clustering
+        markerClusterGroup = L.markerClusterGroup({
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: true,
+            zoomToBoundsOnClick: true,
+            disableClusteringAtZoom: 13, // Desagrupar al hacer mucho zoom (nivel un poco más bajo para ver individuales antes)
+            maxClusterRadius: 45, // Radio en píxeles para agrupar marcadores (ligeramente mayor)
+            iconCreateFunction: function(cluster) {
+                // Determine the dominant status in the cluster
+                const markers = cluster.getAllChildMarkers();
+                const statusCounts = {
+                    'aplicando': 0,
+                    'interesado': 0,
+                    'considerando': 0,
+                    'pendiente': 0,
+                    'descartado': 0
+                };
+                
+                markers.forEach(marker => {
+                    const universidad = marker.universidad;
+                    if (universidad && universidad.programas) {
+                        const status = determinarStatusPredominante(universidad);
+                        statusCounts[status]++;
+                    } else {
+                        statusCounts['pendiente']++;
+                    }
+                });
+                
+                // Find the dominant status
+                let dominantStatus = 'pendiente';
+                
+                // Priority order: aplicando > interesado > considerando > pendiente > descartado
+                if (statusCounts.aplicando > 0) dominantStatus = 'aplicando';
+                else if (statusCounts.interesado > 0) dominantStatus = 'interesado';
+                else if (statusCounts.considerando > 0) dominantStatus = 'considerando';
+                else if (statusCounts.pendiente > 0) dominantStatus = 'pendiente';
+                else if (statusCounts.descartado > 0) dominantStatus = 'descartado';
+                
+                // Todos los clusters serán azul estándar de Leaflet
+                const standardBlue = '#2b82cb';
+                
+                // Create custom cluster icon that matches the standard blue markers
+                return L.divIcon({
+                    html: `<div style="background-color: ${standardBlue}; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 3px solid white; color: white; font-weight: bold; box-shadow: 0 3px 10px rgba(0,0,0,0.3);">${cluster.getChildCount()}</div>`,
+                    className: 'marker-cluster',
+                    iconSize: L.point(40, 40),
+                    iconAnchor: L.point(20, 20)
+                });
+            }
+        });
+        
+        // Añadir el grupo de clustering al mapa
+        map.addLayer(markerClusterGroup);
+        
+        // Agregar marcadores
+        updateMapMarkers();
+        
+        console.log("Mapa inicializado correctamente con clustering de marcadores");
+    } catch (error) {
+        console.error("Error al inicializar el mapa:", error);
+    }
 }
 
 // Update map markers based on current data
 function updateMapMarkers() {
-    // Clear existing markers
-    markers.forEach(marker => map.removeLayer(marker));
-    markers = [];
-    
-    // Add new markers
-    universidadesData.programas_doctorado.universidades.forEach(universidad => {
-        // Try to use coords from enriched data if available
-        let coords = null;
+    try {
+        console.log("Actualizando marcadores del mapa con clustering...");
         
-        // First check if universidad has coords object
-        if (universidad.coords && universidad.coords.lat && universidad.coords.lon) {
-            coords = [universidad.coords.lat, universidad.coords.lon];
-        } 
-        // Then try to get coords from the predefined coordinates
-        else if (universidad.ciudad && coordenadasCiudades[universidad.ciudad]) {
-            coords = coordenadasCiudades[universidad.ciudad];
+        // Clear existing markers
+        if (markerClusterGroup) {
+            markerClusterGroup.clearLayers();
         }
-        // For universities in Portugal, try to guess the city
-        else if (universidad.ciudad) {
-            // Check if any city name contains this one (for handling variations)
-            const cityKeys = Object.keys(coordenadasCiudades);
-            for (const cityKey of cityKeys) {
-                if (universidad.ciudad.includes(cityKey) || cityKey.includes(universidad.ciudad)) {
-                    coords = coordenadasCiudades[cityKey];
-                    console.log(`Using coordinates for ${cityKey} for university in ${universidad.ciudad}`);
-                    break;
+        markers = [];
+        
+        // Log cities with multiple universities (for testing cluster functionality)
+        const cityCounts = {};
+        universidadesData.programas_doctorado.universidades.forEach(universidad => {
+            if (universidad.ciudad) {
+                cityCounts[universidad.ciudad] = (cityCounts[universidad.ciudad] || 0) + 1;
+            }
+        });
+        
+        const citiesWithMultipleUniversities = Object.entries(cityCounts)
+            .filter(([_, count]) => count > 1)
+            .sort((a, b) => b[1] - a[1]);
+            
+        console.log("Ciudades con múltiples universidades (para verificar clustering):", 
+            citiesWithMultipleUniversities.map(([city, count]) => `${city}: ${count} universidades`).join(", "));
+        
+        // Add new markers
+        universidadesData.programas_doctorado.universidades.forEach(universidad => {
+            // Try to use coords from enriched data if available
+            let coords = null;
+            
+            // PRIORIDAD 1: Usar coordenadas de la base de datos (prioritize database coordinates)
+            if (universidad.coords && universidad.coords.lat && universidad.coords.lon) {
+                coords = [universidad.coords.lat, universidad.coords.lon];
+                console.log(`Usando coordenadas de la base de datos para ${universidad.nombre} en ${universidad.ciudad}: [${coords[0]}, ${coords[1]}]`);
+            } 
+            // PRIORIDAD 2: Usar coordenadas predefinidas
+            else if (universidad.ciudad && coordenadasCiudades[universidad.ciudad]) {
+                coords = coordenadasCiudades[universidad.ciudad];
+                console.log(`Usando coordenadas predefinidas para ${universidad.ciudad}: [${coords[0]}, ${coords[1]}]`);
+            }
+            // PRIORIDAD 3: Buscar coincidencias parciales
+            else if (universidad.ciudad) {
+                // Check if any city name contains this one (for handling variations)
+                const cityKeys = Object.keys(coordenadasCiudades);
+                for (const cityKey of cityKeys) {
+                    if (universidad.ciudad.includes(cityKey) || cityKey.includes(universidad.ciudad)) {
+                        coords = coordenadasCiudades[cityKey];
+                        console.log(`Usando coordenadas de ${cityKey} para universidad en ${universidad.ciudad}: [${coords[0]}, ${coords[1]}]`);
+                        break;
+                    }
                 }
             }
-        }
-        
-        if (coords) {
-            const marker = L.marker(coords)
-                .addTo(map)
-                .bindPopup(`<b>${universidad.nombre}</b><br>${universidad.ciudad}`)
-                .on('click', () => showUniversityInfo(universidad));
             
-            markers.push(marker);
-        } else {
-            console.warn(`Coordenadas no encontradas para ${universidad.ciudad}. La universidad no aparecerá en el mapa.`);
-        }
+            if (coords) {
+                // Debug: Check for universities at the same coordinates
+                const coordKey = `${coords[0]},${coords[1]}`;
+                if (!window.coordsUsed) window.coordsUsed = {};
+                if (window.coordsUsed[coordKey]) {
+                    console.log(`Múltiples universidades en las mismas coordenadas: ${universidad.nombre} y ${window.coordsUsed[coordKey].join(", ")} en [${coords[0]}, ${coords[1]}]`);
+                    window.coordsUsed[coordKey].push(universidad.nombre);
+                } else {
+                    window.coordsUsed[coordKey] = [universidad.nombre];
+                }
+                
+                // Obtener el status predominante para esta universidad
+                let status = determinarStatusPredominante(universidad);
+                
+                // Crear icono personalizado según el status
+                const icon = getStatusMarkerIcon(status);
+                
+                // Count programs by status for this university
+                const statusCounts = {
+                    'pendiente': 0,
+                    'considerando': 0,
+                    'interesado': 0,
+                    'aplicando': 0,
+                    'descartado': 0
+                };
+                
+                if (universidad.programas && universidad.programas.length > 0) {
+                    universidad.programas.forEach(programa => {
+                        const programStatus = programa.status || 'pendiente';
+                        statusCounts[programStatus]++;
+                    });
+                }
+                
+                // Create status badges HTML if there are multiple statuses
+                let statusBadgesHTML = '';
+                const hasMultipleStatuses = Object.values(statusCounts).filter(count => count > 0).length > 1;
+                
+                if (hasMultipleStatuses) {
+                    statusBadgesHTML = `
+                        <div class="status-badges">
+                            ${statusCounts.aplicando > 0 ? `<span class="status-badge aplicando">${statusCounts.aplicando}</span>` : ''}
+                            ${statusCounts.interesado > 0 ? `<span class="status-badge interesado">${statusCounts.interesado}</span>` : ''}
+                            ${statusCounts.considerando > 0 ? `<span class="status-badge considerando">${statusCounts.considerando}</span>` : ''}
+                            ${statusCounts.pendiente > 0 ? `<span class="status-badge pendiente">${statusCounts.pendiente}</span>` : ''}
+                            ${statusCounts.descartado > 0 ? `<span class="status-badge descartado">${statusCounts.descartado}</span>` : ''}
+                        </div>
+                    `;
+                }
+                
+                // Crear el marcador con título para mostrar al hacer hover
+                const marker = L.marker(coords, { 
+                    icon: icon,
+                    title: universidad.nombre // Esto añade el tooltip al hacer hover
+                })
+                .bindPopup(`
+                    <div class="marker-popup">
+                        <h3>${universidad.nombre}</h3>
+                        <p>${universidad.ciudad}</p>
+                        <p>${universidad.programas ? universidad.programas.length : 0} programas</p>
+                        ${statusBadgesHTML}
+                        <button class="ver-universidad-btn" 
+                                onclick="showUniversityInfo('${universidad.nombre}', '${universidad.ciudad}')">
+                            Ver programas
+                        </button>
+                    </div>
+                `)
+                .on('click', () => showUniversityInfo(universidad));
+                
+                // Store the universidad object in the marker for clustering purposes
+                marker.universidad = universidad;
+                
+                // Añadir al grupo de clustering en lugar de directamente al mapa
+                markerClusterGroup.addLayer(marker);
+                
+                // Guardar referencia para poder eliminarlos después si es necesario
+                markers.push(marker);
+            } else {
+                console.warn(`Coordenadas no encontradas para ${universidad.ciudad}. La universidad no aparecerá en el mapa.`);
+            }
+        });
+        
+        console.log(`Se han añadido ${markers.length} marcadores al mapa con clustering.`);
+    } catch (error) {
+        console.error("Error al actualizar marcadores del mapa:", error);
+    }
+}
+
+// Función para determinar el status predominante de una universidad
+function determinarStatusPredominante(universidad) {
+    let status = 'pendiente'; // valor por defecto
+    
+    if (universidad.programas && universidad.programas.length > 0) {
+        const statusCounts = {
+            pendiente: 0,
+            considerando: 0,
+            interesado: 0,
+            aplicando: 0,
+            descartado: 0
+        };
+        
+        universidad.programas.forEach(programa => {
+            const programStatus = programa.status || 'pendiente';
+            statusCounts[programStatus] = (statusCounts[programStatus] || 0) + 1;
+        });
+        
+        // Determinar el status predominante (prioridad: aplicando > interesado > considerando > pendiente > descartado)
+        if (statusCounts.aplicando > 0) status = 'aplicando';
+        else if (statusCounts.interesado > 0) status = 'interesado';
+        else if (statusCounts.considerando > 0) status = 'considerando';
+        else if (statusCounts.pendiente > 0) status = 'pendiente';
+        else if (statusCounts.descartado > 0) status = 'descartado';
+    }
+    
+    return status;
+}
+
+// Función para obtener un icono personalizado - todos azul
+function getStatusMarkerIcon(status) {
+    // Todos los marcadores serán azul estándar independientemente del estado
+    
+    // Crear un icono de marcador estándar azul (usar el marcador por defecto de Leaflet)
+    return L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
     });
 }
 
@@ -442,69 +650,113 @@ function applyFilters() {
     }
     
     // Filter map markers
-    markers.forEach(marker => map.removeLayer(marker));
-    markers = [];
-    
-    universidadesData.programas_doctorado.universidades.forEach(universidad => {
-        // Para el mapa, el status es una propiedad de los programas, no de la universidad
-        // Determinar el status predominante para esta universidad
-        let status = '';
-        if (universidad.programas && universidad.programas.length > 0) {
-            const statusCounts = {
-                pendiente: 0,
-                considerando: 0,
-                interesado: 0,
-                aplicando: 0,
-                descartado: 0
-            };
-            
-            universidad.programas.forEach(programa => {
-                const programStatus = programa.status || 'pendiente';
-                statusCounts[programStatus] = (statusCounts[programStatus] || 0) + 1;
-            });
-            
-            // Determinar el status predominante (prioridad: aplicando > interesado > considerando > pendiente > descartado)
-            if (statusCounts.aplicando > 0) status = 'aplicando';
-            else if (statusCounts.interesado > 0) status = 'interesado';
-            else if (statusCounts.considerando > 0) status = 'considerando';
-            else if (statusCounts.pendiente > 0) status = 'pendiente';
-            else if (statusCounts.descartado > 0) status = 'descartado';
+    try {
+        // Clear existing markers
+        if (markerClusterGroup) {
+            markerClusterGroup.clearLayers();
         }
+        markers = [];
         
-        if (matchesFilters(universidad, universidad.ciudad, status)) {
-            // Try to use coords from enriched data if available
-            let coords = null;
+        // Add filtered markers
+        universidadesData.programas_doctorado.universidades.forEach(universidad => {
+            // Determinar el status predominante para esta universidad
+            const status = determinarStatusPredominante(universidad);
             
-            // First check if universidad has coords object
-            if (universidad.coords && universidad.coords.lat && universidad.coords.lon) {
-                coords = [universidad.coords.lat, universidad.coords.lon];
-            } 
-            // Then try to get coords from the predefined coordinates
-            else if (universidad.ciudad && coordenadasCiudades[universidad.ciudad]) {
-                coords = coordenadasCiudades[universidad.ciudad];
-            }
-            // For universities in Portugal, try to guess the city
-            else if (universidad.ciudad) {
-                // Check if any city name contains this one (for handling variations)
-                const cityKeys = Object.keys(coordenadasCiudades);
-                for (const cityKey of cityKeys) {
-                    if (universidad.ciudad.includes(cityKey) || cityKey.includes(universidad.ciudad)) {
-                        coords = coordenadasCiudades[cityKey];
-                        break;
+            if (matchesFilters(universidad, universidad.ciudad, status)) {
+                // Try to use coords from enriched data if available
+                let coords = null;
+                
+                // PRIORIDAD 1: Usar coordenadas de la base de datos (prioritize database coordinates)
+                if (universidad.coords && universidad.coords.lat && universidad.coords.lon) {
+                    coords = [universidad.coords.lat, universidad.coords.lon];
+                } 
+                // PRIORIDAD 2: Usar coordenadas predefinidas
+                else if (universidad.ciudad && coordenadasCiudades[universidad.ciudad]) {
+                    coords = coordenadasCiudades[universidad.ciudad];
+                }
+                // PRIORIDAD 3: Buscar coincidencias parciales
+                else if (universidad.ciudad) {
+                    // Check if any city name contains this one (for handling variations)
+                    const cityKeys = Object.keys(coordenadasCiudades);
+                    for (const cityKey of cityKeys) {
+                        if (universidad.ciudad.includes(cityKey) || cityKey.includes(universidad.ciudad)) {
+                            coords = coordenadasCiudades[cityKey];
+                            break;
+                        }
                     }
                 }
-            }
-            
-            if (coords) {
-                const marker = L.marker(coords)
-                    .addTo(map)
-                    .bindPopup(`<b>${universidad.nombre}</b><br>${universidad.ciudad}`)
-                    .on('click', () => showUniversityInfo(universidad));
                 
-                markers.push(marker);
+                if (coords) {
+                    // Crear icono personalizado según el status
+                    const icon = getStatusMarkerIcon(status);
+                    
+                    // Count programs by status for this university
+                    const statusCounts = {
+                        'pendiente': 0,
+                        'considerando': 0,
+                        'interesado': 0,
+                        'aplicando': 0,
+                        'descartado': 0
+                    };
+                    
+                    if (universidad.programas && universidad.programas.length > 0) {
+                        universidad.programas.forEach(programa => {
+                            const programStatus = programa.status || 'pendiente';
+                            statusCounts[programStatus]++;
+                        });
+                    }
+                    
+                    // Create status badges HTML if there are multiple statuses
+                    let statusBadgesHTML = '';
+                    const hasMultipleStatuses = Object.values(statusCounts).filter(count => count > 0).length > 1;
+                    
+                    if (hasMultipleStatuses) {
+                        statusBadgesHTML = `
+                            <div class="status-badges">
+                                ${statusCounts.aplicando > 0 ? `<span class="status-badge aplicando">${statusCounts.aplicando}</span>` : ''}
+                                ${statusCounts.interesado > 0 ? `<span class="status-badge interesado">${statusCounts.interesado}</span>` : ''}
+                                ${statusCounts.considerando > 0 ? `<span class="status-badge considerando">${statusCounts.considerando}</span>` : ''}
+                                ${statusCounts.pendiente > 0 ? `<span class="status-badge pendiente">${statusCounts.pendiente}</span>` : ''}
+                                ${statusCounts.descartado > 0 ? `<span class="status-badge descartado">${statusCounts.descartado}</span>` : ''}
+                            </div>
+                        `;
+                    }
+                    
+                    // Crear el marcador con título para mostrar al hacer hover
+                    const marker = L.marker(coords, { 
+                        icon: icon,
+                        title: universidad.nombre // Esto añade el tooltip al hacer hover
+                    })
+                    .bindPopup(`
+                        <div class="marker-popup">
+                            <h3>${universidad.nombre}</h3>
+                            <p>${universidad.ciudad}</p>
+                            <p>${universidad.programas ? universidad.programas.length : 0} programas</p>
+                            ${statusBadgesHTML}
+                            <button class="ver-universidad-btn" 
+                                    onclick="showUniversityInfo('${universidad.nombre}', '${universidad.ciudad}')">
+                                Ver programas
+                            </button>
+                        </div>
+                    `)
+                    .on('click', () => showUniversityInfo(universidad));
+                    
+                    // Store the universidad object in the marker for clustering purposes
+                    marker.universidad = universidad;
+                    
+                    // Añadir al grupo de clustering en lugar de directamente al mapa
+                    markerClusterGroup.addLayer(marker);
+                    
+                    // Guardar referencia para poder eliminarlos después si es necesario
+                    markers.push(marker);
+                }
             }
-        }
-    });
+        });
+        
+        console.log(`Se han añadido ${markers.length} marcadores filtrados al mapa con clustering.`);
+    } catch (error) {
+        console.error("Error al filtrar marcadores del mapa:", error);
+    }
 }
 
 // Configurar búsqueda avanzada
