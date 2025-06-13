@@ -1016,8 +1016,301 @@ function addCustomStyles() {
     document.head.appendChild(styleElement);
 }
 
-// Mostrar información de universidad
+// Variables globales para el control de programas en el modal
+let currentUniversidad = null;
+let currentProgramIndex = 0;
+
+// Mostrar información de universidad en el nuevo modal
 function showUniversityInfo(universidad) {
+    // Si no se proporciona la universidad o no tiene programas, no hacer nada
+    if (!universidad || !universidad.programas || universidad.programas.length === 0) {
+        console.warn("No se proporcionó una universidad válida o no tiene programas");
+        return;
+    }
+    
+    // Guardar la universidad actual y resetear el índice del programa
+    currentUniversidad = universidad;
+    currentProgramIndex = 0;
+    
+    // Configurar elementos del modal
+    document.getElementById('universityTitle').textContent = universidad.nombre;
+    document.getElementById('universityCity').textContent = universidad.ciudad;
+    
+    // Configurar botones de acción para ver imágenes
+    document.getElementById('viewUniversityBtn').onclick = function() {
+        window.open(`https://www.google.com/search?q=${encodeURIComponent(universidad.nombre)}&tbm=isch`, '_blank');
+    };
+    
+    document.getElementById('viewCityBtn').onclick = function() {
+        window.open(`https://www.google.com/search?q=${encodeURIComponent(universidad.ciudad)}&tbm=isch`, '_blank');
+    };
+    
+    // Configurar contadores y botones de navegación
+    updateProgramNavigation();
+    
+    // Mostrar los detalles del primer programa
+    showProgramDetails(0, 'fade-in');
+    
+    // Mostrar el modal con animación
+    const modal = document.getElementById('universityModal');
+    modal.style.display = 'block';
+    
+    // Forzar el reflow para que la transición funcione
+    void modal.offsetWidth;
+    
+    // Mostrar con animación
+    modal.classList.add('show');
+}
+
+// Función para mostrar los detalles de un programa específico
+function showProgramDetails(index, animationClass = 'slide-in-right') {
+    if (!currentUniversidad || !currentUniversidad.programas || currentUniversidad.programas.length === 0) {
+        return;
+    }
+    
+    // Asegurar que el índice sea válido
+    if (index < 0 || index >= currentUniversidad.programas.length) {
+        console.warn(`Índice de programa inválido: ${index}`);
+        return;
+    }
+    
+    // Actualizar el índice actual
+    currentProgramIndex = index;
+    
+    // Obtener el programa actual
+    const programa = currentUniversidad.programas[index];
+    
+    // Determinar el estado del programa
+    const status = programa.status || 'pendiente';
+    const statusLabels = {
+        'pendiente': 'Pendiente',
+        'considerando': 'Considerando',
+        'interesado': 'Interesado',
+        'aplicando': 'Aplicando',
+        'descartado': 'Descartado'
+    };
+    const statusLabel = statusLabels[status] || 'Pendiente';
+    
+    // Preparar para la animación
+    const programDetails = document.getElementById('programDetails');
+    
+    // Eliminar clases de animación anteriores
+    programDetails.classList.remove('fade-in', 'slide-in-right', 'slide-in-left');
+    
+    // Forzar reflow
+    void programDetails.offsetWidth;
+    
+    // Aplicar la nueva clase de animación
+    programDetails.classList.add(animationClass);
+    
+    // Actualizar el título y estado del programa
+    document.getElementById('programName').textContent = programa.nombre;
+    
+    const programStatus = document.getElementById('programStatus');
+    programStatus.textContent = statusLabel;
+    programStatus.setAttribute('data-status', status);
+    
+    // Actualizar URL
+    const programUrl = document.getElementById('programUrl');
+    if (programa.url) {
+        programUrl.textContent = programa.url;
+        programUrl.href = programa.url;
+    } else {
+        programUrl.textContent = 'No disponible';
+        programUrl.href = '#';
+    }
+    
+    // Actualizar calificación
+    const rating = programa.calificacion ? programa.calificacion.valor : 0;
+    document.getElementById('programRating').innerHTML = getStarsHTML(rating) + 
+        `<span class="rating-value">${rating > 0 ? rating + '/5' : 'Sin calificar'}</span>`;
+    
+    // Actualizar resumen
+    document.getElementById('programSummary').textContent = programa.resumen || 'No hay información disponible sobre este programa.';
+    
+    // Actualizar líneas de investigación
+    const researchLinesContainer = document.getElementById('researchLines');
+    if (programa.lineas_investigacion && programa.lineas_investigacion.length > 0) {
+        let linesHtml = '<ul>';
+        programa.lineas_investigacion.forEach(linea => {
+            linesHtml += `<li>${linea}</li>`;
+        });
+        linesHtml += '</ul>';
+        researchLinesContainer.innerHTML = linesHtml;
+    } else {
+        researchLinesContainer.innerHTML = '<p>No hay información disponible sobre líneas de investigación.</p>';
+    }
+    
+    // Actualizar métricas de ciudad con animaciones escalonadas
+    if (currentUniversidad.ciudad_metrics) {
+        const metrics = currentUniversidad.ciudad_metrics;
+        
+        // Costo de vida
+        setTimeout(() => {
+            updateCityMetric('costoVida', metrics.costo_vida, value => {
+                // Menor costo de vida es mejor
+                if (value >= 70) return 'alto';
+                if (value >= 40) return 'medio';
+                return 'bajo';
+            });
+        }, 100);
+        
+        // Calidad del aire
+        setTimeout(() => {
+            updateCityMetric('calidadAire', metrics.calidad_aire, value => {
+                // Mayor calidad es mejor
+                if (value >= 7) return 'bajo';
+                if (value >= 4) return 'medio';
+                return 'alto';
+            });
+        }, 200);
+        
+        // Calidad del transporte
+        setTimeout(() => {
+            updateCityMetric('calidadTransporte', metrics.calidad_transporte, value => {
+                // Mayor calidad es mejor
+                if (value >= 7) return 'bajo';
+                if (value >= 4) return 'medio';
+                return 'alto';
+            });
+        }, 300);
+        
+        // Calidad del servicio médico
+        setTimeout(() => {
+            updateCityMetric('servicioMedico', metrics.calidad_servicio_medico, value => {
+                // Mayor calidad es mejor
+                if (value >= 7) return 'bajo';
+                if (value >= 4) return 'medio';
+                return 'alto';
+            });
+        }, 400);
+        
+        // Distancia a Madrid
+        setTimeout(() => {
+            updateCityMetric('distanciaMadrid', metrics.distancia_a_madrid_km, value => {
+                // Menor distancia podría ser mejor o peor según preferencias, neutral
+                if (value >= 400) return 'alto';
+                if (value >= 200) return 'medio';
+                return 'bajo';
+            }, ' km');
+        }, 500);
+    } else {
+        // Si no hay métricas, mostrar N/A
+        document.getElementById('costoVida').textContent = 'N/A';
+        document.getElementById('calidadAire').textContent = 'N/A';
+        document.getElementById('calidadTransporte').textContent = 'N/A';
+        document.getElementById('servicioMedico').textContent = 'N/A';
+        document.getElementById('distanciaMadrid').textContent = 'N/A';
+    }
+    
+    // Actualizar navegación
+    updateProgramNavigation();
+}
+
+// Función auxiliar para actualizar métricas de ciudad
+function updateCityMetric(elementId, value, getStatusFn, suffix = '') {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    // Eliminar clase show para resetear la animación
+    element.classList.remove('show');
+    
+    // Limpiar clases anteriores
+    element.classList.remove('alto', 'medio', 'bajo');
+    
+    if (value !== undefined && value !== null) {
+        // Añadir clase según el valor
+        const status = getStatusFn(value);
+        element.classList.add(status);
+        
+        // Actualizar texto
+        element.textContent = value + suffix;
+    } else {
+        element.textContent = 'N/A';
+    }
+    
+    // Forzar reflow
+    void element.offsetWidth;
+    
+    // Añadir la clase show para iniciar la animación
+    element.classList.add('show');
+}
+
+// Actualizar los controles de navegación entre programas
+function updateProgramNavigation() {
+    if (!currentUniversidad || !currentUniversidad.programas) return;
+    
+    const totalPrograms = currentUniversidad.programas.length;
+    const prevButton = document.getElementById('prevProgramBtn');
+    const nextButton = document.getElementById('nextProgramBtn');
+    
+    // Actualizar contador
+    document.getElementById('programCounter').textContent = 
+        `${currentProgramIndex + 1} / ${totalPrograms}`;
+    
+    // Habilitar/deshabilitar botones según la posición
+    prevButton.disabled = currentProgramIndex <= 0;
+    nextButton.disabled = currentProgramIndex >= totalPrograms - 1;
+}
+
+// Navegar al programa anterior
+function previousProgram() {
+    if (currentProgramIndex > 0) {
+        // Usar animación de deslizamiento desde la izquierda
+        showProgramDetails(currentProgramIndex - 1, 'slide-in-left');
+    }
+}
+
+// Navegar al programa siguiente
+function nextProgram() {
+    if (currentUniversidad && currentUniversidad.programas && 
+        currentProgramIndex < currentUniversidad.programas.length - 1) {
+        // Usar animación de deslizamiento desde la derecha
+        showProgramDetails(currentProgramIndex + 1, 'slide-in-right');
+    }
+}
+
+// Cerrar el modal de universidad y volver al mapa
+function closeUniversityModal() {
+    const modal = document.getElementById('universityModal');
+    
+    // Primero quitar la clase para iniciar la animación de salida
+    modal.classList.remove('show');
+    
+    // Esperar a que termine la transición antes de ocultar
+    setTimeout(() => {
+        modal.style.display = 'none';
+        
+        // Restablecer variables globales
+        currentUniversidad = null;
+        currentProgramIndex = 0;
+    }, 300); // Coincidir con la duración de la transición en CSS
+}
+
+// Inicializar eventos para el modal al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Añadir esta inicialización a la existente
+    const existingInit = window.onload;
+    
+    window.onload = function() {
+        if (existingInit) existingInit();
+        
+        // Configurar botones de navegación
+        document.getElementById('backToMapBtn').addEventListener('click', closeUniversityModal);
+        document.getElementById('prevProgramBtn').addEventListener('click', previousProgram);
+        document.getElementById('nextProgramBtn').addEventListener('click', nextProgram);
+        
+        // Cerrar el modal al hacer clic en el fondo (opcional)
+        document.getElementById('universityModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeUniversityModal();
+            }
+        });
+    };
+});
+
+// Mostrar información de universidad en el panel antiguo (mantener por compatibilidad)
+function showUniversityInfoOld(universidad) {
     const panel = document.getElementById('infoPanel');
     const content = document.getElementById('infoPanelContent');
     

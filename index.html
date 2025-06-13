@@ -822,7 +822,91 @@
         </div>
     </div>
 
-    <!-- Info Panel -->
+    <!-- Nuevo Modal de Universidad -->
+    <div class="university-modal" id="universityModal">
+        <div class="university-modal-content">
+            <div class="university-modal-header">
+                <button class="back-btn" id="backToMapBtn">← Volver al mapa</button>
+                <h2 id="universityTitle">Nombre de la Universidad</h2>
+                <div class="navigation-controls">
+                    <button class="nav-btn prev-btn" id="prevProgramBtn" disabled>◀ Anterior</button>
+                    <span id="programCounter">1 / 5</span>
+                    <button class="nav-btn next-btn" id="nextProgramBtn">Siguiente ▶</button>
+                </div>
+            </div>
+            <div class="university-modal-body">
+                <div class="university-info">
+                    <div class="university-location">
+                        <span id="universityCity">Ciudad</span>
+                        <div class="university-actions">
+                            <button class="action-btn view-city-btn" id="viewCityBtn">🏙️ Ver Ciudad</button>
+                            <button class="action-btn view-university-btn" id="viewUniversityBtn">🏛️ Ver Universidad</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="program-details" id="programDetails">
+                    <div class="program-header">
+                        <h3 id="programName">Nombre del Programa</h3>
+                        <span class="program-status" id="programStatus">Estado</span>
+                    </div>
+                    <div class="program-content">
+                        <div class="program-section">
+                            <h4>Información General</h4>
+                            <div class="program-section-content">
+                                <div class="program-info-item">
+                                    <span class="label">URL:</span>
+                                    <a href="#" target="_blank" id="programUrl">Enlace al programa</a>
+                                </div>
+                                <div class="program-info-item">
+                                    <span class="label">Calificación:</span>
+                                    <div class="rating-display" id="programRating"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="program-section">
+                            <h4>Resumen</h4>
+                            <div class="program-section-content">
+                                <p id="programSummary">Información no disponible</p>
+                            </div>
+                        </div>
+                        <div class="program-section">
+                            <h4>Líneas de Investigación</h4>
+                            <div class="program-section-content" id="researchLines">
+                                <p>Información no disponible</p>
+                            </div>
+                        </div>
+                        <div class="program-section">
+                            <h4>Información de la Ciudad</h4>
+                            <div class="program-section-content city-metrics" id="cityMetrics">
+                                <div class="metric-row">
+                                    <span class="label">Costo de Vida:</span>
+                                    <span class="value" id="costoVida">N/A</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span class="label">Calidad del Aire:</span>
+                                    <span class="value" id="calidadAire">N/A</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span class="label">Calidad del Transporte:</span>
+                                    <span class="value" id="calidadTransporte">N/A</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span class="label">Servicio Médico:</span>
+                                    <span class="value" id="servicioMedico">N/A</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span class="label">Distancia a Madrid:</span>
+                                    <span class="value" id="distanciaMadrid">N/A</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Info Panel (mantener por compatibilidad) -->
     <div class="info-panel" id="infoPanel">
         <button class="close-btn" onclick="closeInfoPanel()">×</button>
         <div id="infoPanelContent"></div>
