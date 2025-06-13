@@ -1141,59 +1141,140 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
         researchLinesContainer.innerHTML = '<p>No hay información disponible sobre líneas de investigación.</p>';
     }
     
+    // Actualizar métricas de universidad
+    if (currentUniversidad.metadata) {
+        const uniMetadata = currentUniversidad.metadata;
+        
+        // Tipo de universidad
+        setTimeout(() => {
+            updateMetric('universityType', uniMetadata.tipo || 'No especificado', null, 'university');
+        }, 100);
+        
+        // Año de fundación
+        setTimeout(() => {
+            updateMetric('universityFoundation', uniMetadata.fundacion || 'No especificado', null, 'university');
+        }, 150);
+        
+        // Número de estudiantes
+        setTimeout(() => {
+            updateMetric('universityStudents', uniMetadata.estudiantes || 'No especificado', null, 'university');
+        }, 200);
+        
+        // Ranking
+        setTimeout(() => {
+            updateMetric('universityRanking', uniMetadata.ranking || 'No especificado', null, 'university');
+        }, 250);
+        
+        // Internacional
+        setTimeout(() => {
+            updateMetric('universityInternational', uniMetadata.internacional ? 'Sí' : 'No', null, 'university');
+        }, 300);
+        
+        // Explicación de la universidad
+        let universityExplanation = '';
+        
+        if (uniMetadata.descripcion) {
+            universityExplanation += uniMetadata.descripcion + ' ';
+        }
+        
+        if (uniMetadata.comentario) {
+            universityExplanation += uniMetadata.comentario;
+        }
+        
+        if (universityExplanation) {
+            document.getElementById('universityExplanation').textContent = universityExplanation;
+        } else {
+            document.getElementById('universityExplanation').textContent = 'No hay explicaciones disponibles sobre la universidad.';
+        }
+    } else {
+        // Si no hay métricas de universidad, mostrar N/A
+        document.getElementById('universityType').textContent = 'N/A';
+        document.getElementById('universityFoundation').textContent = 'N/A';
+        document.getElementById('universityStudents').textContent = 'N/A';
+        document.getElementById('universityRanking').textContent = 'N/A';
+        document.getElementById('universityInternational').textContent = 'N/A';
+        document.getElementById('universityExplanation').textContent = 'No hay explicaciones disponibles sobre la universidad.';
+    }
+    
     // Actualizar métricas de ciudad con animaciones escalonadas
     if (currentUniversidad.ciudad_metrics) {
         const metrics = currentUniversidad.ciudad_metrics;
         
         // Costo de vida
         setTimeout(() => {
-            updateCityMetric('costoVida', metrics.costo_vida, value => {
+            updateMetric('costoVida', metrics.costo_vida, value => {
                 // Menor costo de vida es mejor
                 if (value >= 70) return 'alto';
                 if (value >= 40) return 'medio';
                 return 'bajo';
-            });
-        }, 100);
+            }, 'city');
+        }, 400);
         
         // Calidad del aire
         setTimeout(() => {
-            updateCityMetric('calidadAire', metrics.calidad_aire, value => {
+            updateMetric('calidadAire', metrics.calidad_aire, value => {
                 // Mayor calidad es mejor
                 if (value >= 7) return 'bajo';
                 if (value >= 4) return 'medio';
                 return 'alto';
-            });
-        }, 200);
+            }, 'city');
+        }, 500);
         
         // Calidad del transporte
         setTimeout(() => {
-            updateCityMetric('calidadTransporte', metrics.calidad_transporte, value => {
+            updateMetric('calidadTransporte', metrics.calidad_transporte, value => {
                 // Mayor calidad es mejor
                 if (value >= 7) return 'bajo';
                 if (value >= 4) return 'medio';
                 return 'alto';
-            });
-        }, 300);
+            }, 'city');
+        }, 600);
         
         // Calidad del servicio médico
         setTimeout(() => {
-            updateCityMetric('servicioMedico', metrics.calidad_servicio_medico, value => {
+            updateMetric('servicioMedico', metrics.calidad_servicio_medico, value => {
                 // Mayor calidad es mejor
                 if (value >= 7) return 'bajo';
                 if (value >= 4) return 'medio';
                 return 'alto';
-            });
-        }, 400);
+            }, 'city');
+        }, 700);
         
         // Distancia a Madrid
         setTimeout(() => {
-            updateCityMetric('distanciaMadrid', metrics.distancia_a_madrid_km, value => {
+            updateMetric('distanciaMadrid', metrics.distancia_a_madrid_km, value => {
                 // Menor distancia podría ser mejor o peor según preferencias, neutral
                 if (value >= 400) return 'alto';
                 if (value >= 200) return 'medio';
                 return 'bajo';
-            }, ' km');
-        }, 500);
+            }, 'city', ' km');
+        }, 800);
+        
+        // Construir la explicación detallada de la ciudad
+        let cityExplanation = '';
+        
+        // Concatenar todos los comentarios disponibles sobre la ciudad
+        if (metrics.costo_vida_comentario) {
+            cityExplanation += metrics.costo_vida_comentario + ' ';
+        }
+        
+        if (metrics.calidad_aire_comentario) {
+            cityExplanation += metrics.calidad_aire_comentario + ' ';
+        }
+        
+        if (metrics.calidad_transporte_comentario) {
+            cityExplanation += metrics.calidad_transporte_comentario + ' ';
+        }
+        
+        if (metrics.calidad_servicio_medico_comentario) {
+            cityExplanation += metrics.calidad_servicio_medico_comentario + ' ';
+        }
+        
+        if (cityExplanation) {
+            document.getElementById('cityExplanation').textContent = cityExplanation;
+        } else {
+            document.getElementById('cityExplanation').textContent = 'No hay explicaciones disponibles sobre la ciudad.';
+        }
     } else {
         // Si no hay métricas, mostrar N/A
         document.getElementById('costoVida').textContent = 'N/A';
@@ -1201,27 +1282,32 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
         document.getElementById('calidadTransporte').textContent = 'N/A';
         document.getElementById('servicioMedico').textContent = 'N/A';
         document.getElementById('distanciaMadrid').textContent = 'N/A';
+        document.getElementById('cityExplanation').textContent = 'No hay explicaciones disponibles sobre la ciudad.';
     }
     
     // Actualizar navegación
     updateProgramNavigation();
 }
 
-// Función auxiliar para actualizar métricas de ciudad
-function updateCityMetric(elementId, value, getStatusFn, suffix = '') {
+// Función auxiliar para actualizar métricas (ciudad o universidad)
+function updateMetric(elementId, value, getStatusFn = null, type = 'city', suffix = '') {
     const element = document.getElementById(elementId);
     if (!element) return;
     
     // Eliminar clase show para resetear la animación
     element.classList.remove('show');
     
-    // Limpiar clases anteriores
-    element.classList.remove('alto', 'medio', 'bajo');
+    if (type === 'city') {
+        // Limpiar clases anteriores para métricas de ciudad
+        element.classList.remove('alto', 'medio', 'bajo');
+    }
     
     if (value !== undefined && value !== null) {
-        // Añadir clase según el valor
-        const status = getStatusFn(value);
-        element.classList.add(status);
+        // Para métricas de ciudad, añadir clase según el valor
+        if (type === 'city' && getStatusFn) {
+            const status = getStatusFn(value);
+            element.classList.add(status);
+        }
         
         // Actualizar texto
         element.textContent = value + suffix;

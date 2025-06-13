@@ -838,6 +838,78 @@ tr:hover {
     color: #4caf50;
 }
 
+/* University metrics styling */
+.university-metrics .metric-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.university-metrics .metric-row:last-child {
+    border-bottom: none;
+}
+
+.university-metrics .label {
+    font-weight: 600;
+    color: #555;
+}
+
+.university-metrics .value {
+    font-weight: 500;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.university-metrics .value.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Explanation section styling */
+.explanation-section {
+    grid-column: 1 / -1; /* Span across all columns */
+}
+
+#detailedExplanation {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #444;
+}
+
+#detailedExplanation p {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed rgba(0,0,0,0.1);
+}
+
+#detailedExplanation p:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+#cityExplanation,
+#universityExplanation {
+    position: relative;
+    padding-left: 25px;
+}
+
+#cityExplanation::before {
+    content: "🏙️";
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+#universityExplanation::before {
+    content: "🏛️";
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
 #researchLines ul {
     margin: 0;
     padding-left: 20px;
