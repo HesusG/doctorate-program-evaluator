@@ -1141,44 +1141,73 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
         researchLinesContainer.innerHTML = '<p>No hay información disponible sobre líneas de investigación.</p>';
     }
     
-    // Actualizar métricas de universidad
-    if (currentUniversidad.metadata) {
-        const uniMetadata = currentUniversidad.metadata;
+    // Actualizar métricas de universidad (stats)
+    if (currentUniversidad.stats) {
+        const uniStats = currentUniversidad.stats;
         
-        // Tipo de universidad
+        // Función para determinar el color basado en el valor
+        const getUniStatsStatus = (value) => {
+            if (value >= 8) return 'bajo'; // Usamos "bajo" que tiene color verde (positivo)
+            if (value >= 5) return 'medio';
+            return 'alto'; // Usamos "alto" que tiene color rojo (negativo)
+        };
+        
+        // Innovación
         setTimeout(() => {
-            updateMetric('universityType', uniMetadata.tipo || 'No especificado', null, 'university');
+            updateMetric('uniInnovacion', uniStats.innovacion, getUniStatsStatus, 'city');
         }, 100);
         
-        // Año de fundación
+        // Interdisciplinariedad
         setTimeout(() => {
-            updateMetric('universityFoundation', uniMetadata.fundacion || 'No especificado', null, 'university');
+            updateMetric('uniInterdisciplinariedad', uniStats.interdisciplinariedad, getUniStatsStatus, 'city');
         }, 150);
         
-        // Número de estudiantes
+        // Impacto
         setTimeout(() => {
-            updateMetric('universityStudents', uniMetadata.estudiantes || 'No especificado', null, 'university');
+            updateMetric('uniImpacto', uniStats.impacto, getUniStatsStatus, 'city');
         }, 200);
-        
-        // Ranking
-        setTimeout(() => {
-            updateMetric('universityRanking', uniMetadata.ranking || 'No especificado', null, 'university');
-        }, 250);
         
         // Internacional
         setTimeout(() => {
-            updateMetric('universityInternational', uniMetadata.internacional ? 'Sí' : 'No', null, 'university');
+            updateMetric('uniInternacional', uniStats.internacional, getUniStatsStatus, 'city');
+        }, 250);
+        
+        // Aplicabilidad
+        setTimeout(() => {
+            updateMetric('uniAplicabilidad', uniStats.aplicabilidad, getUniStatsStatus, 'city');
         }, 300);
         
         // Explicación de la universidad
         let universityExplanation = '';
         
-        if (uniMetadata.descripcion) {
-            universityExplanation += uniMetadata.descripcion + ' ';
+        // Intentar obtener descripciones o comentarios si existen
+        if (currentUniversidad.metadata && currentUniversidad.metadata.descripcion) {
+            universityExplanation += currentUniversidad.metadata.descripcion + ' ';
         }
         
-        if (uniMetadata.comentario) {
-            universityExplanation += uniMetadata.comentario;
+        if (currentUniversidad.metadata && currentUniversidad.metadata.comentario) {
+            universityExplanation += currentUniversidad.metadata.comentario;
+        }
+        
+        // Añadir información de stats si hay comentarios
+        if (uniStats.innovacion_comentario) {
+            universityExplanation += 'Innovación: ' + uniStats.innovacion_comentario + ' ';
+        }
+        
+        if (uniStats.interdisciplinariedad_comentario) {
+            universityExplanation += 'Interdisciplinariedad: ' + uniStats.interdisciplinariedad_comentario + ' ';
+        }
+        
+        if (uniStats.impacto_comentario) {
+            universityExplanation += 'Impacto: ' + uniStats.impacto_comentario + ' ';
+        }
+        
+        if (uniStats.internacional_comentario) {
+            universityExplanation += 'Internacional: ' + uniStats.internacional_comentario + ' ';
+        }
+        
+        if (uniStats.aplicabilidad_comentario) {
+            universityExplanation += 'Aplicabilidad: ' + uniStats.aplicabilidad_comentario + ' ';
         }
         
         if (universityExplanation) {
@@ -1187,12 +1216,12 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
             document.getElementById('universityExplanation').textContent = 'No hay explicaciones disponibles sobre la universidad.';
         }
     } else {
-        // Si no hay métricas de universidad, mostrar N/A
-        document.getElementById('universityType').textContent = 'N/A';
-        document.getElementById('universityFoundation').textContent = 'N/A';
-        document.getElementById('universityStudents').textContent = 'N/A';
-        document.getElementById('universityRanking').textContent = 'N/A';
-        document.getElementById('universityInternational').textContent = 'N/A';
+        // Si no hay stats de universidad, mostrar N/A
+        document.getElementById('uniInnovacion').textContent = 'N/A';
+        document.getElementById('uniInterdisciplinariedad').textContent = 'N/A';
+        document.getElementById('uniImpacto').textContent = 'N/A';
+        document.getElementById('uniInternacional').textContent = 'N/A';
+        document.getElementById('uniAplicabilidad').textContent = 'N/A';
         document.getElementById('universityExplanation').textContent = 'No hay explicaciones disponibles sobre la universidad.';
     }
     
