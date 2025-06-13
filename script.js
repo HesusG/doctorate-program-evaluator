@@ -1177,43 +1177,87 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
             updateMetric('uniAplicabilidad', uniStats.aplicabilidad, getUniStatsStatus, 'city');
         }, 300);
         
-        // Explicación de la universidad
-        let universityExplanation = '';
+        // Explicación de la universidad - formato mejorado con HTML
+        let universityExplanationHTML = '';
         
-        // Intentar obtener descripciones o comentarios si existen
-        if (currentUniversidad.metadata && currentUniversidad.metadata.descripcion) {
-            universityExplanation += currentUniversidad.metadata.descripcion + ' ';
+        // Intentar obtener descripciones o comentarios generales si existen
+        if (currentUniversidad.metadata && (currentUniversidad.metadata.descripcion || currentUniversidad.metadata.comentario)) {
+            universityExplanationHTML += '<div class="explanation-block general-info">';
+            universityExplanationHTML += '<h5>Información General</h5>';
+            
+            if (currentUniversidad.metadata.descripcion) {
+                universityExplanationHTML += `<p>${currentUniversidad.metadata.descripcion}</p>`;
+            }
+            
+            if (currentUniversidad.metadata.comentario) {
+                universityExplanationHTML += `<p>${currentUniversidad.metadata.comentario}</p>`;
+            }
+            
+            universityExplanationHTML += '</div>';
         }
         
-        if (currentUniversidad.metadata && currentUniversidad.metadata.comentario) {
-            universityExplanation += currentUniversidad.metadata.comentario;
+        // Crear sección para comentarios de estadísticas si existen
+        const hasStatsComments = uniStats.innovacion_comentario || 
+                                uniStats.interdisciplinariedad_comentario || 
+                                uniStats.impacto_comentario || 
+                                uniStats.internacional_comentario || 
+                                uniStats.aplicabilidad_comentario;
+        
+        if (hasStatsComments) {
+            universityExplanationHTML += '<div class="explanation-block stats-info">';
+            universityExplanationHTML += '<h5>Métricas Destacadas</h5>';
+            
+            // Añadir cada métrica con su comentario si existe
+            if (uniStats.innovacion_comentario) {
+                universityExplanationHTML += `
+                    <div class="metric-explanation">
+                        <span class="metric-name">Innovación (${uniStats.innovacion}/10):</span>
+                        <p>${uniStats.innovacion_comentario}</p>
+                    </div>`;
+            }
+            
+            if (uniStats.interdisciplinariedad_comentario) {
+                universityExplanationHTML += `
+                    <div class="metric-explanation">
+                        <span class="metric-name">Interdisciplinariedad (${uniStats.interdisciplinariedad}/10):</span>
+                        <p>${uniStats.interdisciplinariedad_comentario}</p>
+                    </div>`;
+            }
+            
+            if (uniStats.impacto_comentario) {
+                universityExplanationHTML += `
+                    <div class="metric-explanation">
+                        <span class="metric-name">Impacto (${uniStats.impacto}/10):</span>
+                        <p>${uniStats.impacto_comentario}</p>
+                    </div>`;
+            }
+            
+            if (uniStats.internacional_comentario) {
+                universityExplanationHTML += `
+                    <div class="metric-explanation">
+                        <span class="metric-name">Internacional (${uniStats.internacional}/10):</span>
+                        <p>${uniStats.internacional_comentario}</p>
+                    </div>`;
+            }
+            
+            if (uniStats.aplicabilidad_comentario) {
+                universityExplanationHTML += `
+                    <div class="metric-explanation">
+                        <span class="metric-name">Aplicabilidad (${uniStats.aplicabilidad}/10):</span>
+                        <p>${uniStats.aplicabilidad_comentario}</p>
+                    </div>`;
+            }
+            
+            universityExplanationHTML += '</div>';
         }
         
-        // Añadir información de stats si hay comentarios
-        if (uniStats.innovacion_comentario) {
-            universityExplanation += 'Innovación: ' + uniStats.innovacion_comentario + ' ';
-        }
-        
-        if (uniStats.interdisciplinariedad_comentario) {
-            universityExplanation += 'Interdisciplinariedad: ' + uniStats.interdisciplinariedad_comentario + ' ';
-        }
-        
-        if (uniStats.impacto_comentario) {
-            universityExplanation += 'Impacto: ' + uniStats.impacto_comentario + ' ';
-        }
-        
-        if (uniStats.internacional_comentario) {
-            universityExplanation += 'Internacional: ' + uniStats.internacional_comentario + ' ';
-        }
-        
-        if (uniStats.aplicabilidad_comentario) {
-            universityExplanation += 'Aplicabilidad: ' + uniStats.aplicabilidad_comentario + ' ';
-        }
-        
-        if (universityExplanation) {
-            document.getElementById('universityExplanation').textContent = universityExplanation;
+        if (universityExplanationHTML) {
+            document.getElementById('universityExplanation').innerHTML = universityExplanationHTML;
         } else {
-            document.getElementById('universityExplanation').textContent = 'No hay explicaciones disponibles sobre la universidad.';
+            document.getElementById('universityExplanation').innerHTML = `
+                <div class="explanation-block no-data">
+                    <p>No hay explicaciones disponibles sobre la universidad.</p>
+                </div>`;
         }
     } else {
         // Si no hay stats de universidad, mostrar N/A
@@ -1222,7 +1266,10 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
         document.getElementById('uniImpacto').textContent = 'N/A';
         document.getElementById('uniInternacional').textContent = 'N/A';
         document.getElementById('uniAplicabilidad').textContent = 'N/A';
-        document.getElementById('universityExplanation').textContent = 'No hay explicaciones disponibles sobre la universidad.';
+        document.getElementById('universityExplanation').innerHTML = `
+            <div class="explanation-block no-data">
+                <p>No hay explicaciones disponibles sobre la universidad.</p>
+            </div>`;
     }
     
     // Actualizar métricas de ciudad con animaciones escalonadas
@@ -1279,30 +1326,59 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
             }, 'city', ' km');
         }, 800);
         
-        // Construir la explicación detallada de la ciudad
-        let cityExplanation = '';
+        // Construir la explicación detallada de la ciudad con formato HTML
+        let cityExplanationHTML = '<div class="explanation-block city-info">';
+        cityExplanationHTML += '<h5>Métricas de la Ciudad</h5>';
         
-        // Concatenar todos los comentarios disponibles sobre la ciudad
+        // Variable para rastrear si hay algún comentario
+        let hasCityComments = false;
+        
+        // Añadir cada métrica con su comentario si existe
         if (metrics.costo_vida_comentario) {
-            cityExplanation += metrics.costo_vida_comentario + ' ';
+            hasCityComments = true;
+            cityExplanationHTML += `
+                <div class="metric-explanation">
+                    <span class="metric-name">Costo de vida (${metrics.costo_vida}/10):</span>
+                    <p>${metrics.costo_vida_comentario}</p>
+                </div>`;
         }
         
         if (metrics.calidad_aire_comentario) {
-            cityExplanation += metrics.calidad_aire_comentario + ' ';
+            hasCityComments = true;
+            cityExplanationHTML += `
+                <div class="metric-explanation">
+                    <span class="metric-name">Calidad del aire (${metrics.calidad_aire}/10):</span>
+                    <p>${metrics.calidad_aire_comentario}</p>
+                </div>`;
         }
         
         if (metrics.calidad_transporte_comentario) {
-            cityExplanation += metrics.calidad_transporte_comentario + ' ';
+            hasCityComments = true;
+            cityExplanationHTML += `
+                <div class="metric-explanation">
+                    <span class="metric-name">Calidad del transporte (${metrics.calidad_transporte}/10):</span>
+                    <p>${metrics.calidad_transporte_comentario}</p>
+                </div>`;
         }
         
         if (metrics.calidad_servicio_medico_comentario) {
-            cityExplanation += metrics.calidad_servicio_medico_comentario + ' ';
+            hasCityComments = true;
+            cityExplanationHTML += `
+                <div class="metric-explanation">
+                    <span class="metric-name">Servicio médico (${metrics.calidad_servicio_medico}/10):</span>
+                    <p>${metrics.calidad_servicio_medico_comentario}</p>
+                </div>`;
         }
         
-        if (cityExplanation) {
-            document.getElementById('cityExplanation').textContent = cityExplanation;
+        cityExplanationHTML += '</div>';
+        
+        if (hasCityComments) {
+            document.getElementById('cityExplanation').innerHTML = cityExplanationHTML;
         } else {
-            document.getElementById('cityExplanation').textContent = 'No hay explicaciones disponibles sobre la ciudad.';
+            document.getElementById('cityExplanation').innerHTML = `
+                <div class="explanation-block no-data">
+                    <p>No hay explicaciones disponibles sobre la ciudad.</p>
+                </div>`;
         }
     } else {
         // Si no hay métricas, mostrar N/A
@@ -1311,7 +1387,10 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
         document.getElementById('calidadTransporte').textContent = 'N/A';
         document.getElementById('servicioMedico').textContent = 'N/A';
         document.getElementById('distanciaMadrid').textContent = 'N/A';
-        document.getElementById('cityExplanation').textContent = 'No hay explicaciones disponibles sobre la ciudad.';
+        document.getElementById('cityExplanation').innerHTML = `
+            <div class="explanation-block no-data">
+                <p>No hay explicaciones disponibles sobre la ciudad.</p>
+            </div>`;
     }
     
     // Actualizar navegación
