@@ -1649,7 +1649,7 @@ function setupProgramCriteriaDots() {
     criteriaDots.forEach(dot => {
         dot.addEventListener('click', function() {
             // Si no hay programa actual, no hacer nada
-            if (!currentUniversidad || !currentProgramIndex) return;
+            if (!currentUniversidad || currentProgramIndex === undefined) return;
             
             const criterion = this.getAttribute('data-criterion');
             const value = parseInt(this.getAttribute('data-value'));
@@ -1739,7 +1739,7 @@ function updateCriteriaDots(containerId, value) {
 // Función para guardar un criterio en el servidor
 async function saveCriterionToServer(criterion, value) {
     // Si no hay programa actual, no hacer nada
-    if (!currentUniversidad || !currentProgramIndex === undefined) return;
+    if (!currentUniversidad || currentProgramIndex === undefined) return;
     
     const programa = currentUniversidad.programas[currentProgramIndex];
     if (!programa || !programa._id) return;
