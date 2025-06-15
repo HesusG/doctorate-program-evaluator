@@ -1741,9 +1741,45 @@ function setupProgramCriteriaDots() {
             
             // Guardar valor en el programa actual
             console.log(`DEBUG criteriaClick: Llamando a saveCriterionToServer con ${criterion}, ${value}`);
-            saveCriterionToServer(criterion, value);
+            saveCriterionToServer(criterion, value)
+                .then(() => {
+                    // Verificar que se guardó correctamente llamando al endpoint de prueba
+                    if (currentUniversidad && currentProgramIndex !== undefined) {
+                        const programa = currentUniversidad.programas[currentProgramIndex];
+                        if (programa && programa._id) {
+                            console.log(`DEBUG: Verificando guardado de criterio en programa ${programa._id}`);
+                            fetch(`/api/programas/${programa._id}/criterios`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    console.log(`DEBUG: Verificación de guardado - Respuesta:`, data);
+                                })
+                                .catch(error => {
+                                    console.error(`DEBUG: Error al verificar guardado:`, error);
+                                });
+                        }
+                    }
+                });
         });
     });
+    
+    // Botón de prueba en consola para verificar criterios
+    console.log("Para verificar criterios de un programa, ejecuta en la consola: verificarCriterios(id_del_programa)");
+    window.verificarCriterios = function(programaId) {
+        if (!programaId) {
+            console.error("Debes proporcionar un ID de programa");
+            return;
+        }
+        
+        console.log(`Verificando criterios para programa ${programaId}...`);
+        fetch(`/api/programas/${programaId}/criterios`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("Criterios del programa:", data);
+            })
+            .catch(error => {
+                console.error("Error al verificar criterios:", error);
+            });
+    };
 }
 
 // Función auxiliar para actualizar un criterio específico

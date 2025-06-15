@@ -364,8 +364,11 @@ app.put('/api/programas/:id', async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
     
+    console.log(`DEBUG PUT /api/programas/${id}:`, updates);
+    
     // Verificar que hay campos para actualizar
     if (!updates || Object.keys(updates).length === 0) {
+      console.log(`DEBUG PUT /api/programas/${id}: No updates provided`);
       return res.status(400).json({ message: 'No updates provided' });
     }
     
@@ -379,6 +382,7 @@ app.put('/api/programas/:id', async (req, res) => {
     
     // Si no quedan campos para actualizar
     if (Object.keys(updates).length === 0) {
+      console.log(`DEBUG PUT /api/programas/${id}: No valid updates after filtering`);
       return res.status(400).json({ message: 'No valid updates provided' });
     }
     
@@ -389,8 +393,11 @@ app.put('/api/programas/:id', async (req, res) => {
     );
     
     if (result.matchedCount === 0) {
+      console.log(`DEBUG PUT /api/programas/${id}: Programa not found`);
       return res.status(404).json({ message: 'Programa not found' });
     }
+    
+    console.log(`DEBUG PUT /api/programas/${id}: Update successful - matchedCount=${result.matchedCount}, modifiedCount=${result.modifiedCount}`);
     
     res.json({ 
       message: 'Programa updated successfully',
@@ -841,6 +848,66 @@ app.put('/api/programas/:id/calificacion', async (req, res) => {
   } catch (error) {
     console.error('Error actualizando calificación:', error);
     res.status(500).json({ message: 'Error actualizando calificación' });
+  }
+});
+
+// Get a specific programa by ID
+app.get('/api/programas/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`DEBUG GET /api/programas/${id}: Buscando programa`);
+    
+    const db = client.db();
+    const programa = await db.collection('programas').findOne({ _id: new ObjectId(id) });
+    
+    if (!programa) {
+      console.log(`DEBUG GET /api/programas/${id}: Programa not found`);
+      return res.status(404).json({ message: 'Programa not found' });
+    }
+    
+    console.log(`DEBUG GET /api/programas/${id}: Programa encontrado:`, {
+      id: programa._id,
+      nombre: programa.nombre,
+      universidad: programa.universidad,
+      criterios: programa.criterios || 'No tiene criterios'
+    });
+    
+    res.json(programa);
+  } catch (error) {
+    console.error('Error fetching programa:', error);
+    res.status(500).json({ message: 'Error fetching programa', error: error.message });
+  }
+});
+
+// Get criterios for a specific programa - Endpoint para pruebas
+app.get('/api/programas/:id/criterios', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`DEBUG GET /api/programas/${id}/criterios: Buscando criterios`);
+    
+    const db = client.db();
+    const programa = await db.collection('programas').findOne(
+      { _id: new ObjectId(id) },
+      { projection: { _id: 1, nombre: 1, criterios: 1 } }
+    );
+    
+    if (!programa) {
+      console.log(`DEBUG GET /api/programas/${id}/criterios: Programa not found`);
+      return res.status(404).json({ message: 'Programa not found' });
+    }
+    
+    const criterios = programa.criterios || {};
+    console.log(`DEBUG GET /api/programas/${id}/criterios:`, criterios);
+    
+    res.json({
+      programa_id: programa._id,
+      nombre: programa.nombre,
+      criterios: criterios,
+      tiene_criterios: Object.keys(criterios).length > 0
+    });
+  } catch (error) {
+    console.error(`Error fetching criterios for programa ${req.params.id}:`, error);
+    res.status(500).json({ message: 'Error fetching criterios', error: error.message });
   }
 });
 
