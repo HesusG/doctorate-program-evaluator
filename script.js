@@ -66,6 +66,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Set up advanced search
     setupAdvancedSearch();
     
+    // Setup criteria dots in university modal
+    setupProgramCriteriaDots();
+    
     // Add CSS for admin section and calificar section
     addCustomStyles();
 });
@@ -1607,16 +1610,76 @@ function updateProgramCriteria(programa) {
     }
     
     // Actualizar los elementos del DOM con animación escalonada
-    setTimeout(() => updateCriteriaValue('criteriaRelevancia', relevancia, 'Relevancia Personal'), 100);
-    setTimeout(() => updateCriteriaValue('criteriaClaridad', claridad, 'Claridad Líneas'), 150);
-    setTimeout(() => updateCriteriaValue('criteriaTransparencia', transparencia, 'Transparencia'), 200);
-    setTimeout(() => updateCriteriaValue('criteriaActividades', actividades, 'Actividades Formativas'), 250);
-    setTimeout(() => updateCriteriaValue('criteriaResultados', resultados, 'Resultados y Calidad'), 300);
-    setTimeout(() => updateCriteriaValue('criteriaPromedio', promedio, 'Promedio'), 350);
+    setTimeout(() => {
+        updateCriteriaValue('criteriaRelevancia', relevancia);
+        updateCriteriaDots('view-criteria-relevancia-stars', relevancia);
+    }, 100);
+    
+    setTimeout(() => {
+        updateCriteriaValue('criteriaClaridad', claridad);
+        updateCriteriaDots('view-criteria-claridad-stars', claridad);
+    }, 150);
+    
+    setTimeout(() => {
+        updateCriteriaValue('criteriaTransparencia', transparencia);
+        updateCriteriaDots('view-criteria-transparencia-stars', transparencia);
+    }, 200);
+    
+    setTimeout(() => {
+        updateCriteriaValue('criteriaActividades', actividades);
+        updateCriteriaDots('view-criteria-actividades-stars', actividades);
+    }, 250);
+    
+    setTimeout(() => {
+        updateCriteriaValue('criteriaResultados', resultados);
+        updateCriteriaDots('view-criteria-resultados-stars', resultados);
+    }, 300);
+    
+    setTimeout(() => {
+        updateCriteriaValue('criteriaPromedio', promedio);
+    }, 350);
+}
+
+// Función para configurar los puntos de criterios en la vista del programa
+function setupProgramCriteriaDots() {
+    // Obtener todos los puntos de criterios
+    const criteriaDots = document.querySelectorAll('.program-criteria .criteria-dot');
+    
+    // Añadir manejador de eventos a cada punto
+    criteriaDots.forEach(dot => {
+        dot.addEventListener('click', function() {
+            // Si no hay programa actual, no hacer nada
+            if (!currentUniversidad || !currentProgramIndex) return;
+            
+            const criterion = this.getAttribute('data-criterion');
+            const value = parseInt(this.getAttribute('data-value'));
+            
+            // Actualizar UI
+            const dotsContainer = this.parentElement;
+            const dots = dotsContainer.querySelectorAll('.criteria-dot');
+            dots.forEach(d => {
+                if (parseInt(d.getAttribute('data-value')) <= value) {
+                    d.classList.add('active');
+                } else {
+                    d.classList.remove('active');
+                }
+            });
+            
+            // Actualizar valor en el elemento de visualización
+            const valueElement = document.getElementById(`criteria${criterion.charAt(0).toUpperCase() + criterion.slice(1)}`);
+            if (valueElement) {
+                valueElement.textContent = value;
+                valueElement.className = `current-value criteria-${value}`;
+            }
+            
+            // Guardar valor en el programa actual
+            saveCriterionToServer(criterion, value);
+        });
+    });
 }
 
 // Función auxiliar para actualizar un criterio específico
-function updateCriteriaValue(elementId, value, label) {
+function updateCriteriaValue(elementId, value) {
     const element = document.getElementById(elementId);
     if (!element) return;
     
@@ -1629,13 +1692,7 @@ function updateCriteriaValue(elementId, value, label) {
     if (value !== 'N/A' && !isNaN(value)) {
         // Añadir clase según el valor
         element.classList.add(`criteria-${value}`);
-        
-        // Si se proporcionó un texto de etiqueta, mostrar valor con etiqueta, de lo contrario solo valor
-        if (label) {
-            element.textContent = value;
-        } else {
-            element.textContent = value;
-        }
+        element.textContent = value;
     } else {
         element.textContent = 'N/A';
     }
@@ -1645,6 +1702,85 @@ function updateCriteriaValue(elementId, value, label) {
     
     // Añadir la clase show para iniciar la animación
     element.classList.add('show');
+}
+
+// Función para actualizar las bolitas de criterios
+function updateCriteriaDots(containerId, value) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    // Actualizar las bolitas
+    const dots = container.querySelectorAll('.criteria-dot');
+    dots.forEach(dot => {
+        const dotValue = parseInt(dot.getAttribute('data-value'));
+        if (value !== 'N/A' && !isNaN(value) && dotValue <= parseInt(value)) {
+            dot.classList.add('active');
+        } else {
+            dot.classList.remove('active');
+        }
+    });
+    
+    // Actualizar también los elementos de descripción de nivel
+    const criterion = container.querySelector('.criteria-dot').getAttribute('data-criterion');
+    const criterionBlock = container.closest('.criteria-block');
+    if (criterionBlock) {
+        const levelItems = criterionBlock.querySelectorAll('.criteria-level-item');
+        levelItems.forEach(item => {
+            const itemValue = parseInt(item.getAttribute('data-value'));
+            if (value !== 'N/A' && !isNaN(value) && itemValue === parseInt(value)) {
+                item.setAttribute('data-active', 'true');
+            } else {
+                item.removeAttribute('data-active');
+            }
+        });
+    }
+}
+
+// Función para guardar un criterio en el servidor
+async function saveCriterionToServer(criterion, value) {
+    // Si no hay programa actual, no hacer nada
+    if (!currentUniversidad || !currentProgramIndex === undefined) return;
+    
+    const programa = currentUniversidad.programas[currentProgramIndex];
+    if (!programa || !programa._id) return;
+    
+    try {
+        // Preparar los datos a enviar
+        const criterios = programa.criterios || {};
+        criterios[criterion] = value;
+        
+        // Crear objeto con los datos a actualizar
+        const updateData = {
+            criterios: criterios
+        };
+        
+        // Enviar al servidor
+        const response = await fetch(`/api/programas/${programa._id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updateData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        // Actualizar datos locales
+        if (!programa.criterios) {
+            programa.criterios = {};
+        }
+        programa.criterios[criterion] = value;
+        
+        // Recalcular y actualizar promedio
+        const promedio = calculateCriteriaAvg(programa.criterios);
+        updateCriteriaValue('criteriaPromedio', promedio);
+        
+        console.log(`Criterio ${criterion} actualizado a ${value} para programa ${programa._id}`);
+    } catch (error) {
+        console.error(`Error al guardar criterio ${criterion}:`, error);
+    }
 }
 
 // Función para calcular el promedio de criterios
