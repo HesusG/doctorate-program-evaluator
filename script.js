@@ -1125,6 +1125,9 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
     document.getElementById('programRating').innerHTML = getStarsHTML(rating) + 
         `<span class="rating-value">${rating > 0 ? rating + '/5' : 'Sin calificar'}</span>`;
     
+    // Actualizar criterios específicos de evaluación
+    updateProgramCriteria(programa);
+    
     // Actualizar resumen
     document.getElementById('programSummary').textContent = programa.resumen || 'No hay información disponible sobre este programa.';
     
@@ -1579,6 +1582,90 @@ function showUniversityInfoOld(universidad) {
     
     content.innerHTML = html;
     panel.style.display = 'block';
+}
+
+// Función para actualizar los criterios específicos de un programa
+function updateProgramCriteria(programa) {
+    // Valores por defecto
+    let relevancia = 'N/A';
+    let claridad = 'N/A';
+    let transparencia = 'N/A';
+    let actividades = 'N/A';
+    let resultados = 'N/A';
+    let promedio = 'N/A';
+    
+    // Si el programa tiene criterios, mostrarlos
+    if (programa.criterios) {
+        relevancia = programa.criterios.relevancia || 'N/A';
+        claridad = programa.criterios.claridad || 'N/A';
+        transparencia = programa.criterios.transparencia || 'N/A';
+        actividades = programa.criterios.actividades || 'N/A';
+        resultados = programa.criterios.resultados || 'N/A';
+        
+        // Calcular promedio si hay valores numéricos
+        promedio = calculateCriteriaAvg(programa.criterios);
+    }
+    
+    // Actualizar los elementos del DOM con animación escalonada
+    setTimeout(() => updateCriteriaValue('criteriaRelevancia', relevancia, 'Relevancia Personal'), 100);
+    setTimeout(() => updateCriteriaValue('criteriaClaridad', claridad, 'Claridad Líneas'), 150);
+    setTimeout(() => updateCriteriaValue('criteriaTransparencia', transparencia, 'Transparencia'), 200);
+    setTimeout(() => updateCriteriaValue('criteriaActividades', actividades, 'Actividades Formativas'), 250);
+    setTimeout(() => updateCriteriaValue('criteriaResultados', resultados, 'Resultados y Calidad'), 300);
+    setTimeout(() => updateCriteriaValue('criteriaPromedio', promedio, 'Promedio'), 350);
+}
+
+// Función auxiliar para actualizar un criterio específico
+function updateCriteriaValue(elementId, value, label) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    // Eliminar clase show para resetear la animación
+    element.classList.remove('show');
+    
+    // Limpiar clases anteriores
+    element.classList.remove('criteria-1', 'criteria-2', 'criteria-3', 'criteria-4', 'criteria-5');
+    
+    if (value !== 'N/A' && !isNaN(value)) {
+        // Añadir clase según el valor
+        element.classList.add(`criteria-${value}`);
+        
+        // Si se proporcionó un texto de etiqueta, mostrar valor con etiqueta, de lo contrario solo valor
+        if (label) {
+            element.textContent = value;
+        } else {
+            element.textContent = value;
+        }
+    } else {
+        element.textContent = 'N/A';
+    }
+    
+    // Forzar reflow
+    void element.offsetWidth;
+    
+    // Añadir la clase show para iniciar la animación
+    element.classList.add('show');
+}
+
+// Función para calcular el promedio de criterios
+function calculateCriteriaAvg(criterios) {
+    if (!criterios) return 'N/A';
+    
+    const values = [
+        criterios.relevancia,
+        criterios.claridad,
+        criterios.transparencia,
+        criterios.actividades,
+        criterios.resultados
+    ].filter(val => val !== undefined && val !== null && !isNaN(val));
+    
+    if (values.length === 0) return 'N/A';
+    
+    const sum = values.reduce((acc, val) => acc + parseFloat(val), 0);
+    const avg = sum / values.length;
+    
+    // Redondear a 1 decimal
+    return Math.round(avg * 10) / 10;
 }
 
 // Cerrar panel de información

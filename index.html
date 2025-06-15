@@ -614,6 +614,125 @@
                                     <textarea id="edit-program-lines" rows="5"></textarea>
                                 </div>
                                 
+                                <div class="form-group criteria-section">
+                                    <label>Criterios Específicos de Evaluación</label>
+                                    
+                                    <div class="criteria-block">
+                                        <div class="criteria-header">
+                                            <h5>1. Relevancia personal y afinidad temática</h5>
+                                        </div>
+                                        <div class="criteria-description">
+                                            <p class="criteria-level"><strong>1:</strong> No tienen relación con tus intereses</p>
+                                            <p class="criteria-level"><strong>2:</strong> Solo una línea lejana a lo que te interesa</p>
+                                            <p class="criteria-level"><strong>3:</strong> Hay 1 o 2 líneas parcialmente compatibles</p>
+                                            <p class="criteria-level"><strong>4:</strong> Hay al menos una línea muy alineada y otras relacionadas</p>
+                                            <p class="criteria-level"><strong>5:</strong> Tiene múltiples líneas directamente relacionadas con tus intereses y objetivos</p>
+                                        </div>
+                                        <div class="criteria-rating-input">
+                                            <div class="criteria-stars" id="edit-criteria-relevancia-stars">
+                                                <span class="criteria-dot" data-value="1">●</span>
+                                                <span class="criteria-dot" data-value="2">●</span>
+                                                <span class="criteria-dot" data-value="3">●</span>
+                                                <span class="criteria-dot" data-value="4">●</span>
+                                                <span class="criteria-dot" data-value="5">●</span>
+                                            </div>
+                                            <input type="hidden" id="edit-criteria-relevancia" value="">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="criteria-block">
+                                        <div class="criteria-header">
+                                            <h5>2. Claridad y especificidad de las líneas de investigación</h5>
+                                        </div>
+                                        <div class="criteria-description">
+                                            <p class="criteria-level"><strong>1:</strong> Líneas muy generales sin detalle de sublíneas o proyectos específicos</p>
+                                            <p class="criteria-level"><strong>2:</strong> Títulos de líneas vagos que no permiten entender el enfoque real</p>
+                                            <p class="criteria-level"><strong>3:</strong> Líneas claras pero sin información sobre grupos o proyectos activos</p>
+                                            <p class="criteria-level"><strong>4:</strong> Líneas bien definidas con mención de algunas áreas específicas</p>
+                                            <p class="criteria-level"><strong>5:</strong> Líneas detalladas con sublíneas, proyectos concretos y ejemplos</p>
+                                        </div>
+                                        <div class="criteria-rating-input">
+                                            <div class="criteria-stars" id="edit-criteria-claridad-stars">
+                                                <span class="criteria-dot" data-value="1">●</span>
+                                                <span class="criteria-dot" data-value="2">●</span>
+                                                <span class="criteria-dot" data-value="3">●</span>
+                                                <span class="criteria-dot" data-value="4">●</span>
+                                                <span class="criteria-dot" data-value="5">●</span>
+                                            </div>
+                                            <input type="hidden" id="edit-criteria-claridad" value="">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="criteria-block">
+                                        <div class="criteria-header">
+                                            <h5>3. Transparencia en información y procesos</h5>
+                                        </div>
+                                        <div class="criteria-description">
+                                            <p class="criteria-level"><strong>1:</strong> Información mínima, procesos poco claros</p>
+                                            <p class="criteria-level"><strong>2:</strong> Información básica pero faltan detalles importantes</p>
+                                            <p class="criteria-level"><strong>3:</strong> Información adecuada pero algunos vacíos</p>
+                                            <p class="criteria-level"><strong>4:</strong> Muy buena información con calendarios y procedimientos claros</p>
+                                            <p class="criteria-level"><strong>5:</strong> Información exhaustiva con todos los detalles administrativos</p>
+                                        </div>
+                                        <div class="criteria-rating-input">
+                                            <div class="criteria-stars" id="edit-criteria-transparencia-stars">
+                                                <span class="criteria-dot" data-value="1">●</span>
+                                                <span class="criteria-dot" data-value="2">●</span>
+                                                <span class="criteria-dot" data-value="3">●</span>
+                                                <span class="criteria-dot" data-value="4">●</span>
+                                                <span class="criteria-dot" data-value="5">●</span>
+                                            </div>
+                                            <input type="hidden" id="edit-criteria-transparencia" value="">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="criteria-block">
+                                        <div class="criteria-header">
+                                            <h5>4. Estructura y variedad de actividades formativas</h5>
+                                        </div>
+                                        <div class="criteria-description">
+                                            <p class="criteria-level"><strong>1:</strong> Solo seminarios obligatorios sin opciones</p>
+                                            <p class="criteria-level"><strong>2:</strong> 2-3 tipos de actividades con poca flexibilidad</p>
+                                            <p class="criteria-level"><strong>3:</strong> 4-5 tipos de actividades con cierta variedad</p>
+                                            <p class="criteria-level"><strong>4:</strong> 6-7 actividades diversas incluyendo movilidad</p>
+                                            <p class="criteria-level"><strong>5:</strong> 7+ actividades con congresos, publicaciones, estancias</p>
+                                        </div>
+                                        <div class="criteria-rating-input">
+                                            <div class="criteria-stars" id="edit-criteria-actividades-stars">
+                                                <span class="criteria-dot" data-value="1">●</span>
+                                                <span class="criteria-dot" data-value="2">●</span>
+                                                <span class="criteria-dot" data-value="3">●</span>
+                                                <span class="criteria-dot" data-value="4">●</span>
+                                                <span class="criteria-dot" data-value="5">●</span>
+                                            </div>
+                                            <input type="hidden" id="edit-criteria-actividades" value="">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="criteria-block">
+                                        <div class="criteria-header">
+                                            <h5>5. Transparencia en resultados y calidad</h5>
+                                        </div>
+                                        <div class="criteria-description">
+                                            <p class="criteria-level"><strong>1:</strong> Sin información sobre resultados</p>
+                                            <p class="criteria-level"><strong>2:</strong> Información mínima o desactualizada</p>
+                                            <p class="criteria-level"><strong>3:</strong> Algunos indicadores básicos</p>
+                                            <p class="criteria-level"><strong>4:</strong> Buenos indicadores, informes de acreditación</p>
+                                            <p class="criteria-level"><strong>5:</strong> Información completa con tesis defendidas, inserción laboral, evaluaciones externas</p>
+                                        </div>
+                                        <div class="criteria-rating-input">
+                                            <div class="criteria-stars" id="edit-criteria-resultados-stars">
+                                                <span class="criteria-dot" data-value="1">●</span>
+                                                <span class="criteria-dot" data-value="2">●</span>
+                                                <span class="criteria-dot" data-value="3">●</span>
+                                                <span class="criteria-dot" data-value="4">●</span>
+                                                <span class="criteria-dot" data-value="5">●</span>
+                                            </div>
+                                            <input type="hidden" id="edit-criteria-resultados" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 <div class="form-actions">
                                     <button type="button" id="save-program-changes" class="save-btn">Guardar Cambios</button>
                                     <button type="button" id="duplicate-program" class="duplicate-btn">Duplicar Programa</button>
@@ -925,6 +1044,79 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="program-section program-criteria-section">
+                            <h4>Criterios Específicos</h4>
+                            <div class="program-section-content program-criteria" id="programCriteria">
+                                <div class="program-criteria-summary">
+                                    <div class="criteria-row">
+                                        <span class="label">Relevancia Personal:</span>
+                                        <span class="value criteria-value" id="criteriaRelevancia">N/A</span>
+                                    </div>
+                                    <div class="criteria-row">
+                                        <span class="label">Claridad Líneas:</span>
+                                        <span class="value criteria-value" id="criteriaClaridad">N/A</span>
+                                    </div>
+                                    <div class="criteria-row">
+                                        <span class="label">Transparencia:</span>
+                                        <span class="value criteria-value" id="criteriaTransparencia">N/A</span>
+                                    </div>
+                                    <div class="criteria-row">
+                                        <span class="label">Actividades Formativas:</span>
+                                        <span class="value criteria-value" id="criteriaActividades">N/A</span>
+                                    </div>
+                                    <div class="criteria-row">
+                                        <span class="label">Resultados y Calidad:</span>
+                                        <span class="value criteria-value" id="criteriaResultados">N/A</span>
+                                    </div>
+                                    <div class="criteria-row criteria-row-avg">
+                                        <span class="label">Promedio:</span>
+                                        <span class="value criteria-value criteria-avg" id="criteriaPromedio">N/A</span>
+                                    </div>
+                                </div>
+                                <div class="criteria-help">
+                                    <details>
+                                        <summary>Ver descripción de criterios</summary>
+                                        <div class="criteria-descriptions">
+                                            <p><strong>1. Relevancia personal y afinidad temática</strong><br>
+                                            1: No tienen relación con tus intereses<br>
+                                            2: Solo una línea lejana a lo que te interesa<br>
+                                            3: Hay 1 o 2 líneas parcialmente compatibles<br>
+                                            4: Hay al menos una línea muy alineada y otras relacionadas<br>
+                                            5: Tiene múltiples líneas directamente relacionadas con tus intereses y objetivos</p>
+                                            
+                                            <p><strong>2. Claridad y especificidad de las líneas de investigación</strong><br>
+                                            1: Líneas muy generales sin detalle de sublíneas o proyectos específicos<br>
+                                            2: Títulos de líneas vagos que no permiten entender el enfoque real<br>
+                                            3: Líneas claras pero sin información sobre grupos o proyectos activos<br>
+                                            4: Líneas bien definidas con mención de algunas áreas específicas<br>
+                                            5: Líneas detalladas con sublíneas, proyectos concretos y ejemplos</p>
+                                            
+                                            <p><strong>3. Transparencia en información y procesos</strong><br>
+                                            1: Información mínima, procesos poco claros<br>
+                                            2: Información básica pero faltan detalles importantes<br>
+                                            3: Información adecuada pero algunos vacíos<br>
+                                            4: Muy buena información con calendarios y procedimientos claros<br>
+                                            5: Información exhaustiva con todos los detalles administrativos</p>
+                                            
+                                            <p><strong>4. Estructura y variedad de actividades formativas</strong><br>
+                                            1: Solo seminarios obligatorios sin opciones<br>
+                                            2: 2-3 tipos de actividades con poca flexibilidad<br>
+                                            3: 4-5 tipos de actividades con cierta variedad<br>
+                                            4: 6-7 actividades diversas incluyendo movilidad<br>
+                                            5: 7+ actividades con congresos, publicaciones, estancias</p>
+                                            
+                                            <p><strong>5. Transparencia en resultados y calidad</strong><br>
+                                            1: Sin información sobre resultados<br>
+                                            2: Información mínima o desactualizada<br>
+                                            3: Algunos indicadores básicos<br>
+                                            4: Buenos indicadores, informes de acreditación<br>
+                                            5: Información completa con tesis defendidas, inserción laboral, evaluaciones externas</p>
+                                        </div>
+                                    </details>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="program-section explanation-section">
                             <h4>Explicación Detallada</h4>
                             <div class="program-section-content" id="detailedExplanation">

@@ -303,6 +303,42 @@ function setupProgramEditModal() {
     // Duplicate button
     document.getElementById('duplicate-program').addEventListener('click', duplicateProgramFromModal);
     
+    // Setup criteria dots for each criterion
+    setupCriteriaDots('relevancia');
+    setupCriteriaDots('claridad');
+    setupCriteriaDots('transparencia');
+    setupCriteriaDots('actividades');
+    setupCriteriaDots('resultados');
+}
+
+// Function to setup the criteria dots
+function setupCriteriaDots(criterionName) {
+    const dotsContainer = document.getElementById(`edit-criteria-${criterionName}-stars`);
+    if (!dotsContainer) return;
+    
+    const dots = dotsContainer.querySelectorAll('.criteria-dot');
+    const hiddenInput = document.getElementById(`edit-criteria-${criterionName}`);
+    
+    dots.forEach(dot => {
+        dot.addEventListener('click', function() {
+            const value = this.getAttribute('data-value');
+            
+            // Update hidden input value
+            hiddenInput.value = value;
+            
+            // Update dots appearance
+            dots.forEach(d => {
+                const dotValue = parseInt(d.getAttribute('data-value'));
+                if (dotValue <= parseInt(value)) {
+                    d.classList.add('active');
+                } else {
+                    d.classList.remove('active');
+                }
+            });
+        });
+    });
+}
+    
     // Rating stars
     const stars = document.querySelectorAll('#edit-program-rating .star');
     stars.forEach(star => {
@@ -366,6 +402,32 @@ function editProgram(programId) {
         }
     });
     
+    // Reset criteria dots and hidden inputs
+    resetCriteriaValues('relevancia');
+    resetCriteriaValues('claridad');
+    resetCriteriaValues('transparencia');
+    resetCriteriaValues('actividades');
+    resetCriteriaValues('resultados');
+    
+    // Set criteria values if they exist
+    if (program.criterios) {
+        if (program.criterios.relevancia) {
+            setCriteriaValue('relevancia', program.criterios.relevancia);
+        }
+        if (program.criterios.claridad) {
+            setCriteriaValue('claridad', program.criterios.claridad);
+        }
+        if (program.criterios.transparencia) {
+            setCriteriaValue('transparencia', program.criterios.transparencia);
+        }
+        if (program.criterios.actividades) {
+            setCriteriaValue('actividades', program.criterios.actividades);
+        }
+        if (program.criterios.resultados) {
+            setCriteriaValue('resultados', program.criterios.resultados);
+        }
+    }
+    
     // Open modal
     document.getElementById('program-edit-modal').style.display = 'block';
 }
@@ -373,6 +435,37 @@ function editProgram(programId) {
 // Close the edit modal
 function closeEditModal() {
     document.getElementById('program-edit-modal').style.display = 'none';
+}
+
+// Reset criteria values
+function resetCriteriaValues(criterionName) {
+    const hiddenInput = document.getElementById(`edit-criteria-${criterionName}`);
+    if (hiddenInput) {
+        hiddenInput.value = '';
+    }
+    
+    const dots = document.querySelectorAll(`#edit-criteria-${criterionName}-stars .criteria-dot`);
+    dots.forEach(dot => {
+        dot.classList.remove('active');
+    });
+}
+
+// Set criteria value and update UI
+function setCriteriaValue(criterionName, value) {
+    const hiddenInput = document.getElementById(`edit-criteria-${criterionName}`);
+    if (hiddenInput) {
+        hiddenInput.value = value;
+    }
+    
+    const dots = document.querySelectorAll(`#edit-criteria-${criterionName}-stars .criteria-dot`);
+    dots.forEach(dot => {
+        const dotValue = parseInt(dot.getAttribute('data-value'));
+        if (dotValue <= parseInt(value)) {
+            dot.classList.add('active');
+        } else {
+            dot.classList.remove('active');
+        }
+    });
 }
 
 // Save the program changes
@@ -401,6 +494,24 @@ async function saveProgram() {
             valor: rating,
             fecha: new Date().toISOString()
         };
+    }
+    
+    // Add criteria if any are set
+    const relevancia = document.getElementById('edit-criteria-relevancia').value;
+    const claridad = document.getElementById('edit-criteria-claridad').value;
+    const transparencia = document.getElementById('edit-criteria-transparencia').value;
+    const actividades = document.getElementById('edit-criteria-actividades').value;
+    const resultados = document.getElementById('edit-criteria-resultados').value;
+    
+    // Only add criteria if at least one is set
+    if (relevancia || claridad || transparencia || actividades || resultados) {
+        updateData.criterios = {};
+        
+        if (relevancia) updateData.criterios.relevancia = parseInt(relevancia);
+        if (claridad) updateData.criterios.claridad = parseInt(claridad);
+        if (transparencia) updateData.criterios.transparencia = parseInt(transparencia);
+        if (actividades) updateData.criterios.actividades = parseInt(actividades);
+        if (resultados) updateData.criterios.resultados = parseInt(resultados);
     }
     
     try {
