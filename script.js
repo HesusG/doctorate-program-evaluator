@@ -1037,9 +1037,9 @@ function showUniversityInfo(universidad) {
     
     // Guardar la universidad actual y resetear el índice del programa
     currentUniversidad = universidad;
-    currentProgramIndex = 0;
+    currentProgramIndex = 0; // Asegurar que sea un número entero
     
-    console.log(`DEBUG showUniversityInfo: currentUniversidad actualizada, currentProgramIndex=${currentProgramIndex}`);
+    console.log(`DEBUG showUniversityInfo: currentUniversidad actualizada, currentProgramIndex=${currentProgramIndex} (tipo: ${typeof currentProgramIndex})`);
     
     // Configurar elementos del modal
     document.getElementById('universityTitle').textContent = universidad.nombre;
@@ -1081,6 +1081,13 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
         return;
     }
     
+    // Convertir index a número si no lo es
+    index = Number(index);
+    if (isNaN(index)) {
+        console.warn(`Índice de programa no es un número: ${index}`);
+        return;
+    }
+    
     // Asegurar que el índice sea válido
     if (index < 0 || index >= currentUniversidad.programas.length) {
         console.warn(`Índice de programa inválido: ${index}`);
@@ -1089,10 +1096,10 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
     
     console.log(`DEBUG showProgramDetails: Actualizando currentProgramIndex de ${currentProgramIndex} a ${index}`);
     
-    // Actualizar el índice actual
-    currentProgramIndex = index;
+    // Actualizar el índice actual - asegurándose que sea un número
+    currentProgramIndex = Number(index);
     
-    console.log(`DEBUG showProgramDetails: currentProgramIndex actualizado a ${currentProgramIndex}`);
+    console.log(`DEBUG showProgramDetails: currentProgramIndex actualizado a ${currentProgramIndex} (tipo: ${typeof currentProgramIndex})`);
     
     // Obtener el programa actual
     const programa = currentUniversidad.programas[index];
@@ -1708,8 +1715,20 @@ function setupProgramCriteriaDots() {
             console.log(`DEBUG criteriaClick: currentUniversidad=${!!currentUniversidad}, currentProgramIndex=${currentProgramIndex}`);
             
             // Si no hay programa actual, no hacer nada
-            if (!currentUniversidad || currentProgramIndex === undefined) {
-                console.log(`DEBUG criteriaClick: Abortando - No hay programa actual válido`);
+            if (!currentUniversidad) {
+                console.log(`DEBUG criteriaClick: Abortando - No hay universidad actual`);
+                return;
+            }
+            
+            if (currentProgramIndex === undefined || currentProgramIndex === null || isNaN(Number(currentProgramIndex))) {
+                console.log(`DEBUG criteriaClick: Abortando - currentProgramIndex no es válido: ${currentProgramIndex} (tipo: ${typeof currentProgramIndex})`);
+                return;
+            }
+            
+            // Verificar que el índice está dentro de los límites
+            const programIndex = Number(currentProgramIndex);
+            if (programIndex < 0 || programIndex >= currentUniversidad.programas.length) {
+                console.log(`DEBUG criteriaClick: Abortando - Índice ${programIndex} fuera de rango (0-${currentUniversidad.programas.length-1})`);
                 return;
             }
             
@@ -1847,15 +1866,34 @@ async function saveCriterionToServer(criterion, value) {
     console.log(`DEBUG saveCriterionToServer: currentUniversidad=${!!currentUniversidad}, currentProgramIndex=${currentProgramIndex}`);
     
     // Si no hay programa actual, no hacer nada
-    if (!currentUniversidad || currentProgramIndex === undefined) {
-        console.log(`DEBUG saveCriterionToServer: Abortando - No hay programa actual válido`);
+    if (!currentUniversidad) {
+        console.log(`DEBUG saveCriterionToServer: Abortando - No hay universidad actual`);
         return;
     }
     
-    const programa = currentUniversidad.programas[currentProgramIndex];
+    if (currentProgramIndex === undefined || currentProgramIndex === null || isNaN(Number(currentProgramIndex))) {
+        console.log(`DEBUG saveCriterionToServer: Abortando - currentProgramIndex no es válido: ${currentProgramIndex} (tipo: ${typeof currentProgramIndex})`);
+        return;
+    }
+    
+    // Asegurar que currentProgramIndex es un número
+    const programIndex = Number(currentProgramIndex);
+    
+    // Verificar que el índice está dentro de los límites
+    if (programIndex < 0 || programIndex >= currentUniversidad.programas.length) {
+        console.log(`DEBUG saveCriterionToServer: Abortando - Índice ${programIndex} fuera de rango (0-${currentUniversidad.programas.length-1})`);
+        return;
+    }
+    
+    const programa = currentUniversidad.programas[programIndex];
     console.log(`DEBUG saveCriterionToServer: programa=${!!programa}, programa._id=${programa ? programa._id : 'undefined'}`);
     
-    if (!programa || !programa._id) {
+    if (!programa) {
+        console.log(`DEBUG saveCriterionToServer: Abortando - No se encontró el programa en el índice ${programIndex}`);
+        return;
+    }
+    
+    if (!programa._id) {
         console.log(`DEBUG saveCriterionToServer: Abortando - Programa no tiene ID válido`);
         return;
     }
