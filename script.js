@@ -1025,15 +1025,21 @@ let currentProgramIndex = 0;
 
 // Mostrar información de universidad en el nuevo modal
 function showUniversityInfo(universidad) {
+    console.log(`DEBUG showUniversityInfo: Iniciando con universidad=${universidad ? universidad.nombre : 'undefined'}`);
+    
     // Si no se proporciona la universidad o no tiene programas, no hacer nada
     if (!universidad || !universidad.programas || universidad.programas.length === 0) {
         console.warn("No se proporcionó una universidad válida o no tiene programas");
         return;
     }
     
+    console.log(`DEBUG showUniversityInfo: Universidad válida con ${universidad.programas.length} programas`);
+    
     // Guardar la universidad actual y resetear el índice del programa
     currentUniversidad = universidad;
     currentProgramIndex = 0;
+    
+    console.log(`DEBUG showUniversityInfo: currentUniversidad actualizada, currentProgramIndex=${currentProgramIndex}`);
     
     // Configurar elementos del modal
     document.getElementById('universityTitle').textContent = universidad.nombre;
@@ -1067,7 +1073,11 @@ function showUniversityInfo(universidad) {
 
 // Función para mostrar los detalles de un programa específico
 function showProgramDetails(index, animationClass = 'slide-in-right') {
+    console.log(`DEBUG showProgramDetails: Iniciando con index=${index}, animationClass=${animationClass}`);
+    console.log(`DEBUG showProgramDetails: currentUniversidad=${!!currentUniversidad}, programas=${currentUniversidad && currentUniversidad.programas ? currentUniversidad.programas.length : 0}`);
+    
     if (!currentUniversidad || !currentUniversidad.programas || currentUniversidad.programas.length === 0) {
+        console.log(`DEBUG showProgramDetails: No hay universidad o programas válidos`);
         return;
     }
     
@@ -1077,8 +1087,12 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
         return;
     }
     
+    console.log(`DEBUG showProgramDetails: Actualizando currentProgramIndex de ${currentProgramIndex} a ${index}`);
+    
     // Actualizar el índice actual
     currentProgramIndex = index;
+    
+    console.log(`DEBUG showProgramDetails: currentProgramIndex actualizado a ${currentProgramIndex}`);
     
     // Obtener el programa actual
     const programa = currentUniversidad.programas[index];
@@ -1455,18 +1469,51 @@ function updateProgramNavigation() {
 
 // Navegar al programa anterior
 function previousProgram() {
+    console.log(`DEBUG previousProgram: currentUniversidad=${!!currentUniversidad}, currentProgramIndex=${currentProgramIndex}`);
+    
+    // Verificar que tenemos universidad y programas válidos
+    if (!currentUniversidad || !currentUniversidad.programas || currentUniversidad.programas.length === 0) {
+        console.log('DEBUG previousProgram: No hay universidad o programas válidos');
+        return;
+    }
+    
+    // Verificar que el índice es válido y mayor que 0
+    if (currentProgramIndex === undefined || currentProgramIndex === null) {
+        console.log('DEBUG previousProgram: currentProgramIndex no está definido');
+        return;
+    }
+    
     if (currentProgramIndex > 0) {
+        console.log(`DEBUG previousProgram: Navegando al programa ${currentProgramIndex - 1}`);
         // Usar animación de deslizamiento desde la izquierda
         showProgramDetails(currentProgramIndex - 1, 'slide-in-left');
+    } else {
+        console.log('DEBUG previousProgram: Ya estamos en el primer programa');
     }
 }
 
 // Navegar al programa siguiente
 function nextProgram() {
-    if (currentUniversidad && currentUniversidad.programas && 
-        currentProgramIndex < currentUniversidad.programas.length - 1) {
+    console.log(`DEBUG nextProgram: currentUniversidad=${!!currentUniversidad}, currentProgramIndex=${currentProgramIndex}`);
+    
+    // Verificar que tenemos universidad y programas válidos
+    if (!currentUniversidad || !currentUniversidad.programas || currentUniversidad.programas.length === 0) {
+        console.log('DEBUG nextProgram: No hay universidad o programas válidos');
+        return;
+    }
+    
+    // Verificar que el índice es válido
+    if (currentProgramIndex === undefined || currentProgramIndex === null) {
+        console.log('DEBUG nextProgram: currentProgramIndex no está definido');
+        return;
+    }
+    
+    if (currentProgramIndex < currentUniversidad.programas.length - 1) {
+        console.log(`DEBUG nextProgram: Navegando al programa ${currentProgramIndex + 1}`);
         // Usar animación de deslizamiento desde la derecha
         showProgramDetails(currentProgramIndex + 1, 'slide-in-right');
+    } else {
+        console.log('DEBUG nextProgram: Ya estamos en el último programa');
     }
 }
 
@@ -1642,17 +1689,34 @@ function updateProgramCriteria(programa) {
 
 // Función para configurar los puntos de criterios en la vista del programa
 function setupProgramCriteriaDots() {
+    console.log("DEBUG: Configurando event listeners para criterios dots");
+    
     // Obtener todos los puntos de criterios
     const criteriaDots = document.querySelectorAll('.program-criteria .criteria-dot');
+    console.log(`DEBUG: Encontrados ${criteriaDots.length} puntos de criterios`);
     
     // Añadir manejador de eventos a cada punto
     criteriaDots.forEach(dot => {
+        // Almacenar información para debug
+        const criterion = dot.getAttribute('data-criterion');
+        const value = dot.getAttribute('data-value');
+        console.log(`DEBUG: Configurando dot para criterio=${criterion}, valor=${value}`);
+        
         dot.addEventListener('click', function() {
+            // Debug
+            console.log(`DEBUG criteriaClick: Dot clicked - criterio=${criterion}, valor=${value}`);
+            console.log(`DEBUG criteriaClick: currentUniversidad=${!!currentUniversidad}, currentProgramIndex=${currentProgramIndex}`);
+            
             // Si no hay programa actual, no hacer nada
-            if (!currentUniversidad || currentProgramIndex === undefined) return;
+            if (!currentUniversidad || currentProgramIndex === undefined) {
+                console.log(`DEBUG criteriaClick: Abortando - No hay programa actual válido`);
+                return;
+            }
             
             const criterion = this.getAttribute('data-criterion');
             const value = parseInt(this.getAttribute('data-value'));
+            
+            console.log(`DEBUG criteriaClick: Procesando click en criterio=${criterion}, valor=${value}`);
             
             // Actualizar UI
             const dotsContainer = this.parentElement;
@@ -1670,9 +1734,13 @@ function setupProgramCriteriaDots() {
             if (valueElement) {
                 valueElement.textContent = value;
                 valueElement.className = `current-value criteria-${value}`;
+                console.log(`DEBUG criteriaClick: Actualizado elemento visual para ${criterion} a ${value}`);
+            } else {
+                console.log(`DEBUG criteriaClick: No se encontró elemento visual para ${criterion}`);
             }
             
             // Guardar valor en el programa actual
+            console.log(`DEBUG criteriaClick: Llamando a saveCriterionToServer con ${criterion}, ${value}`);
             saveCriterionToServer(criterion, value);
         });
     });
@@ -1738,11 +1806,23 @@ function updateCriteriaDots(containerId, value) {
 
 // Función para guardar un criterio en el servidor
 async function saveCriterionToServer(criterion, value) {
+    // DEBUG: Registrar todas las llamadas para diagnóstico
+    console.log(`DEBUG saveCriterionToServer: Iniciando con criterion=${criterion}, value=${value}`);
+    console.log(`DEBUG saveCriterionToServer: currentUniversidad=${!!currentUniversidad}, currentProgramIndex=${currentProgramIndex}`);
+    
     // Si no hay programa actual, no hacer nada
-    if (!currentUniversidad || currentProgramIndex === undefined) return;
+    if (!currentUniversidad || currentProgramIndex === undefined) {
+        console.log(`DEBUG saveCriterionToServer: Abortando - No hay programa actual válido`);
+        return;
+    }
     
     const programa = currentUniversidad.programas[currentProgramIndex];
-    if (!programa || !programa._id) return;
+    console.log(`DEBUG saveCriterionToServer: programa=${!!programa}, programa._id=${programa ? programa._id : 'undefined'}`);
+    
+    if (!programa || !programa._id) {
+        console.log(`DEBUG saveCriterionToServer: Abortando - Programa no tiene ID válido`);
+        return;
+    }
     
     try {
         // Preparar los datos a enviar
@@ -1754,6 +1834,8 @@ async function saveCriterionToServer(criterion, value) {
             criterios: criterios
         };
         
+        console.log(`DEBUG saveCriterionToServer: Enviando datos al servidor para programa ${programa._id}`, updateData);
+        
         // Enviar al servidor
         const response = await fetch(`/api/programas/${programa._id}`, {
             method: 'PUT',
@@ -1763,9 +1845,15 @@ async function saveCriterionToServer(criterion, value) {
             body: JSON.stringify(updateData)
         });
         
+        console.log(`DEBUG saveCriterionToServer: Respuesta del servidor - status=${response.status}`);
+        
         if (!response.ok) {
             throw new Error(`Error HTTP: ${response.status}`);
         }
+        
+        // Obtener la respuesta del servidor para verificar
+        const responseData = await response.json();
+        console.log(`DEBUG saveCriterionToServer: Respuesta del servidor:`, responseData);
         
         // Actualizar datos locales
         if (!programa.criterios) {
