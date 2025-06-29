@@ -3938,3 +3938,25 @@ tr:hover {
 .ranking-table td {
     vertical-align: middle;
 }
+
+/* Criteria rating modal - ensure it appears on top */
+#criteria-rating-modal {
+    z-index: 9999 !important;
+}
+
+#criteria-rating-modal .modal-content {
+    z-index: 10000 !important;
+    position: relative;
+}
+
+/* Also ensure other confirmation modals are on top */
+#rating-confirm-modal,
+#saveConfirmModal,
+#confirmModal {
+    z-index: 9998 !important;
+}
+
+/* University info modal should be below confirmation modals */
+#universityModal {
+    z-index: 5000;
+}
