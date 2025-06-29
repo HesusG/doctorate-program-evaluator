@@ -2008,22 +2008,343 @@ function closeInfoPanel() {
 
 // Populate table (obsoleto - mantenido para compatibilidad)
 function populateTable() {
-    console.log("Populate table called - now using DataTables instead");
+    console.log("Populating table with all programs");
     
-    // No hacemos nada aquí, ya que ahora usamos DataTables para gestionar la tabla
-    // Esta función se mantiene para compatibilidad con el código existente
+    const tableBody = document.getElementById('tableBody');
+    if (!tableBody) return;
     
-    // Si estamos en la vista de tabla, inicializamos DataTable
-    const activeTab = document.querySelector('.tab.active');
-    if (activeTab && activeTab.dataset.tab === 'tabla' && typeof initializeDataTable === 'function') {
-        // Dar tiempo para que el DOM se actualice
-        setTimeout(function() {
-            if (typeof $ !== 'undefined' && $('#programsDataTable').length) {
-                if (!$.fn.DataTable.isDataTable('#programsDataTable')) {
-                    initializeDataTable();
-                }
-            }
-        }, 100);
+    // Clear existing content
+    tableBody.innerHTML = '';
+    
+    // Collect all programs from all universities
+    let allPrograms = [];
+    universidadesData.programas_doctorado.universidades.forEach(universidad => {
+        universidad.programas.forEach(programa => {
+            allPrograms.push({
+                ...programa,
+                universidad: universidad.nombre,
+                ciudad: universidad.ciudad,
+                ciudad_metrics: universidad.ciudad_metrics,
+                stats: universidad.stats || programa.stats
+            });
+        });
+    });
+    
+    // Populate table rows
+    allPrograms.forEach(programa => {
+        const tr = document.createElement('tr');
+        tr.dataset.id = programa._id;
+        
+        // Calculate criterios average
+        const criteriosAvg = programa.criterios ? 
+            Object.values(programa.criterios).reduce((a, b) => a + b, 0) / Object.values(programa.criterios).length : 0;
+        
+        tr.innerHTML = `
+            <td>${programa.universidad}</td>
+            <td>${programa.ciudad}</td>
+            <td>${programa.nombre}</td>
+            <td>
+                <span class="status-badge status-${programa.status || 'pendiente'}">
+                    ${programa.status || 'pendiente'}
+                </span>
+            </td>
+            <td>${programa.calificacion ? programa.calificacion.valor : '-'}</td>
+            <td>${criteriosAvg.toFixed(1)}</td>
+            <td>
+                ${programa.url ? `<a href="${programa.url}" target="_blank">🔗</a>` : '-'}
+            </td>
+            <td>
+                <button class="btn-sm" onclick="showLineas('${programa._id}')">Ver</button>
+            </td>
+            <td>
+                <button class="btn-sm btn-edit" onclick="editProgram('${programa._id}')">✏️</button>
+                <button class="btn-sm btn-duplicate" onclick="duplicateProgram('${programa._id}')">📋</button>
+                <button class="btn-sm btn-delete" onclick="deleteProgram('${programa._id}')">🗑️</button>
+            </td>
+        `;
+        
+        tableBody.appendChild(tr);
+    });
+    
+    // Initialize DataTable if not already initialized
+    if (typeof $ !== 'undefined' && $.fn.DataTable) {
+        if (!$.fn.DataTable.isDataTable('#programsDataTable')) {
+            $('#programsDataTable').DataTable({
+                responsive: true,
+                pageLength: 25,
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                },
+                order: [[0, 'asc'], [2, 'asc']],
+                dom: 'Bfrtip',
+                buttons: ['copy', 'csv', 'excel', 'pdf']
+            });
+        }
+    }
+    
+    // Setup table filters
+    setupTableFilters();
+}
+
+// Setup table filters
+function setupTableFilters() {
+    const filters = {
+        universidad: document.getElementById('filterUniversidad'),
+        ciudad: document.getElementById('filterCiudad'),
+        programa: document.getElementById('filterPrograma'),
+        status: document.getElementById('filterStatus')
+    };
+    
+    // Add event listeners to filters
+    Object.values(filters).forEach(filter => {
+        if (filter) {
+            filter.addEventListener('input', applyTableFilters);
+            filter.addEventListener('change', applyTableFilters);
+        }
+    });
+}
+
+// Apply table filters
+function applyTableFilters() {
+    const filters = {
+        universidad: document.getElementById('filterUniversidad').value.toLowerCase(),
+        ciudad: document.getElementById('filterCiudad').value.toLowerCase(),
+        programa: document.getElementById('filterPrograma').value.toLowerCase(),
+        status: document.getElementById('filterStatus').value
+    };
+    
+    const rows = document.querySelectorAll('#tableBody tr');
+    rows.forEach(row => {
+        const universidad = row.cells[0].textContent.toLowerCase();
+        const ciudad = row.cells[1].textContent.toLowerCase();
+        const programa = row.cells[2].textContent.toLowerCase();
+        const status = row.querySelector('.status-badge').textContent.trim();
+        
+        const matchUniversidad = !filters.universidad || universidad.includes(filters.universidad);
+        const matchCiudad = !filters.ciudad || ciudad.includes(filters.ciudad);
+        const matchPrograma = !filters.programa || programa.includes(filters.programa);
+        const matchStatus = !filters.status || status === filters.status;
+        
+        row.style.display = matchUniversidad && matchCiudad && matchPrograma && matchStatus ? '' : 'none';
+    });
+}
+
+// Reset table filters
+window.resetTableFilters = function() {
+    document.getElementById('filterUniversidad').value = '';
+    document.getElementById('filterCiudad').value = '';
+    document.getElementById('filterPrograma').value = '';
+    document.getElementById('filterStatus').value = '';
+    applyTableFilters();
+}
+
+// Edit program
+window.editProgram = async function(programId) {
+    // Find the program data
+    let programData = null;
+    for (const uni of universidadesData.programas_doctorado.universidades) {
+        const prog = uni.programas.find(p => p._id === programId);
+        if (prog) {
+            programData = { ...prog, universidad: uni.nombre, ciudad: uni.ciudad };
+            break;
+        }
+    }
+    
+    if (!programData) return;
+    
+    // Populate the edit form
+    document.getElementById('editProgramId').value = programData._id;
+    document.getElementById('editUniversidad').value = programData.universidad;
+    document.getElementById('editCiudad').value = programData.ciudad;
+    document.getElementById('editPrograma').value = programData.nombre;
+    document.getElementById('editStatus').value = programData.status || 'pendiente';
+    document.getElementById('editUrl').value = programData.url || '';
+    document.getElementById('editLineas').value = programData.lineas_investigacion ? 
+        programData.lineas_investigacion.join('\n\n') : '';
+    document.getElementById('editResumen').value = programData.resumen || '';
+    document.getElementById('editCalificacion').value = programData.calificacion ? 
+        programData.calificacion.valor : '';
+    
+    // Populate criterios
+    if (programData.criterios) {
+        document.getElementById('editRelevancia').value = programData.criterios.relevancia || 0;
+        document.getElementById('editClaridad').value = programData.criterios.claridad || 0;
+        document.getElementById('editTransparencia').value = programData.criterios.transparencia || 0;
+        document.getElementById('editActividades').value = programData.criterios.actividades || 0;
+        document.getElementById('editResultados').value = programData.criterios.resultados || 0;
+    }
+    
+    // Show modal
+    document.getElementById('editProgramModal').style.display = 'block';
+}
+
+// Close edit modal
+window.closeEditModal = function() {
+    document.getElementById('editProgramModal').style.display = 'none';
+}
+
+// Handle edit form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const editForm = document.getElementById('editProgramForm');
+    if (editForm) {
+        editForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const programId = document.getElementById('editProgramId').value;
+    const updates = {
+        universidad: document.getElementById('editUniversidad').value,
+        ciudad: document.getElementById('editCiudad').value,
+        programa: document.getElementById('editPrograma').value,
+        status: document.getElementById('editStatus').value,
+        url: document.getElementById('editUrl').value,
+        linea_investigacion: document.getElementById('editLineas').value,
+        resumen: document.getElementById('editResumen').value
+    };
+    
+    // Add calificacion if provided
+    const calificacionValue = document.getElementById('editCalificacion').value;
+    if (calificacionValue) {
+        updates.calificacion = {
+            valor: parseInt(calificacionValue),
+            fecha: new Date().toISOString()
+        };
+    }
+    
+    // Add criterios
+    updates.criterios = {
+        relevancia: parseInt(document.getElementById('editRelevancia').value) || 0,
+        claridad: parseInt(document.getElementById('editClaridad').value) || 0,
+        transparencia: parseInt(document.getElementById('editTransparencia').value) || 0,
+        actividades: parseInt(document.getElementById('editActividades').value) || 0,
+        resultados: parseInt(document.getElementById('editResultados').value) || 0
+    };
+    
+    try {
+        const response = await fetch(`${PROGRAMAS_URL}/${programId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+        
+        if (response.ok) {
+            alert('Programa actualizado exitosamente');
+            closeEditModal();
+            await fetchUniversidadesData();
+            populateTable();
+        } else {
+            alert('Error al actualizar el programa');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al actualizar el programa');
+    }
+        });
+    }
+});
+
+// Duplicate program
+window.duplicateProgram = async function(programId) {
+    if (!confirm('¿Deseas duplicar este programa?')) return;
+    
+    // Find the program data
+    let programData = null;
+    for (const uni of universidadesData.programas_doctorado.universidades) {
+        const prog = uni.programas.find(p => p._id === programId);
+        if (prog) {
+            programData = { ...prog, universidad: uni.nombre, ciudad: uni.ciudad };
+            break;
+        }
+    }
+    
+    if (!programData) return;
+    
+    // Create duplicate
+    const newProgram = {
+        universidad: programData.universidad,
+        ciudad: programData.ciudad,
+        programa: programData.nombre + ' (Copia)',
+        linea_investigacion: programData.linea_investigacion || '',
+        url: programData.url || '',
+        status: 'pendiente',
+        criterios: programData.criterios || {
+            relevancia: 0,
+            claridad: 0,
+            transparencia: 0,
+            actividades: 0,
+            resultados: 0
+        }
+    };
+    
+    try {
+        const response = await fetch(PROGRAMAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newProgram)
+        });
+        
+        if (response.ok) {
+            alert('Programa duplicado exitosamente');
+            await fetchUniversidadesData();
+            populateTable();
+        } else {
+            alert('Error al duplicar el programa');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al duplicar el programa');
+    }
+}
+
+// Delete program
+window.deleteProgram = async function(programId) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este programa?')) return;
+    
+    try {
+        const response = await fetch(`${PROGRAMAS_URL}/${programId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            alert('Programa eliminado exitosamente');
+            await fetchUniversidadesData();
+            populateTable();
+        } else {
+            alert('Error al eliminar el programa');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al eliminar el programa');
+    }
+}
+
+// Show lineas de investigacion
+window.showLineas = function(programId) {
+    // Find the program data
+    let programData = null;
+    for (const uni of universidadesData.programas_doctorado.universidades) {
+        const prog = uni.programas.find(p => p._id === programId);
+        if (prog) {
+            programData = prog;
+            break;
+        }
+    }
+    
+    if (!programData || !programData.lineas_investigacion) {
+        alert('No hay líneas de investigación disponibles');
+        return;
+    }
+    
+    const lineas = programData.lineas_investigacion.join('\n\n');
+    alert(`Líneas de Investigación:\n\n${lineas}`);
+}
+
+// Export table
+window.exportarTabla = function() {
+    if (typeof $ !== 'undefined' && $.fn.DataTable.isDataTable('#programsDataTable')) {
+        const table = $('#programsDataTable').DataTable();
+        table.button('.buttons-excel').trigger();
+    } else {
+        alert('La función de exportación requiere DataTables');
     }
 }
 
@@ -2454,18 +2775,30 @@ function filterProgramsToRate() {
 function updateRankings() {
     console.log("Updating rankings...");
     
-    // Get all rated programs
+    // Get all rated programs with criterios
     const ratedPrograms = [];
     
     universidadesData.programas_doctorado.universidades.forEach(universidad => {
         universidad.programas.forEach(programa => {
             if (programa.calificacion && programa.calificacion.valor) {
+                // Calculate criterios average
+                let criteriosAvg = 0;
+                let criteriosData = null;
+                
+                if (programa.criterios) {
+                    const criteriosValues = Object.values(programa.criterios);
+                    criteriosAvg = criteriosValues.reduce((a, b) => a + b, 0) / criteriosValues.length;
+                    criteriosData = programa.criterios;
+                }
+                
                 ratedPrograms.push({
                     id: programa._id,
                     nombre: programa.nombre,
                     universidad: universidad.nombre,
                     ciudad: universidad.ciudad,
                     rating: programa.calificacion.valor,
+                    criterios: criteriosData,
+                    criteriosAvg: criteriosAvg,
                     fecha: programa.calificacion.fecha || new Date().toISOString(),
                     status: programa.status || 'pendiente',
                     favorite: programa.favorite || false
@@ -2474,8 +2807,11 @@ function updateRankings() {
         });
     });
     
-    // Update stats
+    // Update stats including criteria
     updateRankingStats(ratedPrograms);
+    
+    // Update criteria stats
+    updateCriteriaStats(ratedPrograms);
     
     // Sort by rating (highest first)
     ratedPrograms.sort((a, b) => b.rating - a.rating);
@@ -2486,8 +2822,9 @@ function updateRankings() {
     // Update ranking filters
     updateRankingFilters();
     
-    // Update distribution chart
+    // Update all charts
     updateDistributionChart(ratedPrograms);
+    updateCriteriaCharts(ratedPrograms);
 }
 
 // Update ranking stats
@@ -2563,6 +2900,279 @@ function updateRankingStats(ratedPrograms) {
     document.getElementById('topCiudad').textContent = topCity;
 }
 
+// Update criteria stats
+function updateCriteriaStats(ratedPrograms) {
+    const criteriaKeys = ['relevancia', 'claridad', 'transparencia', 'actividades', 'resultados'];
+    const criteriaTotals = {
+        relevancia: { sum: 0, count: 0 },
+        claridad: { sum: 0, count: 0 },
+        transparencia: { sum: 0, count: 0 },
+        actividades: { sum: 0, count: 0 },
+        resultados: { sum: 0, count: 0 }
+    };
+    
+    // Calculate sums and counts
+    ratedPrograms.forEach(program => {
+        if (program.criterios) {
+            criteriaKeys.forEach(key => {
+                if (program.criterios[key] !== undefined && program.criterios[key] !== null) {
+                    criteriaTotals[key].sum += program.criterios[key];
+                    criteriaTotals[key].count++;
+                }
+            });
+        }
+    });
+    
+    // Calculate averages and update UI
+    let totalAvg = 0;
+    let totalCount = 0;
+    
+    criteriaKeys.forEach(key => {
+        const avg = criteriaTotals[key].count > 0 ? 
+            (criteriaTotals[key].sum / criteriaTotals[key].count) : 0;
+        
+        // Update average display
+        const avgElement = document.getElementById(`avg${key.charAt(0).toUpperCase() + key.slice(1)}`);
+        if (avgElement) {
+            avgElement.textContent = avg.toFixed(1);
+        }
+        
+        // Update progress bar
+        const barElement = document.getElementById(`bar${key.charAt(0).toUpperCase() + key.slice(1)}`);
+        if (barElement) {
+            barElement.style.width = `${(avg / 5) * 100}%`;
+        }
+        
+        if (criteriaTotals[key].count > 0) {
+            totalAvg += avg;
+            totalCount++;
+        }
+    });
+    
+    // Update total average
+    const overallAvg = totalCount > 0 ? (totalAvg / totalCount) : 0;
+    const avgTotalElement = document.getElementById('avgCriteriosTotal');
+    if (avgTotalElement) {
+        avgTotalElement.textContent = overallAvg.toFixed(1);
+    }
+    
+    const barTotalElement = document.getElementById('barCriteriosTotal');
+    if (barTotalElement) {
+        barTotalElement.style.width = `${(overallAvg / 5) * 100}%`;
+    }
+}
+
+// Update criteria charts
+function updateCriteriaCharts(ratedPrograms) {
+    // Update radar chart
+    updateCriteriaRadarChart(ratedPrograms);
+    
+    // Update comparison chart
+    updateCriteriaComparisonChart(ratedPrograms);
+    
+    // Update correlation chart
+    updateCorrelationChart(ratedPrograms);
+}
+
+// Update criteria radar chart
+function updateCriteriaRadarChart(ratedPrograms) {
+    const ctx = document.getElementById('criteriaRadarChart');
+    if (!ctx) return;
+    
+    // Group by university and calculate averages
+    const universityData = {};
+    
+    ratedPrograms.forEach(program => {
+        if (program.criterios) {
+            if (!universityData[program.universidad]) {
+                universityData[program.universidad] = {
+                    relevancia: [],
+                    claridad: [],
+                    transparencia: [],
+                    actividades: [],
+                    resultados: []
+                };
+            }
+            
+            Object.keys(program.criterios).forEach(key => {
+                if (program.criterios[key] !== undefined && program.criterios[key] !== null) {
+                    universityData[program.universidad][key].push(program.criterios[key]);
+                }
+            });
+        }
+    });
+    
+    // Calculate averages and prepare datasets
+    const datasets = [];
+    const colors = ['rgba(255, 99, 132, 0.5)', 'rgba(54, 162, 235, 0.5)', 'rgba(255, 205, 86, 0.5)', 
+                    'rgba(75, 192, 192, 0.5)', 'rgba(153, 102, 255, 0.5)'];
+    let colorIndex = 0;
+    
+    Object.keys(universityData).slice(0, 5).forEach(universidad => {
+        const data = [];
+        ['relevancia', 'claridad', 'transparencia', 'actividades', 'resultados'].forEach(key => {
+            const values = universityData[universidad][key];
+            const avg = values.length > 0 ? 
+                values.reduce((a, b) => a + b, 0) / values.length : 0;
+            data.push(avg);
+        });
+        
+        datasets.push({
+            label: universidad,
+            data: data,
+            backgroundColor: colors[colorIndex % colors.length],
+            borderColor: colors[colorIndex % colors.length].replace('0.5', '1'),
+            borderWidth: 2
+        });
+        colorIndex++;
+    });
+    
+    // Create or update chart
+    if (window.criteriaRadarChartInstance) {
+        window.criteriaRadarChartInstance.destroy();
+    }
+    
+    window.criteriaRadarChartInstance = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Relevancia', 'Claridad', 'Transparencia', 'Actividades', 'Resultados'],
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scale: {
+                ticks: {
+                    beginAtZero: true,
+                    max: 5
+                }
+            }
+        }
+    });
+}
+
+// Update criteria comparison chart
+function updateCriteriaComparisonChart(ratedPrograms) {
+    const ctx = document.getElementById('criteriaComparisonChart');
+    if (!ctx) return;
+    
+    // Calculate averages for each criterion
+    const criteriaAverages = {
+        relevancia: [],
+        claridad: [],
+        transparencia: [],
+        actividades: [],
+        resultados: []
+    };
+    
+    ratedPrograms.forEach(program => {
+        if (program.criterios) {
+            Object.keys(criteriaAverages).forEach(key => {
+                if (program.criterios[key] !== undefined && program.criterios[key] !== null) {
+                    criteriaAverages[key].push(program.criterios[key]);
+                }
+            });
+        }
+    });
+    
+    const data = [];
+    const labels = [];
+    
+    Object.keys(criteriaAverages).forEach(key => {
+        const values = criteriaAverages[key];
+        if (values.length > 0) {
+            const avg = values.reduce((a, b) => a + b, 0) / values.length;
+            data.push(avg);
+            labels.push(key.charAt(0).toUpperCase() + key.slice(1));
+        }
+    });
+    
+    // Create or update chart
+    if (window.criteriaComparisonChartInstance) {
+        window.criteriaComparisonChartInstance.destroy();
+    }
+    
+    window.criteriaComparisonChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Promedio de Criterios',
+                data: data,
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 5
+                }
+            }
+        }
+    });
+}
+
+// Update correlation chart
+function updateCorrelationChart(ratedPrograms) {
+    const ctx = document.getElementById('correlationChart');
+    if (!ctx) return;
+    
+    // Prepare scatter data
+    const scatterData = ratedPrograms
+        .filter(p => p.criteriosAvg > 0)
+        .map(p => ({
+            x: p.criteriosAvg,
+            y: p.rating
+        }));
+    
+    // Create or update chart
+    if (window.correlationChartInstance) {
+        window.correlationChartInstance.destroy();
+    }
+    
+    window.correlationChartInstance = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'Calificación vs Promedio de Criterios',
+                data: scatterData,
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: {
+                        display: true,
+                        text: 'Promedio de Criterios'
+                    },
+                    min: 0,
+                    max: 5
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Calificación'
+                    },
+                    min: 0,
+                    max: 10
+                }
+            }
+        }
+    });
+}
+
 // Update ranking filters
 function updateRankingFilters() {
     const universitySelect = document.getElementById('rankingUniversityFilter');
@@ -2617,7 +3227,7 @@ function populateRankingTable(ratedPrograms) {
     
     // Show message if no rated programs
     if (ratedPrograms.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="no-data">No hay programas calificados</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="9" class="no-data">No hay programas calificados</td></tr>';
         return;
     }
     
@@ -2644,6 +3254,26 @@ function populateRankingTable(ratedPrograms) {
         const date = new Date(program.fecha);
         const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
         
+        // Create mini criteria display
+        let criteriaHTML = '';
+        if (program.criterios) {
+            const criteriaValues = [
+                program.criterios.relevancia || 0,
+                program.criterios.claridad || 0,
+                program.criterios.transparencia || 0,
+                program.criterios.actividades || 0,
+                program.criterios.resultados || 0
+            ];
+            criteriaHTML = criteriaValues.map(v => `<span class="mini-criteria">${v}</span>`).join(' ');
+        } else {
+            criteriaHTML = '<span class="no-criteria">N/A</span>';
+        }
+        
+        // Calculate combined score (60% calificacion + 40% criterios)
+        const combinedScore = program.criteriosAvg > 0 ? 
+            (program.rating * 0.6 + (program.criteriosAvg * 2) * 0.4).toFixed(1) : 
+            program.rating.toFixed(1);
+        
         row.innerHTML = `
             <td>${index + 1}</td>
             <td>${program.nombre}</td>
@@ -2654,6 +3284,13 @@ function populateRankingTable(ratedPrograms) {
                     ${getStarsHTML(program.rating)}
                 </div>
             </td>
+            <td>
+                <div class="criteria-display">
+                    ${criteriaHTML}
+                </div>
+                <div class="criteria-avg-label">Promedio: ${program.criteriosAvg.toFixed(1)}</div>
+            </td>
+            <td class="combined-score">${combinedScore}</td>
             <td>${formattedDate}</td>
             <td>
                 <button class="view-program-btn" data-id="${program.id}">Ver</button>
