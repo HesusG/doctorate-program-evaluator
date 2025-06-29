@@ -1686,32 +1686,32 @@ function updateProgramCriteria(programa) {
     
     // Actualizar los elementos del DOM con animación escalonada
     setTimeout(() => {
-        updateCriteriaValue('criteriaRelevancia', relevancia);
+        // updateCriteriaValue('criteriaRelevancia', relevancia); // Removed - N/A labels no longer shown
         updateCriteriaDots('view-criteria-relevancia-stars', relevancia);
     }, 100);
     
     setTimeout(() => {
-        updateCriteriaValue('criteriaClaridad', claridad);
+        // updateCriteriaValue('criteriaClaridad', claridad); // Removed - N/A labels no longer shown
         updateCriteriaDots('view-criteria-claridad-stars', claridad);
     }, 150);
     
     setTimeout(() => {
-        updateCriteriaValue('criteriaTransparencia', transparencia);
+        // updateCriteriaValue('criteriaTransparencia', transparencia); // Removed - N/A labels no longer shown
         updateCriteriaDots('view-criteria-transparencia-stars', transparencia);
     }, 200);
     
     setTimeout(() => {
-        updateCriteriaValue('criteriaActividades', actividades);
+        // updateCriteriaValue('criteriaActividades', actividades); // Removed - N/A labels no longer shown
         updateCriteriaDots('view-criteria-actividades-stars', actividades);
     }, 250);
     
     setTimeout(() => {
-        updateCriteriaValue('criteriaResultados', resultados);
+        // updateCriteriaValue('criteriaResultados', resultados); // Removed - N/A labels no longer shown
         updateCriteriaDots('view-criteria-resultados-stars', resultados);
     }, 300);
     
     setTimeout(() => {
-        updateCriteriaValue('criteriaPromedio', promedio);
+        // updateCriteriaValue('criteriaPromedio', promedio); // Removed - N/A labels no longer shown
     }, 350);
 }
 
@@ -1975,7 +1975,7 @@ async function saveCriterionToServer(criterion, value) {
         
         // Recalcular y actualizar promedio
         const promedio = calculateCriteriaAvg(programa.criterios);
-        updateCriteriaValue('criteriaPromedio', promedio);
+        // updateCriteriaValue('criteriaPromedio', promedio); // Removed - N/A labels no longer shown
         
         console.log(`Criterio ${criterion} actualizado a ${value} para programa ${programa._id}`);
     } catch (error) {
