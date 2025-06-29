@@ -1152,6 +1152,13 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
     // Actualizar criterios específicos de evaluación
     updateProgramCriteria(programa);
     
+    // Reconfigurar event listeners de criterios después de actualizar el contenido
+    setTimeout(() => {
+        if (window.refreshCriteriaListeners) {
+            window.refreshCriteriaListeners();
+        }
+    }, 200);
+    
     // Actualizar resumen
     document.getElementById('programSummary').textContent = programa.resumen || 'No hay información disponible sobre este programa.';
     
@@ -1653,15 +1660,29 @@ function updateProgramCriteria(programa) {
     
     // Si el programa tiene criterios, mostrarlos
     if (programa.criterios) {
-        relevancia = programa.criterios.relevancia || 'N/A';
-        claridad = programa.criterios.claridad || 'N/A';
-        transparencia = programa.criterios.transparencia || 'N/A';
-        actividades = programa.criterios.actividades || 'N/A';
-        resultados = programa.criterios.resultados || 'N/A';
+        // Use explicit checks for numeric values to handle 0 correctly
+        relevancia = (programa.criterios.relevancia !== undefined && programa.criterios.relevancia !== null) 
+            ? programa.criterios.relevancia 
+            : 'N/A';
+        claridad = (programa.criterios.claridad !== undefined && programa.criterios.claridad !== null) 
+            ? programa.criterios.claridad 
+            : 'N/A';
+        transparencia = (programa.criterios.transparencia !== undefined && programa.criterios.transparencia !== null) 
+            ? programa.criterios.transparencia 
+            : 'N/A';
+        actividades = (programa.criterios.actividades !== undefined && programa.criterios.actividades !== null) 
+            ? programa.criterios.actividades 
+            : 'N/A';
+        resultados = (programa.criterios.resultados !== undefined && programa.criterios.resultados !== null) 
+            ? programa.criterios.resultados 
+            : 'N/A';
         
         // Calcular promedio si hay valores numéricos
         promedio = calculateCriteriaAvg(programa.criterios);
     }
+    
+    console.log('DEBUG updateProgramCriteria - criterios:', programa.criterios);
+    console.log('DEBUG updateProgramCriteria - values:', { relevancia, claridad, transparencia, actividades, resultados });
     
     // Actualizar los elementos del DOM con animación escalonada
     setTimeout(() => {
@@ -1696,90 +1717,90 @@ function updateProgramCriteria(programa) {
 
 // Función para configurar los puntos de criterios en la vista del programa
 function setupProgramCriteriaDots() {
-    console.log("DEBUG: Configurando event listeners para criterios dots");
+    console.log("DEBUG: Configurando event listeners para criterios stars");
     
-    // Obtener todos los puntos de criterios
-    const criteriaDots = document.querySelectorAll('.program-criteria .criteria-dot');
-    console.log(`DEBUG: Encontrados ${criteriaDots.length} puntos de criterios`);
-    
-    // Añadir manejador de eventos a cada punto
-    criteriaDots.forEach(dot => {
-        // Almacenar información para debug
-        const criterion = dot.getAttribute('data-criterion');
-        const value = dot.getAttribute('data-value');
-        console.log(`DEBUG: Configurando dot para criterio=${criterion}, valor=${value}`);
+    // Función para configurar event listeners (puede ser llamada múltiples veces)
+    function attachEventListeners() {
+        // Obtener todas las estrellas de criterios (ahora son estrellas, no dots)
+        const criteriaStars = document.querySelectorAll('.program-criteria .criteria-star');
+        console.log(`DEBUG: Encontradas ${criteriaStars.length} estrellas de criterios`);
         
-        dot.addEventListener('click', function() {
-            // Debug
-            console.log(`DEBUG criteriaClick: Dot clicked - criterio=${criterion}, valor=${value}`);
-            console.log(`DEBUG criteriaClick: currentUniversidad=${!!currentUniversidad}, currentProgramIndex=${currentProgramIndex}`);
+        // Remover event listeners existentes para evitar duplicados
+        criteriaStars.forEach(star => {
+            star.removeEventListener('click', handleCriteriaStarClick);
+        });
+        
+        // Añadir manejador de eventos a cada estrella
+        criteriaStars.forEach(star => {
+            // Almacenar información para debug
+            const criterion = star.getAttribute('data-criterion');
+            const value = star.getAttribute('data-value');
+            console.log(`DEBUG: Configurando star para criterio=${criterion}, valor=${value}`);
             
-            // Si no hay programa actual, no hacer nada
-            if (!currentUniversidad) {
-                console.log(`DEBUG criteriaClick: Abortando - No hay universidad actual`);
-                return;
-            }
-            
-            if (currentProgramIndex === undefined || currentProgramIndex === null || isNaN(Number(currentProgramIndex))) {
-                console.log(`DEBUG criteriaClick: Abortando - currentProgramIndex no es válido: ${currentProgramIndex} (tipo: ${typeof currentProgramIndex})`);
-                return;
-            }
-            
-            // Verificar que el índice está dentro de los límites
-            const programIndex = Number(currentProgramIndex);
-            if (programIndex < 0 || programIndex >= currentUniversidad.programas.length) {
-                console.log(`DEBUG criteriaClick: Abortando - Índice ${programIndex} fuera de rango (0-${currentUniversidad.programas.length-1})`);
-                return;
-            }
-            
-            const criterion = this.getAttribute('data-criterion');
-            const value = parseInt(this.getAttribute('data-value'));
-            
-            console.log(`DEBUG criteriaClick: Procesando click en criterio=${criterion}, valor=${value}`);
-            
-            // Actualizar UI
-            const dotsContainer = this.parentElement;
-            const dots = dotsContainer.querySelectorAll('.criteria-dot');
-            dots.forEach(d => {
-                if (parseInt(d.getAttribute('data-value')) <= value) {
-                    d.classList.add('active');
-                } else {
-                    d.classList.remove('active');
+            star.addEventListener('click', handleCriteriaStarClick);
+        });
+    }
+    
+    // Función manejadora de clicks en estrellas
+    function handleCriteriaStarClick(event) {
+        const star = event.target;
+        const criterion = star.getAttribute('data-criterion');
+        const value = parseInt(star.getAttribute('data-value'));
+        
+        console.log(`DEBUG criteriaClick: Star clicked - criterio=${criterion}, valor=${value}`);
+        console.log(`DEBUG criteriaClick: currentUniversidad=${!!currentUniversidad}, currentProgramIndex=${currentProgramIndex}`);
+        
+        // Si no hay programa actual, no hacer nada
+        if (!currentUniversidad) {
+            console.log(`DEBUG criteriaClick: Abortando - No hay universidad actual`);
+            return;
+        }
+        
+        if (currentProgramIndex === undefined || currentProgramIndex === null || isNaN(Number(currentProgramIndex))) {
+            console.log(`DEBUG criteriaClick: Abortando - currentProgramIndex no es válido: ${currentProgramIndex} (tipo: ${typeof currentProgramIndex})`);
+            return;
+        }
+        
+        // Verificar que el índice está dentro de los límites
+        const programIndex = Number(currentProgramIndex);
+        if (programIndex < 0 || programIndex >= currentUniversidad.programas.length) {
+            console.log(`DEBUG criteriaClick: Abortando - Índice ${programIndex} fuera de rango (0-${currentUniversidad.programas.length-1})`);
+            return;
+        }
+        
+        const programa = currentUniversidad.programas[programIndex];
+        
+        console.log(`DEBUG criteriaClick: Procesando click en criterio=${criterion}, valor=${value}, programa=${programa._id}`);
+        
+        // Mostrar modal de confirmación
+        showCriteriaConfirmation(programa._id, criterion, value);
+    }
+    
+    // Configurar inicialmente los event listeners
+    attachEventListeners();
+    
+    // También configurar observador para cuando se cargue nuevo contenido del modal
+    const universityModal = document.getElementById('universityModal');
+    if (universityModal) {
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    // Re-configurar event listeners cuando cambie el contenido
+                    setTimeout(attachEventListeners, 100);
                 }
             });
-            
-            // Actualizar valor en el elemento de visualización
-            const valueElement = document.getElementById(`criteria${criterion.charAt(0).toUpperCase() + criterion.slice(1)}`);
-            if (valueElement) {
-                valueElement.textContent = value;
-                valueElement.className = `current-value criteria-${value}`;
-                console.log(`DEBUG criteriaClick: Actualizado elemento visual para ${criterion} a ${value}`);
-            } else {
-                console.log(`DEBUG criteriaClick: No se encontró elemento visual para ${criterion}`);
-            }
-            
-            // Guardar valor en el programa actual
-            console.log(`DEBUG criteriaClick: Llamando a saveCriterionToServer con ${criterion}, ${value}`);
-            saveCriterionToServer(criterion, value)
-                .then(() => {
-                    // Verificar que se guardó correctamente llamando al endpoint de prueba
-                    if (currentUniversidad && currentProgramIndex !== undefined) {
-                        const programa = currentUniversidad.programas[currentProgramIndex];
-                        if (programa && programa._id) {
-                            console.log(`DEBUG: Verificando guardado de criterio en programa ${programa._id}`);
-                            fetch(`/api/programas/${programa._id}/criterios`)
-                                .then(response => response.json())
-                                .then(data => {
-                                    console.log(`DEBUG: Verificación de guardado - Respuesta:`, data);
-                                })
-                                .catch(error => {
-                                    console.error(`DEBUG: Error al verificar guardado:`, error);
-                                });
-                        }
-                    }
-                });
         });
-    });
+        
+        observer.observe(universityModal, {
+            childList: true,
+            subtree: true
+        });
+        
+        console.log("DEBUG: MutationObserver configurado para el modal de universidad");
+    }
+    
+    // Función pública para reconfigurar manualmente
+    window.refreshCriteriaListeners = attachEventListeners;
     
     // Botón de prueba en consola para verificar criterios
     console.log("Para verificar criterios de un programa, ejecuta en la consola: verificarCriterios(id_del_programa)");
@@ -1827,12 +1848,23 @@ function updateCriteriaValue(elementId, value) {
     element.classList.add('show');
 }
 
-// Función para actualizar las bolitas de criterios
+// Función para actualizar las estrellas de criterios
 function updateCriteriaDots(containerId, value) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
-    // Actualizar las bolitas
+    // Actualizar las estrellas (antes eran dots, ahora son stars)
+    const stars = container.querySelectorAll('.criteria-star');
+    stars.forEach(star => {
+        const starValue = parseInt(star.getAttribute('data-value'));
+        if (value !== 'N/A' && !isNaN(value) && starValue <= parseInt(value)) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+    
+    // Fallback: también buscar dots para compatibilidad hacia atrás
     const dots = container.querySelectorAll('.criteria-dot');
     dots.forEach(dot => {
         const dotValue = parseInt(dot.getAttribute('data-value'));
@@ -1844,18 +1876,21 @@ function updateCriteriaDots(containerId, value) {
     });
     
     // Actualizar también los elementos de descripción de nivel
-    const criterion = container.querySelector('.criteria-dot').getAttribute('data-criterion');
-    const criterionBlock = container.closest('.criteria-block');
-    if (criterionBlock) {
-        const levelItems = criterionBlock.querySelectorAll('.criteria-level-item');
-        levelItems.forEach(item => {
-            const itemValue = parseInt(item.getAttribute('data-value'));
-            if (value !== 'N/A' && !isNaN(value) && itemValue === parseInt(value)) {
-                item.setAttribute('data-active', 'true');
-            } else {
-                item.removeAttribute('data-active');
-            }
-        });
+    const criterionElement = container.querySelector('.criteria-star') || container.querySelector('.criteria-dot');
+    if (criterionElement) {
+        const criterion = criterionElement.getAttribute('data-criterion');
+        const criterionBlock = container.closest('.criteria-block');
+        if (criterionBlock) {
+            const levelItems = criterionBlock.querySelectorAll('.criteria-level-item');
+            levelItems.forEach(item => {
+                const itemValue = parseInt(item.getAttribute('data-value'));
+                if (value !== 'N/A' && !isNaN(value) && itemValue === parseInt(value)) {
+                    item.setAttribute('data-active', 'true');
+                } else {
+                    item.removeAttribute('data-active');
+                }
+            });
+        }
     }
 }
 
@@ -3376,3 +3411,212 @@ async function fixGeographicData() {
         }, 1000);
     }
 }
+
+// Show criteria rating confirmation modal
+function showCriteriaConfirmation(programId, criterion, value) {
+    const criteriaNames = {
+        relevancia: "Relevancia personal y afinidad temática",
+        claridad: "Claridad y especificidad de las líneas de investigación", 
+        transparencia: "Transparencia en información y procesos",
+        actividades: "Estructura y variedad de actividades formativas",
+        resultados: "Transparencia en resultados y calidad"
+    };
+    
+    // Set modal content
+    document.getElementById('criteria-name').textContent = criteriaNames[criterion] || criterion;
+    document.getElementById('criteria-rating-stars').innerHTML = '★'.repeat(value) + '☆'.repeat(5 - value);
+    document.getElementById('criteria-rating-value').textContent = value;
+    document.getElementById('criteria-program-id').value = programId;
+    document.getElementById('criteria-criterion').value = criterion;
+    document.getElementById('criteria-value').value = value;
+    
+    // Show modal
+    document.getElementById('criteria-rating-modal').style.display = 'block';
+}
+
+// Close criteria rating modal
+function closeCriteriaModal() {
+    document.getElementById('criteria-rating-modal').style.display = 'none';
+}
+
+// Confirm criteria rating
+async function confirmCriteriaRating() {
+    const programId = document.getElementById('criteria-program-id').value;
+    const criterion = document.getElementById('criteria-criterion').value;
+    const value = parseInt(document.getElementById('criteria-value').value);
+    
+    console.log(`DEBUG confirmCriteriaRating: Guardando criterio ${criterion}=${value} para programa ${programId}`);
+    
+    try {
+        // Update the server
+        await saveCriterionToServer(criterion, value, programId);
+        
+        // Update the UI
+        updateCriteriaStars(criterion, value);
+        updateCriteriaValue(criterion, value);
+        updateCriteriaAverage();
+        
+        // Close modal
+        closeCriteriaModal();
+        
+        // Show success message
+        alert(`Criterio "${criterion}" calificado con ${value} estrellas correctamente.`);
+        
+    } catch (error) {
+        console.error('Error saving criteria rating:', error);
+        alert(`Error al guardar calificación: ${error.message}`);
+    }
+}
+
+// Save criterion to server
+async function saveCriterionToServer(criterion, value, programId = null) {
+    console.log(`DEBUG saveCriterionToServer: criterion=${criterion}, value=${value}, programId=${programId}`);
+    
+    // Use provided programId or get from current program
+    let targetProgramId = programId;
+    if (!targetProgramId && currentUniversidad && currentProgramIndex !== undefined) {
+        const programIndex = Number(currentProgramIndex);
+        if (programIndex >= 0 && programIndex < currentUniversidad.programas.length) {
+            targetProgramId = currentUniversidad.programas[programIndex]._id;
+        }
+    }
+    
+    if (!targetProgramId) {
+        console.error('DEBUG saveCriterionToServer: No program ID available');
+        throw new Error('No se pudo identificar el programa');
+    }
+    
+    // Get current criterios from the program
+    let currentCriterios = {};
+    if (currentUniversidad && currentProgramIndex !== undefined) {
+        const programIndex = Number(currentProgramIndex);
+        if (programIndex >= 0 && programIndex < currentUniversidad.programas.length) {
+            currentCriterios = currentUniversidad.programas[programIndex].criterios || {};
+        }
+    }
+    
+    // Prepare update data with the complete criterios object
+    const updatedCriterios = {
+        ...currentCriterios,
+        [criterion]: value
+    };
+    
+    const updateData = {
+        criterios: updatedCriterios
+    };
+    
+    console.log(`DEBUG saveCriterionToServer: Enviando a servidor:`, updateData);
+    
+    const response = await fetch(`/api/programas/${targetProgramId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updateData)
+    });
+    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('DEBUG saveCriterionToServer: Server response:', result);
+    
+    // Update local data
+    if (currentUniversidad && currentProgramIndex !== undefined) {
+        const programIndex = Number(currentProgramIndex);
+        if (programIndex >= 0 && programIndex < currentUniversidad.programas.length) {
+            if (!currentUniversidad.programas[programIndex].criterios) {
+                currentUniversidad.programas[programIndex].criterios = {};
+            }
+            currentUniversidad.programas[programIndex].criterios[criterion] = value;
+        }
+    }
+    
+    return result;
+}
+
+// Update criteria stars UI
+function updateCriteriaStars(criterion, value) {
+    const starsContainer = document.getElementById(`view-criteria-${criterion}-stars`);
+    if (!starsContainer) return;
+    
+    const stars = starsContainer.querySelectorAll('.criteria-star');
+    stars.forEach((star, index) => {
+        if (index < value) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+}
+
+// Update criteria value display
+function updateCriteriaValue(criterion, value) {
+    const valueElement = document.getElementById(`criteria${criterion.charAt(0).toUpperCase() + criterion.slice(1)}`);
+    if (valueElement) {
+        valueElement.textContent = value;
+        valueElement.className = `current-value criteria-${value} show`;
+    }
+}
+
+// Update criteria average
+function updateCriteriaAverage() {
+    console.log('DEBUG updateCriteriaAverage called');
+    
+    if (!currentUniversidad || currentProgramIndex === undefined) {
+        console.log('DEBUG updateCriteriaAverage - No universidad or program index');
+        return;
+    }
+    
+    const programIndex = Number(currentProgramIndex);
+    if (programIndex < 0 || programIndex >= currentUniversidad.programas.length) {
+        console.log('DEBUG updateCriteriaAverage - Invalid program index');
+        return;
+    }
+    
+    const programa = currentUniversidad.programas[programIndex];
+    if (!programa.criterios) {
+        console.log('DEBUG updateCriteriaAverage - No criterios in program');
+        return;
+    }
+    
+    const criterios = programa.criterios;
+    const values = Object.values(criterios).filter(v => v !== undefined && v !== null && !isNaN(v));
+    
+    console.log('DEBUG updateCriteriaAverage - values:', values);
+    
+    if (values.length > 0) {
+        const sum = values.reduce((a, b) => Number(a) + Number(b), 0);
+        const average = (sum / values.length).toFixed(1);
+        console.log('DEBUG updateCriteriaAverage - calculated average:', average);
+        
+        const avgElement = document.getElementById('criteriaPromedio');
+        if (avgElement) {
+            avgElement.textContent = average;
+            avgElement.className = `value criteria-value criteria-avg show`;
+        }
+    } else {
+        console.log('DEBUG updateCriteriaAverage - No valid values to calculate average');
+    }
+}
+
+// Setup criteria modal events
+document.addEventListener('DOMContentLoaded', function() {
+    // Close modal events
+    const closeModalBtn = document.querySelector('.close-criteria-modal');
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeCriteriaModal);
+    }
+    
+    const cancelBtn = document.getElementById('cancel-criteria-rating');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeCriteriaModal);
+    }
+    
+    // Confirm button
+    const confirmBtn = document.getElementById('confirm-criteria-rating');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', confirmCriteriaRating);
+    }
+});

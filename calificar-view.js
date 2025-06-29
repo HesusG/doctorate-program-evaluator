@@ -410,7 +410,9 @@ function editProgram(programId) {
     resetCriteriaValues('resultados');
     
     // Set criteria values if they exist
+    console.log('DEBUG editProgram - program.criterios:', program.criterios);
     if (program.criterios) {
+        console.log('DEBUG editProgram - found criterios, setting values:', program.criterios);
         if (program.criterios.relevancia) {
             setCriteriaValue('relevancia', program.criterios.relevancia);
         }
@@ -426,6 +428,8 @@ function editProgram(programId) {
         if (program.criterios.resultados) {
             setCriteriaValue('resultados', program.criterios.resultados);
         }
+    } else {
+        console.log('DEBUG editProgram - no criterios found for program');
     }
     
     // Open modal
@@ -503,6 +507,11 @@ async function saveProgram() {
     const actividades = document.getElementById('edit-criteria-actividades').value;
     const resultados = document.getElementById('edit-criteria-resultados').value;
     
+    // DEBUG: Log criterios values
+    console.log('DEBUG saveProgram - criterios values:', {
+        relevancia, claridad, transparencia, actividades, resultados
+    });
+    
     // Only add criteria if at least one is set
     if (relevancia || claridad || transparencia || actividades || resultados) {
         updateData.criterios = {};
@@ -512,7 +521,14 @@ async function saveProgram() {
         if (transparencia) updateData.criterios.transparencia = parseInt(transparencia);
         if (actividades) updateData.criterios.actividades = parseInt(actividades);
         if (resultados) updateData.criterios.resultados = parseInt(resultados);
+        
+        console.log('DEBUG saveProgram - criterios object created:', updateData.criterios);
+    } else {
+        console.log('DEBUG saveProgram - no criterios values found, skipping criterios object');
     }
+    
+    // DEBUG: Log complete update data being sent
+    console.log('DEBUG saveProgram - complete updateData being sent:', updateData);
     
     try {
         // Send update to server
