@@ -1295,11 +1295,11 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
         }
     } else {
         // Si no hay stats de universidad, mostrar N/A
-        document.getElementById('uniInnovacion').textContent = 'N/A';
-        document.getElementById('uniInterdisciplinariedad').textContent = 'N/A';
-        document.getElementById('uniImpacto').textContent = 'N/A';
-        document.getElementById('uniInternacional').textContent = 'N/A';
-        document.getElementById('uniAplicabilidad').textContent = 'N/A';
+        document.getElementById('uniInnovacion').textContent = '0';
+        document.getElementById('uniInterdisciplinariedad').textContent = '0';
+        document.getElementById('uniImpacto').textContent = '0';
+        document.getElementById('uniInternacional').textContent = '0';
+        document.getElementById('uniAplicabilidad').textContent = '0';
         document.getElementById('universityExplanation').innerHTML = `
             <div class="explanation-block no-data">
                 <p>No hay explicaciones disponibles sobre la universidad.</p>
@@ -1416,11 +1416,11 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
         }
     } else {
         // Si no hay métricas, mostrar N/A
-        document.getElementById('costoVida').textContent = 'N/A';
-        document.getElementById('calidadAire').textContent = 'N/A';
-        document.getElementById('calidadTransporte').textContent = 'N/A';
-        document.getElementById('servicioMedico').textContent = 'N/A';
-        document.getElementById('distanciaMadrid').textContent = 'N/A';
+        document.getElementById('costoVida').textContent = '0';
+        document.getElementById('calidadAire').textContent = '0';
+        document.getElementById('calidadTransporte').textContent = '0';
+        document.getElementById('servicioMedico').textContent = '0';
+        document.getElementById('distanciaMadrid').textContent = '0 km';
         document.getElementById('cityExplanation').innerHTML = `
             <div class="explanation-block no-data">
                 <p>No hay explicaciones disponibles sobre la ciudad.</p>
@@ -1650,34 +1650,34 @@ function showUniversityInfoOld(universidad) {
 
 // Función para actualizar los criterios específicos de un programa
 function updateProgramCriteria(programa) {
-    // Valores por defecto
-    let relevancia = 'N/A';
-    let claridad = 'N/A';
-    let transparencia = 'N/A';
-    let actividades = 'N/A';
-    let resultados = 'N/A';
-    let promedio = 'N/A';
+    // Valores por defecto (all programs now have criterios initialized to 0)
+    let relevancia = 0;
+    let claridad = 0;
+    let transparencia = 0;
+    let actividades = 0;
+    let resultados = 0;
+    let promedio = 0;
     
     // Si el programa tiene criterios, mostrarlos
     if (programa.criterios) {
         // Use explicit checks for numeric values to handle 0 correctly
         relevancia = (programa.criterios.relevancia !== undefined && programa.criterios.relevancia !== null) 
             ? programa.criterios.relevancia 
-            : 'N/A';
+            : 0;
         claridad = (programa.criterios.claridad !== undefined && programa.criterios.claridad !== null) 
             ? programa.criterios.claridad 
-            : 'N/A';
+            : 0;
         transparencia = (programa.criterios.transparencia !== undefined && programa.criterios.transparencia !== null) 
             ? programa.criterios.transparencia 
-            : 'N/A';
+            : 0;
         actividades = (programa.criterios.actividades !== undefined && programa.criterios.actividades !== null) 
             ? programa.criterios.actividades 
-            : 'N/A';
+            : 0;
         resultados = (programa.criterios.resultados !== undefined && programa.criterios.resultados !== null) 
             ? programa.criterios.resultados 
-            : 'N/A';
+            : 0;
         
-        // Calcular promedio si hay valores numéricos
+        // Calcular promedio
         promedio = calculateCriteriaAvg(programa.criterios);
     }
     
@@ -1831,14 +1831,17 @@ function updateCriteriaValue(elementId, value) {
     element.classList.remove('show');
     
     // Limpiar clases anteriores
-    element.classList.remove('criteria-1', 'criteria-2', 'criteria-3', 'criteria-4', 'criteria-5');
+    element.classList.remove('criteria-0', 'criteria-1', 'criteria-2', 'criteria-3', 'criteria-4', 'criteria-5');
     
-    if (value !== 'N/A' && !isNaN(value)) {
+    // Always show numeric value (including 0)
+    if (!isNaN(value)) {
         // Añadir clase según el valor
         element.classList.add(`criteria-${value}`);
         element.textContent = value;
     } else {
-        element.textContent = 'N/A';
+        // This should not happen anymore as all programs have criterios
+        element.textContent = '0';
+        element.classList.add('criteria-0');
     }
     
     // Forzar reflow
@@ -1857,7 +1860,7 @@ function updateCriteriaDots(containerId, value) {
     const stars = container.querySelectorAll('.criteria-star');
     stars.forEach(star => {
         const starValue = parseInt(star.getAttribute('data-value'));
-        if (value !== 'N/A' && !isNaN(value) && starValue <= parseInt(value)) {
+        if (!isNaN(value) && starValue <= parseInt(value)) {
             star.classList.add('active');
         } else {
             star.classList.remove('active');
@@ -1868,7 +1871,7 @@ function updateCriteriaDots(containerId, value) {
     const dots = container.querySelectorAll('.criteria-dot');
     dots.forEach(dot => {
         const dotValue = parseInt(dot.getAttribute('data-value'));
-        if (value !== 'N/A' && !isNaN(value) && dotValue <= parseInt(value)) {
+        if (!isNaN(value) && dotValue <= parseInt(value)) {
             dot.classList.add('active');
         } else {
             dot.classList.remove('active');
@@ -3266,7 +3269,7 @@ function populateRankingTable(ratedPrograms) {
             ];
             criteriaHTML = criteriaValues.map(v => `<span class="mini-criteria">${v}</span>`).join(' ');
         } else {
-            criteriaHTML = '<span class="no-criteria">N/A</span>';
+            criteriaHTML = '<span class="no-criteria">Sin criterios</span>';
         }
         
         // Calculate combined score (60% calificacion + 40% criterios)
