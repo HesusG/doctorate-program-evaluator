@@ -416,3 +416,751 @@ OPENAI_API_KEY=your-api-key-here
 JWT_SECRET=your-secret-here
 PORT=3000
 ```
+
+---
+
+# 🎓 Slidev Best Practices for Educational Presentations
+
+## 🎯 Overview
+This section documents advanced best practices for creating pedagogically effective technical presentations using Slidev, specifically optimized for the Claude Code Development Course.
+
+## 🧩 1. Animation Best Practices
+
+### When to Use Animations
+- **Progressive Disclosure**: Reveal complex concepts step-by-step to manage cognitive load
+- **Code Explanations**: Highlight specific lines or sections during technical discussions
+- **Concept Building**: Layer related ideas to build understanding incrementally
+- **Attention Management**: Guide learner focus to key points without overwhelming
+
+### v-click Usage Patterns
+
+#### Sequential Reveals (Most Common)
+```markdown
+<v-clicks>
+
+- **First concept** - Foundation knowledge
+- **Second concept** - Builds on first
+- **Third concept** - Integration point
+- **Fourth concept** - Advanced application
+
+</v-clicks>
+```
+
+#### Specific Click Timing
+```markdown
+<div v-click="1" class="concept-foundation">
+Basic concept appears first
+</div>
+
+<div v-click="3" class="concept-advanced">
+Advanced concept appears third (skipping click 2)
+</div>
+
+<div v-click="2" class="concept-bridge">
+Bridge concept appears second
+</div>
+```
+
+#### Hide After Reveal
+```markdown
+<div v-click.hide="2" class="temporary-hint">
+Shows on click 1, hides on click 2
+</div>
+```
+
+### Code Animation Techniques
+
+#### Line-by-Line Code Reveals
+```markdown
+```javascript {1-3|5-10|12-15|all}
+// Step 1: Setup and imports
+const express = require('express');
+const app = express();
+
+// Step 2: Middleware configuration
+app.use(express.json());
+app.use(cors());
+app.use(helmet());
+
+// Step 3: Route definition
+app.get('/api/data', async (req, res) => {
+  const data = await fetchData();
+  res.json(data);
+});
+```
+```
+
+#### Focus Highlighting
+```markdown
+```javascript {2,5-7}
+const processData = async (input) => {
+  const validated = validateInput(input); // Highlight this line
+  
+  try {
+    const result = await aiProcessing(validated);  // Highlight this block
+    const optimized = optimize(result);
+    return optimized;
+  } catch (error) {
+    handleError(error);
+  }
+};
+```
+```
+
+### Performance Considerations
+- **Lightweight Animations**: Use CSS transforms over position changes
+- **Reduce Motion**: Respect `prefers-reduced-motion` accessibility setting
+- **Mobile Optimization**: Test on lower-end devices
+- **Network Efficiency**: Minimize animation assets
+
+```css
+/* Accessibility-friendly animations */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+```
+
+## ✍️ 2. Annotations & Highlights
+
+### Code Annotation System
+
+#### Inline Highlights
+```markdown
+```javascript
+// AI-generated function
+const processUser = (user) => {
+  const { name, email, preferences } = user; // [!code highlight]
+  return {
+    displayName: name.toUpperCase(),
+    contact: email.toLowerCase(),
+    settings: { ...preferences, theme: 'light' } // [!code focus]
+  };
+};
+```
+```
+
+#### Line-Specific Annotations
+```markdown
+```javascript
+const apiClient = {
+  async getData() {
+    const response = await fetch('/api/data'); // [!code warning]
+    return response.json(); // [!code error]
+  }
+}
+```
+```
+
+### Visual Callout System
+
+#### Educational Callouts
+```markdown
+<div class="learning-tip">
+💡 **AI Insight**: This pattern is commonly suggested by Claude Code for error handling
+</div>
+
+<div class="warning-callout">
+⚠️ **Security Alert**: Always validate user input before processing
+</div>
+
+<div class="best-practice">
+✅ **Best Practice**: Use destructuring for cleaner code and better performance
+</div>
+```
+
+#### Interactive Annotations
+```markdown
+<div v-click="1" class="code-explanation">
+<h4>Step 1: Validation</h4>
+The input validation ensures data integrity before processing.
+</div>
+
+<div v-click="2" class="code-explanation">
+<h4>Step 2: Processing</h4>
+AI analyzes the validated data and suggests optimizations.
+</div>
+```
+
+### Diagram Annotations with Mermaid
+
+#### Progressive Diagram Reveals
+```markdown
+```mermaid {scale: 0.8}
+graph TD
+    A[User Input] --> B[Validation]
+    B --> C[AI Processing]
+    C --> D[Output Generation]
+    D --> E[Response]
+    
+    %% Add progressive reveals
+    A -.-> F[Error Handling]
+    C -.-> G[Optimization]
+    E -.-> H[Monitoring]
+```
+
+<div v-click="1" class="diagram-note">
+<h4>Core Flow</h4>
+Basic request-response pattern with validation and AI processing.
+</div>
+
+<div v-click="2" class="diagram-note">
+<h4>Enhanced Features</h4>
+Production-ready additions: error handling, optimization, and monitoring.
+</div>
+```
+
+## 🛠️ 3. Advanced Slidev Functions & Vue Integration
+
+### Code Walkthrough Components
+
+#### Interactive Code Explorer
+```vue
+<template>
+  <div class="code-walkthrough">
+    <div class="code-section">
+      <pre v-highlight="activeLines"><code>{{ codeExample }}</code></pre>
+    </div>
+    <div class="explanation-section">
+      <div v-for="(step, index) in steps" :key="index" 
+           v-show="currentStep === index" 
+           class="step-explanation">
+        <h3>{{ step.title }}</h3>
+        <p>{{ step.description }}</p>
+      </div>
+    </div>
+    <div class="controls">
+      <button @click="previousStep" :disabled="currentStep === 0">Previous</button>
+      <button @click="nextStep" :disabled="currentStep === steps.length - 1">Next</button>
+    </div>
+  </div>
+</template>
+```
+
+#### Live Code Editor Integration
+```markdown
+<CodeEditor 
+  language="javascript"
+  :initial-code="initialJSCode"
+  :ai-suggestions="true"
+  theme="vs-light"
+  @code-change="handleCodeChange"
+/>
+```
+
+### Real-time Quiz Components
+
+#### Formative Assessment Widget
+```vue
+<template>
+  <div class="quiz-widget">
+    <h3>{{ question.title }}</h3>
+    <div class="question-content">
+      <p>{{ question.text }}</p>
+      <div v-if="question.type === 'multiple-choice'" class="options">
+        <label v-for="(option, index) in question.options" :key="index">
+          <input type="radio" :value="option.value" v-model="selectedAnswer">
+          {{ option.text }}
+        </label>
+      </div>
+      <div v-if="question.type === 'code'" class="code-question">
+        <CodeEditor 
+          :initial-code="question.starterCode"
+          @code-submit="handleCodeSubmit"
+        />
+      </div>
+    </div>
+    <button @click="checkAnswer" :disabled="!selectedAnswer">Check Answer</button>
+    <div v-if="showFeedback" class="feedback" :class="feedbackClass">
+      {{ feedback }}
+    </div>
+  </div>
+</template>
+```
+
+### Interactive Diagrams with Motion
+
+#### Animated Architecture Diagram
+```markdown
+<div class="architecture-demo">
+  <div v-motion
+    :initial="{ x: -200, opacity: 0 }"
+    :enter="{ x: 0, opacity: 1 }"
+    :duration="800"
+    v-click="1"
+    class="component frontend">
+    Frontend (React/Vue)
+  </div>
+  
+  <div v-motion
+    :initial="{ y: -100, opacity: 0 }"
+    :enter="{ y: 0, opacity: 1 }"
+    :duration="800"
+    v-click="2"
+    class="component api">
+    API Layer (Express)
+  </div>
+  
+  <div v-motion
+    :initial="{ x: 200, opacity: 0 }"
+    :enter="{ x: 0, opacity: 1 }"
+    :duration="800"
+    v-click="3"
+    class="component database">
+    Database (MongoDB)
+  </div>
+</div>
+```
+
+### Custom Teaching Components
+
+#### Progress Tracker
+```vue
+<template>
+  <div class="learning-progress">
+    <h4>Module Progress</h4>
+    <div class="progress-bar">
+      <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
+    </div>
+    <div class="milestones">
+      <div v-for="milestone in milestones" 
+           :key="milestone.id"
+           :class="['milestone', { completed: milestone.completed }]">
+        {{ milestone.name }}
+      </div>
+    </div>
+  </div>
+</template>
+```
+
+## 🎓 4. Pedagogical Best Practices
+
+### Cognitive Load Management
+
+#### Information Chunking
+```markdown
+---
+layout: center
+---
+
+# Complex Topic Breakdown
+
+<div class="concept-chunks">
+  <div v-click="1" class="chunk foundation">
+    <h3>🔑 Foundation Concept</h3>
+    <p>Essential knowledge that enables understanding</p>
+  </div>
+  
+  <div v-click="2" class="chunk building">
+    <h3>🧱 Building Block</h3>
+    <p>Intermediate concept that connects foundation to application</p>
+  </div>
+  
+  <div v-click="3" class="chunk application">
+    <h3>🚀 Real Application</h3>
+    <p>Practical implementation combining all concepts</p>
+  </div>
+</div>
+```
+
+#### Progressive Complexity
+```markdown
+<!-- Slide 1: Simple Example -->
+```javascript
+// Basic function
+const greet = (name) => `Hello, ${name}!`;
+```
+
+<!-- Slide 2: Enhanced Version -->
+```javascript
+// Enhanced with validation
+const greet = (name = 'Guest') => {
+  if (typeof name !== 'string') return 'Hello, Guest!';
+  return `Hello, ${name.trim()}!`;
+};
+```
+
+<!-- Slide 3: Production Ready -->
+```javascript
+// Production-ready with AI suggestions
+const greet = (name = 'Guest', options = {}) => {
+  const { language = 'en', formal = false } = options;
+  const sanitizedName = sanitizeInput(name);
+  
+  return generateGreeting(sanitizedName, { language, formal });
+};
+```
+```
+
+### Gagné's Nine Events Integration
+
+#### Template Structure
+```markdown
+---
+# 1. Gain Attention
+layout: cover
+background: /images/attention-grabbing.jpg
+---
+
+# 🚨 Real-World Problem
+## How AI Code Generation Goes Wrong
+
+---
+# 2. Inform Learning Objectives
+layout: center
+---
+
+# Learning Objectives 🎯
+
+<v-clicks>
+
+- **Identify** common AI code generation pitfalls
+- **Apply** validation strategies for AI-generated code  
+- **Evaluate** code quality using systematic criteria
+- **Create** robust AI-assisted development workflows
+
+</v-clicks>
+
+---
+# 3. Stimulate Prior Knowledge
+layout: two-cols
+---
+
+# What You Already Know
+
+::left::
+
+## Programming Experience
+- Function creation and usage
+- Basic debugging techniques
+- Code review concepts
+
+::right::
+
+## AI Tool Exposure
+<v-clicks>
+
+- ChatGPT or similar tools
+- Code completion features
+- Automated suggestions
+
+</v-clicks>
+
+---
+# 4. Present Content
+layout: default
+---
+
+# Core Content: AI Code Validation
+
+<div class="content-progression">
+  <div v-click="1" class="content-block">
+    <h3>🔍 Understanding AI Limitations</h3>
+    <!-- Detailed content -->
+  </div>
+  
+  <div v-click="2" class="content-block">
+    <h3>✅ Validation Strategies</h3>
+    <!-- Practical techniques -->
+  </div>
+</div>
+
+---
+# 5. Provide Learning Guidance
+layout: center
+---
+
+# 🧭 Step-by-Step Process
+
+<div class="guidance-steps">
+  <div v-click="1" class="step">
+    <span class="step-number">1</span>
+    <h4>Generate Code with AI</h4>
+    <p>Use specific prompts and context</p>
+  </div>
+  
+  <div v-click="2" class="step">
+    <span class="step-number">2</span>
+    <h4>Apply Validation Checklist</h4>
+    <p>Systematic quality assessment</p>
+  </div>
+</div>
+
+---
+# 6. Elicit Performance
+layout: center
+---
+
+# 🛠️ Hands-On Practice
+
+<div class="practice-challenge">
+  <h2>Challenge: Debug AI-Generated Code</h2>
+  <p>Time: 15 minutes | Format: Individual then pairs</p>
+  
+  <CodeEditor 
+    :initial-code="buggyAICode"
+    :validation-enabled="true"
+    @solution-found="handleSolutionFound"
+  />
+</div>
+
+---
+# 7. Provide Feedback
+layout: default
+---
+
+# 📊 Your Progress
+
+<div class="feedback-section">
+  <div v-if="practiceCompleted" class="success-feedback">
+    ✅ Excellent work! You identified {{ correctFindings }} out of {{ totalIssues }} issues.
+  </div>
+  
+  <div class="improvement-areas">
+    <h3>Areas for Enhancement:</h3>
+    <ul>
+      <li v-for="area in improvementAreas" :key="area">{{ area }}</li>
+    </ul>
+  </div>
+</div>
+
+---
+# 8. Assess Performance
+layout: center
+---
+
+# 🎯 Knowledge Check
+
+<QuizComponent 
+  :questions="moduleQuestions"
+  :passing-score="80"
+  @quiz-completed="handleQuizCompletion"
+/>
+
+---
+# 9. Enhance Retention
+layout: center
+---
+
+# 🔄 Transfer to Real Projects
+
+<div class="retention-activities">
+  <div v-click="1" class="activity">
+    <h3>📝 Action Plan</h3>
+    <p>Apply these techniques to your current projects</p>
+  </div>
+  
+  <div v-click="2" class="activity">
+    <h3>🤝 Peer Teaching</h3>
+    <p>Explain the process to a colleague</p>
+  </div>
+  
+  <div v-click="3" class="activity">
+    <h3>📚 Further Learning</h3>
+    <p>Explore advanced validation tools and techniques</p>
+  </div>
+</div>
+```
+
+### Visual Hierarchy Principles
+
+#### Consistent Typography Scale
+```css
+/* Typography system for educational content */
+.slide-title { font-size: 2.5rem; font-weight: 700; }
+.section-title { font-size: 2rem; font-weight: 600; }
+.subsection-title { font-size: 1.5rem; font-weight: 500; }
+.body-text { font-size: 1rem; line-height: 1.6; }
+.caption-text { font-size: 0.875rem; font-style: italic; }
+```
+
+#### Color-Coded Content Types
+```css
+/* Educational content color system */
+.concept-foundation { border-left: 4px solid #3b82f6; background: #eff6ff; }
+.concept-application { border-left: 4px solid #10b981; background: #ecfdf5; }
+.warning-content { border-left: 4px solid #f59e0b; background: #fffbeb; }
+.error-content { border-left: 4px solid #ef4444; background: #fef2f2; }
+.success-content { border-left: 4px solid #22c55e; background: #f0fdf4; }
+```
+
+## 🎨 5. Light Theme Configuration
+
+### Recommended Light Themes
+
+#### Clean Professional Theme
+```yaml
+---
+theme: default
+colorSchema: light
+fonts:
+  sans: 'Inter, system-ui, sans-serif'
+  mono: 'JetBrains Mono, Fira Code, monospace'
+highlighter: shiki
+lineNumbers: true
+---
+```
+
+#### Educational Optimized Theme
+```yaml
+---
+theme: apple-basic
+colorSchema: light
+class: text-left
+drawings:
+  persist: false
+transition: slide-left
+layout: cover
+background: '#f8fafc'
+---
+```
+
+### Custom Educational CSS
+
+#### Light Theme Overrides
+```css
+:root {
+  /* Light theme color palette */
+  --slidev-theme-primary: #2563eb;
+  --slidev-theme-accent: #7c3aed;
+  --slidev-theme-background: #ffffff;
+  --slidev-theme-foreground: #1e293b;
+  --slidev-theme-muted: #64748b;
+  
+  /* Educational specific colors */
+  --color-learning-tip: #eff6ff;
+  --color-warning: #fef3c7;
+  --color-error: #fee2e2;
+  --color-success: #d1fae5;
+  --color-code-highlight: #f1f5f9;
+}
+
+/* High contrast for accessibility */
+.slidev-layout {
+  background: var(--slidev-theme-background);
+  color: var(--slidev-theme-foreground);
+}
+
+/* Code blocks optimized for light theme */
+.shiki {
+  background: var(--color-code-highlight) !important;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Educational component styling */
+.learning-objective {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #3b82f6;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+.code-challenge {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #f59e0b;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+.interactive-element {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.interactive-element:hover {
+  border-color: var(--slidev-theme-primary);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+```
+
+#### Responsive Design
+```css
+/* Mobile optimization */
+@media (max-width: 768px) {
+  .slide-content {
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .two-column-layout {
+    flex-direction: column;
+  }
+  
+  .code-block {
+    font-size: 0.8rem;
+    overflow-x: auto;
+  }
+}
+
+/* Print optimization */
+@media print {
+  .slidev-layout {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .interactive-element {
+    border: 1px solid #000;
+    background: white;
+  }
+}
+```
+
+## 🚀 6. Performance & Accessibility
+
+### Performance Optimization
+```javascript
+// Lazy loading for heavy components
+const HeavyComponent = defineAsyncComponent(() => import('./HeavyComponent.vue'));
+
+// Image optimization
+const optimizedImages = {
+  sizes: '(max-width: 768px) 100vw, 50vw',
+  loading: 'lazy',
+  decoding: 'async'
+};
+```
+
+### Accessibility Features
+```css
+/* Focus management */
+.focusable:focus {
+  outline: 2px solid var(--slidev-theme-primary);
+  outline-offset: 2px;
+}
+
+/* Screen reader support */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .interactive-element {
+    border-width: 3px;
+    border-color: #000;
+  }
+}
+```
+
+This comprehensive guide provides everything needed to create pedagogically effective, visually appealing, and technically robust educational presentations using Slidev.

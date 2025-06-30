@@ -1,11 +1,11 @@
-# [Module] - Interactive Presentation
+# M9 - Integration - Interactive Presentation
 
 class: center, middle, inverse
 
-# [Module Name]
-## [Module Subtitle] with AI
+# M9 - Integration
+## Full-Stack Integration with AI
 
-### Module X: [Module Description]
+### Module 9: Deployment and System Integration
 
 ---
 

@@ -1,0 +1,70 @@
+{
+  "name": "claude-code-course-presentations",
+  "version": "1.0.0",
+  "description": "Slidev presentations for Claude Code Development Course",
+  "scripts": {
+    "dev": "slidev",
+    "dev:module1": "slidev M1-ai-llm-fundamentals/M1-AI-LLM-Fundamentals.md",
+    "dev:module2": "slidev M2-foundations/M2-Foundations.md",
+    "dev:module3": "slidev M3-javascript/M3-JavaScript.md",
+    "dev:module4": "slidev M4-web-fundamentals/M4-Web-Fundamentals.md",
+    "dev:module5": "slidev M5-backend/M5-Backend-Development.md",
+    "dev:module6": "slidev M6-databases/M6-Database-Management.md",
+    "dev:module7": "slidev M7-apis/M7-API-Development.md",
+    "dev:module8": "slidev M8-security/M8-Security.md",
+    "dev:module9": "slidev M9-integration/M9-Integration.md",
+    "dev:module10": "slidev M10-advanced/M10-Advanced-Topics.md",
+    "build": "slidev build",
+    "build:all": "npm run build:module1 && npm run build:module2 && npm run build:module3 && npm run build:module4 && npm run build:module5 && npm run build:module6 && npm run build:module7 && npm run build:module8 && npm run build:module9 && npm run build:module10",
+    "build:module1": "slidev build M1-ai-llm-fundamentals/M1-AI-LLM-Fundamentals.md --out dist/M1-AI-LLM-Fundamentals",
+    "build:module2": "slidev build M2-foundations/M2-Foundations.md --out dist/M2-Foundations",
+    "build:module3": "slidev build M3-javascript/M3-JavaScript.md --out dist/M3-JavaScript",
+    "build:module4": "slidev build M4-web-fundamentals/M4-Web-Fundamentals.md --out dist/M4-Web-Fundamentals",
+    "build:module5": "slidev build M5-backend/M5-Backend-Development.md --out dist/M5-Backend-Development",
+    "build:module6": "slidev build M6-databases/M6-Database-Management.md --out dist/M6-Database-Management",
+    "build:module7": "slidev build M7-apis/M7-API-Development.md --out dist/M7-API-Development",
+    "build:module8": "slidev build M8-security/M8-Security.md --out dist/M8-Security",
+    "build:module9": "slidev build M9-integration/M9-Integration.md --out dist/M9-Integration",
+    "build:module10": "slidev build M10-advanced/M10-Advanced-Topics.md --out dist/M10-Advanced-Topics",
+    "export": "slidev export",
+    "export:all": "npm run export:module1 && npm run export:module2 && npm run export:module3 && npm run export:module4 && npm run export:module5 && npm run export:module6 && npm run export:module7 && npm run export:module8 && npm run export:module9 && npm run export:module10",
+    "export:module1": "slidev export M1-ai-llm-fundamentals/M1-AI-LLM-Fundamentals.md --output exports/M1-AI-LLM-Fundamentals.pdf",
+    "export:module2": "slidev export M2-foundations/M2-Foundations.md --output exports/M2-Foundations.pdf",
+    "export:module3": "slidev export M3-javascript/M3-JavaScript.md --output exports/M3-JavaScript.pdf",
+    "export:module4": "slidev export M4-web-fundamentals/M4-Web-Fundamentals.md --output exports/M4-Web-Fundamentals.pdf",
+    "export:module5": "slidev export M5-backend/M5-Backend-Development.md --output exports/M5-Backend-Development.pdf",
+    "export:module6": "slidev export M6-databases/M6-Database-Management.md --output exports/M6-Database-Management.pdf",
+    "export:module7": "slidev export M7-apis/M7-API-Development.md --output exports/M7-API-Development.pdf",
+    "export:module8": "slidev export M8-security/M8-Security.md --output exports/M8-Security.pdf",
+    "export:module9": "slidev export M9-integration/M9-Integration.md --output exports/M9-Integration.pdf",
+    "export:module10": "slidev export M10-advanced/M10-Advanced-Topics.md --output exports/M10-Advanced-Topics.pdf"
+  },
+  "devDependencies": {
+    "@slidev/cli": "^0.47.0",
+    "@slidev/theme-default": "^0.47.0",
+    "@slidev/theme-seriph": "^0.27.0",
+    "@slidev/theme-apple-basic": "^0.21.0"
+  },
+  "dependencies": {
+    "mermaid": "^10.6.1",
+    "@vueuse/core": "^10.5.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "author": "Claude Code Course Development Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/course-repo/claude-code-course.git"
+  },
+  "keywords": [
+    "slidev",
+    "presentations",
+    "claude-code",
+    "ai-development",
+    "education",
+    "programming",
+    "course"
+  ]
+}

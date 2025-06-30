@@ -1,4 +1,4 @@
-# Database Management - Interactive Presentation
+# M6 - Database Management - Interactive Presentation
 
 ## Slide Configuration
 ```html

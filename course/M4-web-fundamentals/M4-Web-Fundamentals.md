@@ -1,4 +1,4 @@
-# Web Fundamentals - Interactive Presentation
+# M4 - Web Fundamentals - Interactive Presentation
 
 ## Slide Configuration
 ```html
@@ -26,7 +26,7 @@
 
 class: center, middle, inverse
 
-# Web Fundamentals
+# M4 - Web Fundamentals
 ## Building Beautiful, Responsive Interfaces with AI
 
 ### Module 4: HTML5, CSS3 & Modern Layout Techniques

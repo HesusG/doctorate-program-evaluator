@@ -1,11 +1,11 @@
-# [Module] - Interactive Presentation
+# M8 - Security - Interactive Presentation
 
 class: center, middle, inverse
 
-# [Module Name]
-## [Module Subtitle] with AI
+# M8 - Security
+## Application Security with AI
 
-### Module X: [Module Description]
+### Module 8: Security Best Practices and Implementation
 
 ---
 

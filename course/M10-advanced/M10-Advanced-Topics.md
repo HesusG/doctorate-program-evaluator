@@ -1,11 +1,11 @@
-# [Module] - Interactive Presentation
+# M10 - Advanced Topics - Interactive Presentation
 
 class: center, middle, inverse
 
-# [Module Name]
-## [Module Subtitle] with AI
+# M10 - Advanced Topics
+## Performance Optimization with AI
 
-### Module X: [Module Description]
+### Module 10: Advanced Development Patterns and Optimization
 
 ---
 

@@ -1,0 +1,11 @@
+{
+    "slidev.include": [
+        "**/slides.md",
+        "course/ai-llm-fundamentals/module-overview.md",
+        "course/ai-llm-fundamentals/M1-AI-LLM-Fundamentals.md",
+        "course/ai-llm-fundamentals/2-objectives.md",
+        "course/ai-llm-fundamentals/1-attention.md",
+        "course/M1-ai-llm-fundamentals/M1-AI-LLM-Fundamentals.md",
+        "course/M1-ai-llm-fundamentals/2-objectives.md"
+    ]
+}
