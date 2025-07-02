@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Criteria Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; }
+        .status { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+        .success { color: green; }
+        .error { color: red; }
+        button { margin: 5px; padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Complete Criteria Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Star Visualization</h2>
+        <p>This shows how stars should look with different values:</p>
+        
+        <h3>Value = 0 (no stars active)</h3>
+        <div class="program-criteria">
+            <div class="criteria-stars">
+                <span class="criteria-star">★</span>
+                <span class="criteria-star">★</span>
+                <span class="criteria-star">★</span>
+                <span class="criteria-star">★</span>
+                <span class="criteria-star">★</span>
+            </div>
+        </div>
+        
+        <h3>Value = 3 (3 stars active)</h3>
+        <div class="program-criteria">
+            <div class="criteria-stars">
+                <span class="criteria-star active">★</span>
+                <span class="criteria-star active">★</span>
+                <span class="criteria-star active">★</span>
+                <span class="criteria-star">★</span>
+                <span class="criteria-star">★</span>
+            </div>
+        </div>
+        
+        <h3>Value = 5 (all stars active)</h3>
+        <div class="program-criteria">
+            <div class="criteria-stars">
+                <span class="criteria-star active">★</span>
+                <span class="criteria-star active">★</span>
+                <span class="criteria-star active">★</span>
+                <span class="criteria-star active">★</span>
+                <span class="criteria-star active">★</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Live Test with Real Data</h2>
+        <button onclick="testLoadUniversity()">1. Load First University</button>
+        <div id="status1" class="status"></div>
+        
+        <button onclick="testUpdateCriterion()">2. Update a Criterion</button>
+        <div id="status2" class="status"></div>
+        
+        <button onclick="testShowModal()">3. Test Modal Window</button>
+        <div id="status3" class="status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Program Display Test</h2>
+        <div id="program-display"></div>
+    </div>
+    
+    <!-- Include the modal -->
+    <div id="criteria-rating-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Confirmar Calificación de Criterio</h4>
+                <span class="close-criteria-modal" onclick="closeCriteriaModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de calificar <strong id="criteria-name"></strong> con <span id="criteria-rating-stars"></span> (<span id="criteria-rating-value"></span> estrellas)?</p>
+                <input type="hidden" id="criteria-program-id">
+                <input type="hidden" id="criteria-criterion">
+                <input type="hidden" id="criteria-value">
+                
+                <div class="form-actions">
+                    <button type="button" class="save-btn" onclick="confirmTest()">Confirmar</button>
+                    <button type="button" class="cancel-btn" onclick="closeCriteriaModal()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentUniversidad = null;
+        let currentProgramIndex = 0;
+        
+        async function testLoadUniversity() {
+            const status = document.getElementById('status1');
+            try {
+                const response = await fetch('/api/universidades');
+                const data = await response.json();
+                
+                currentUniversidad = data.programas_doctorado.universidades[0];
+                const program = currentUniversidad.programas[0];
+                
+                status.innerHTML = `
+                    <span class="success">✅ Loaded university: ${currentUniversidad.nombre}</span><br>
+                    <strong>First program:</strong> ${program.nombre}<br>
+                    <strong>Program ID:</strong> ${program._id}<br>
+                    <strong>Current criterios:</strong><br>
+                    <pre>${JSON.stringify(program.criterios, null, 2)}</pre>
+                `;
+                
+                displayProgram(program);
+            } catch (error) {
+                status.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function testUpdateCriterion() {
+            const status = document.getElementById('status2');
+            if (!currentUniversidad) {
+                status.innerHTML = '<span class="error">❌ Load university first!</span>';
+                return;
+            }
+            
+            const program = currentUniversidad.programas[0];
+            const updateData = {
+                criterios: {
+                    relevancia: 4,
+                    claridad: 3,
+                    transparencia: 5,
+                    actividades: 2,
+                    resultados: 3
+                }
+            };
+            
+            try {
+                const response = await fetch(`/api/programas/${program._id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updateData)
+                });
+                
+                const result = await response.json();
+                status.innerHTML = `
+                    <span class="success">✅ Updated criterios successfully!</span><br>
+                    <strong>New values:</strong><br>
+                    <pre>${JSON.stringify(updateData.criterios, null, 2)}</pre>
+                `;
+                
+                // Refresh display
+                program.criterios = updateData.criterios;
+                displayProgram(program);
+            } catch (error) {
+                status.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        function testShowModal() {
+            const status = document.getElementById('status3');
+            if (!currentUniversidad) {
+                status.innerHTML = '<span class="error">❌ Load university first!</span>';
+                return;
+            }
+            
+            showCriteriaConfirmation(currentUniversidad.programas[0]._id, 'relevancia', 5);
+            status.innerHTML = '<span class="success">✅ Modal should be visible now!</span>';
+        }
+        
+        function displayProgram(program) {
+            const display = document.getElementById('program-display');
+            display.innerHTML = `
+                <h3>${program.nombre}</h3>
+                <div class="program-criteria">
+                    <h4>Criterios de Evaluación</h4>
+                    ${Object.entries(program.criterios || {}).map(([key, value]) => `
+                        <div class="criteria-block">
+                            <h5>${key.charAt(0).toUpperCase() + key.slice(1)}</h5>
+                            <div class="criteria-stars">
+                                ${[1,2,3,4,5].map(i => 
+                                    `<span class="criteria-star ${i <= value ? 'active' : ''}" 
+                                           data-criterion="${key}" 
+                                           data-value="${i}"
+                                           onclick="handleStarClick(this)">★</span>`
+                                ).join('')}
+                            </div>
+                            <span>Valor actual: ${value}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        function handleStarClick(star) {
+            const criterion = star.getAttribute('data-criterion');
+            const value = star.getAttribute('data-value');
+            console.log(`Star clicked: ${criterion} = ${value}`);
+            showCriteriaConfirmation(currentUniversidad.programas[0]._id, criterion, value);
+        }
+        
+        function showCriteriaConfirmation(programId, criterion, value) {
+            const criteriaNames = {
+                relevancia: "Relevancia personal y afinidad temática",
+                claridad: "Claridad y especificidad de las líneas de investigación", 
+                transparencia: "Transparencia en información y procesos",
+                actividades: "Estructura y variedad de actividades formativas",
+                resultados: "Transparencia en resultados y calidad"
+            };
+            
+            document.getElementById('criteria-name').textContent = criteriaNames[criterion] || criterion;
+            document.getElementById('criteria-rating-stars').innerHTML = '★'.repeat(value) + '☆'.repeat(5 - value);
+            document.getElementById('criteria-rating-value').textContent = value;
+            document.getElementById('criteria-program-id').value = programId;
+            document.getElementById('criteria-criterion').value = criterion;
+            document.getElementById('criteria-value').value = value;
+            
+            document.getElementById('criteria-rating-modal').style.display = 'block';
+        }
+        
+        function closeCriteriaModal() {
+            document.getElementById('criteria-rating-modal').style.display = 'none';
+        }
+        
+        function confirmTest() {
+            alert('Confirmed! In the real app, this would save to the server.');
+            closeCriteriaModal();
+        }
+        
+        // CSS for modal
+        const style = document.createElement('style');
+        style.textContent = `
+            .modal {
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.4);
+            }
+            .modal-content {
+                background-color: #fefefe;
+                margin: 15% auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 80%;
+                max-width: 500px;
+                border-radius: 8px;
+            }
+            .criteria-block {
+                margin: 15px 0;
+                padding: 15px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

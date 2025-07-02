@@ -211,6 +211,7 @@ app.get('/api/universidades', async (req, res) => {
               resumen: "$university_summary",
               status: "$status",
               calificacion: "$calificacion",
+              criterios: "$criterios",
               university_summary: "$university_summary",
               city_description: "$city_description",
               university_description: "$university_description"
@@ -366,6 +367,13 @@ app.put('/api/programas/:id', async (req, res) => {
     
     console.log(`DEBUG PUT /api/programas/${id}:`, updates);
     
+    // DEBUG: Specifically check for criterios
+    if (updates.criterios) {
+      console.log(`DEBUG PUT /api/programas/${id}: CRITERIOS RECEIVED:`, updates.criterios);
+    } else {
+      console.log(`DEBUG PUT /api/programas/${id}: No criterios in update payload`);
+    }
+    
     // Verificar que hay campos para actualizar
     if (!updates || Object.keys(updates).length === 0) {
       console.log(`DEBUG PUT /api/programas/${id}: No updates provided`);
@@ -398,6 +406,15 @@ app.put('/api/programas/:id', async (req, res) => {
     }
     
     console.log(`DEBUG PUT /api/programas/${id}: Update successful - matchedCount=${result.matchedCount}, modifiedCount=${result.modifiedCount}`);
+    
+    // DEBUG: Verify criterios were stored by re-fetching the document
+    if (updates.criterios) {
+      const updatedDoc = await db.collection('programas').findOne(
+        { _id: new ObjectId(id) },
+        { projection: { criterios: 1 } }
+      );
+      console.log(`DEBUG PUT /api/programas/${id}: Criterios after update:`, updatedDoc?.criterios || 'NOT FOUND');
+    }
     
     res.json({ 
       message: 'Programa updated successfully',
@@ -801,6 +818,7 @@ app.get('/api/busqueda', async (req, res) => {
         resumen: programa.resumen,
         status: programa.status,
         calificacion: programa.calificacion,
+        criterios: programa.criterios,
         stats: programa.stats || universidadesMap.get(uniKey).stats,
         ciudad_metrics: programa.ciudad_metrics || universidadesMap.get(uniKey).ciudad_metrics,
         university_summary: programa.university_summary,

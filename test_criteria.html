@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Criterios Functionality</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; }
+        .button { background: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; margin: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <h1>Test Criterios Functionality</h1>
+    
+    <div class="test-section">
+        <h2>1. Test API Connection</h2>
+        <button class="button" onclick="testApiConnection()">Test API</button>
+        <div id="api-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Get First Program</h2>
+        <button class="button" onclick="getFirstProgram()">Get First Program</button>
+        <div id="program-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Test Criteria Update</h2>
+        <label>Program ID: <input type="text" id="programId" placeholder="Program ID"></label><br><br>
+        <label>Criterion: 
+            <select id="criterion">
+                <option value="relevancia">Relevancia</option>
+                <option value="claridad">Claridad</option>
+                <option value="transparencia">Transparencia</option>
+                <option value="actividades">Actividades</option>
+                <option value="resultados">Resultados</option>
+            </select>
+        </label><br><br>
+        <label>Value (1-5): <input type="number" id="value" min="1" max="5" value="3"></label><br><br>
+        <button class="button" onclick="testCriteriaUpdate()">Update Criteria</button>
+        <div id="update-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Verify Criteria Update</h2>
+        <button class="button" onclick="verifyCriteriaUpdate()">Verify Update</button>
+        <div id="verify-result" class="result"></div>
+    </div>
+    
+    <script>
+        let currentProgramId = null;
+        
+        async function testApiConnection() {
+            const resultDiv = document.getElementById('api-result');
+            try {
+                const response = await fetch('/api/universidades');
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `<span class="success">✅ API connection successful! Found ${data.programas_doctorado.universidades.length} universities.</span>`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ API error: ${response.status}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Connection error: ${error.message}</span>`;
+            }
+        }
+        
+        async function getFirstProgram() {
+            const resultDiv = document.getElementById('program-result');
+            try {
+                const response = await fetch('/api/universidades');
+                const data = await response.json();
+                
+                const firstUniversity = data.programas_doctorado.universidades[0];
+                const firstProgram = firstUniversity.programas[0];
+                
+                currentProgramId = firstProgram._id;
+                document.getElementById('programId').value = currentProgramId;
+                
+                resultDiv.innerHTML = `
+                    <span class="success">✅ First program found:</span><br>
+                    <strong>ID:</strong> ${firstProgram._id}<br>
+                    <strong>Name:</strong> ${firstProgram.nombre}<br>
+                    <strong>University:</strong> ${firstUniversity.nombre}<br>
+                    <strong>Current Criterios:</strong> ${JSON.stringify(firstProgram.criterios || {}, null, 2)}
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function testCriteriaUpdate() {
+            const resultDiv = document.getElementById('update-result');
+            const programId = document.getElementById('programId').value;
+            const criterion = document.getElementById('criterion').value;
+            const value = parseInt(document.getElementById('value').value);
+            
+            if (!programId) {
+                resultDiv.innerHTML = '<span class="error">❌ Please enter a program ID</span>';
+                return;
+            }
+            
+            try {
+                // First, get current criterios
+                const getCurrentResponse = await fetch(`/api/programas/${programId}`);
+                const currentProgram = await getCurrentResponse.json();
+                const currentCriterios = currentProgram.criterios || {};
+                
+                // Update the specific criterion
+                const updatedCriterios = {
+                    ...currentCriterios,
+                    [criterion]: value
+                };
+                
+                const updateData = {
+                    criterios: updatedCriterios
+                };
+                
+                console.log('Sending update:', updateData);
+                
+                const response = await fetch(`/api/programas/${programId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    resultDiv.innerHTML = `
+                        <span class="success">✅ Criteria updated successfully!</span><br>
+                        <strong>Updated:</strong> ${criterion} = ${value}<br>
+                        <strong>Server response:</strong> ${JSON.stringify(result, null, 2)}
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    resultDiv.innerHTML = `<span class="error">❌ Update failed: ${response.status} - ${errorText}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function verifyCriteriaUpdate() {
+            const resultDiv = document.getElementById('verify-result');
+            const programId = document.getElementById('programId').value;
+            
+            if (!programId) {
+                resultDiv.innerHTML = '<span class="error">❌ Please enter a program ID</span>';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/programas/${programId}`);
+                const program = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <span class="success">✅ Current program criterios:</span><br>
+                    <strong>Program:</strong> ${program.programa}<br>
+                    <strong>Criterios:</strong> ${JSON.stringify(program.criterios || {}, null, 2)}
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        // Auto-test on load
+        window.onload = function() {
+            testApiConnection();
+            setTimeout(getFirstProgram, 1000);
+        };
+    </script>
+</body>
+</html>

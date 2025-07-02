@@ -42,3 +42,5 @@ Thumbs.db
 users.json
 backups/
 EOL < /dev/null
+
+**/.claude/settings.local.json

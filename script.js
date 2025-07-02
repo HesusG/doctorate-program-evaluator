@@ -1152,6 +1152,13 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
     // Actualizar criterios específicos de evaluación
     updateProgramCriteria(programa);
     
+    // Reconfigurar event listeners de criterios después de actualizar el contenido
+    setTimeout(() => {
+        if (window.refreshCriteriaListeners) {
+            window.refreshCriteriaListeners();
+        }
+    }, 200);
+    
     // Actualizar resumen
     document.getElementById('programSummary').textContent = programa.resumen || 'No hay información disponible sobre este programa.';
     
@@ -1288,11 +1295,11 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
         }
     } else {
         // Si no hay stats de universidad, mostrar N/A
-        document.getElementById('uniInnovacion').textContent = 'N/A';
-        document.getElementById('uniInterdisciplinariedad').textContent = 'N/A';
-        document.getElementById('uniImpacto').textContent = 'N/A';
-        document.getElementById('uniInternacional').textContent = 'N/A';
-        document.getElementById('uniAplicabilidad').textContent = 'N/A';
+        document.getElementById('uniInnovacion').textContent = '0';
+        document.getElementById('uniInterdisciplinariedad').textContent = '0';
+        document.getElementById('uniImpacto').textContent = '0';
+        document.getElementById('uniInternacional').textContent = '0';
+        document.getElementById('uniAplicabilidad').textContent = '0';
         document.getElementById('universityExplanation').innerHTML = `
             <div class="explanation-block no-data">
                 <p>No hay explicaciones disponibles sobre la universidad.</p>
@@ -1409,11 +1416,11 @@ function showProgramDetails(index, animationClass = 'slide-in-right') {
         }
     } else {
         // Si no hay métricas, mostrar N/A
-        document.getElementById('costoVida').textContent = 'N/A';
-        document.getElementById('calidadAire').textContent = 'N/A';
-        document.getElementById('calidadTransporte').textContent = 'N/A';
-        document.getElementById('servicioMedico').textContent = 'N/A';
-        document.getElementById('distanciaMadrid').textContent = 'N/A';
+        document.getElementById('costoVida').textContent = '0';
+        document.getElementById('calidadAire').textContent = '0';
+        document.getElementById('calidadTransporte').textContent = '0';
+        document.getElementById('servicioMedico').textContent = '0';
+        document.getElementById('distanciaMadrid').textContent = '0 km';
         document.getElementById('cityExplanation').innerHTML = `
             <div class="explanation-block no-data">
                 <p>No hay explicaciones disponibles sobre la ciudad.</p>
@@ -1643,143 +1650,157 @@ function showUniversityInfoOld(universidad) {
 
 // Función para actualizar los criterios específicos de un programa
 function updateProgramCriteria(programa) {
-    // Valores por defecto
-    let relevancia = 'N/A';
-    let claridad = 'N/A';
-    let transparencia = 'N/A';
-    let actividades = 'N/A';
-    let resultados = 'N/A';
-    let promedio = 'N/A';
+    // Valores por defecto (all programs now have criterios initialized to 0)
+    let relevancia = 0;
+    let claridad = 0;
+    let transparencia = 0;
+    let actividades = 0;
+    let resultados = 0;
+    let promedio = 0;
     
     // Si el programa tiene criterios, mostrarlos
     if (programa.criterios) {
-        relevancia = programa.criterios.relevancia || 'N/A';
-        claridad = programa.criterios.claridad || 'N/A';
-        transparencia = programa.criterios.transparencia || 'N/A';
-        actividades = programa.criterios.actividades || 'N/A';
-        resultados = programa.criterios.resultados || 'N/A';
+        // Use explicit checks for numeric values to handle 0 correctly
+        relevancia = (programa.criterios.relevancia !== undefined && programa.criterios.relevancia !== null) 
+            ? programa.criterios.relevancia 
+            : 0;
+        claridad = (programa.criterios.claridad !== undefined && programa.criterios.claridad !== null) 
+            ? programa.criterios.claridad 
+            : 0;
+        transparencia = (programa.criterios.transparencia !== undefined && programa.criterios.transparencia !== null) 
+            ? programa.criterios.transparencia 
+            : 0;
+        actividades = (programa.criterios.actividades !== undefined && programa.criterios.actividades !== null) 
+            ? programa.criterios.actividades 
+            : 0;
+        resultados = (programa.criterios.resultados !== undefined && programa.criterios.resultados !== null) 
+            ? programa.criterios.resultados 
+            : 0;
         
-        // Calcular promedio si hay valores numéricos
+        // Calcular promedio
         promedio = calculateCriteriaAvg(programa.criterios);
     }
     
+    console.log('DEBUG updateProgramCriteria - criterios:', programa.criterios);
+    console.log('DEBUG updateProgramCriteria - values:', { relevancia, claridad, transparencia, actividades, resultados });
+    
     // Actualizar los elementos del DOM con animación escalonada
     setTimeout(() => {
-        updateCriteriaValue('criteriaRelevancia', relevancia);
+        // updateCriteriaValue('criteriaRelevancia', relevancia); // Removed - N/A labels no longer shown
         updateCriteriaDots('view-criteria-relevancia-stars', relevancia);
     }, 100);
     
     setTimeout(() => {
-        updateCriteriaValue('criteriaClaridad', claridad);
+        // updateCriteriaValue('criteriaClaridad', claridad); // Removed - N/A labels no longer shown
         updateCriteriaDots('view-criteria-claridad-stars', claridad);
     }, 150);
     
     setTimeout(() => {
-        updateCriteriaValue('criteriaTransparencia', transparencia);
+        // updateCriteriaValue('criteriaTransparencia', transparencia); // Removed - N/A labels no longer shown
         updateCriteriaDots('view-criteria-transparencia-stars', transparencia);
     }, 200);
     
     setTimeout(() => {
-        updateCriteriaValue('criteriaActividades', actividades);
+        // updateCriteriaValue('criteriaActividades', actividades); // Removed - N/A labels no longer shown
         updateCriteriaDots('view-criteria-actividades-stars', actividades);
     }, 250);
     
     setTimeout(() => {
-        updateCriteriaValue('criteriaResultados', resultados);
+        // updateCriteriaValue('criteriaResultados', resultados); // Removed - N/A labels no longer shown
         updateCriteriaDots('view-criteria-resultados-stars', resultados);
     }, 300);
     
     setTimeout(() => {
-        updateCriteriaValue('criteriaPromedio', promedio);
+        // updateCriteriaValue('criteriaPromedio', promedio); // Removed - N/A labels no longer shown
     }, 350);
 }
 
 // Función para configurar los puntos de criterios en la vista del programa
 function setupProgramCriteriaDots() {
-    console.log("DEBUG: Configurando event listeners para criterios dots");
+    console.log("DEBUG: Configurando event listeners para criterios stars");
     
-    // Obtener todos los puntos de criterios
-    const criteriaDots = document.querySelectorAll('.program-criteria .criteria-dot');
-    console.log(`DEBUG: Encontrados ${criteriaDots.length} puntos de criterios`);
-    
-    // Añadir manejador de eventos a cada punto
-    criteriaDots.forEach(dot => {
-        // Almacenar información para debug
-        const criterion = dot.getAttribute('data-criterion');
-        const value = dot.getAttribute('data-value');
-        console.log(`DEBUG: Configurando dot para criterio=${criterion}, valor=${value}`);
+    // Función para configurar event listeners (puede ser llamada múltiples veces)
+    function attachEventListeners() {
+        // Obtener todas las estrellas de criterios (ahora son estrellas, no dots)
+        const criteriaStars = document.querySelectorAll('.program-criteria .criteria-star');
+        console.log(`DEBUG: Encontradas ${criteriaStars.length} estrellas de criterios`);
         
-        dot.addEventListener('click', function() {
-            // Debug
-            console.log(`DEBUG criteriaClick: Dot clicked - criterio=${criterion}, valor=${value}`);
-            console.log(`DEBUG criteriaClick: currentUniversidad=${!!currentUniversidad}, currentProgramIndex=${currentProgramIndex}`);
+        // Remover event listeners existentes para evitar duplicados
+        criteriaStars.forEach(star => {
+            star.removeEventListener('click', handleCriteriaStarClick);
+        });
+        
+        // Añadir manejador de eventos a cada estrella
+        criteriaStars.forEach(star => {
+            // Almacenar información para debug
+            const criterion = star.getAttribute('data-criterion');
+            const value = star.getAttribute('data-value');
+            console.log(`DEBUG: Configurando star para criterio=${criterion}, valor=${value}`);
             
-            // Si no hay programa actual, no hacer nada
-            if (!currentUniversidad) {
-                console.log(`DEBUG criteriaClick: Abortando - No hay universidad actual`);
-                return;
-            }
-            
-            if (currentProgramIndex === undefined || currentProgramIndex === null || isNaN(Number(currentProgramIndex))) {
-                console.log(`DEBUG criteriaClick: Abortando - currentProgramIndex no es válido: ${currentProgramIndex} (tipo: ${typeof currentProgramIndex})`);
-                return;
-            }
-            
-            // Verificar que el índice está dentro de los límites
-            const programIndex = Number(currentProgramIndex);
-            if (programIndex < 0 || programIndex >= currentUniversidad.programas.length) {
-                console.log(`DEBUG criteriaClick: Abortando - Índice ${programIndex} fuera de rango (0-${currentUniversidad.programas.length-1})`);
-                return;
-            }
-            
-            const criterion = this.getAttribute('data-criterion');
-            const value = parseInt(this.getAttribute('data-value'));
-            
-            console.log(`DEBUG criteriaClick: Procesando click en criterio=${criterion}, valor=${value}`);
-            
-            // Actualizar UI
-            const dotsContainer = this.parentElement;
-            const dots = dotsContainer.querySelectorAll('.criteria-dot');
-            dots.forEach(d => {
-                if (parseInt(d.getAttribute('data-value')) <= value) {
-                    d.classList.add('active');
-                } else {
-                    d.classList.remove('active');
+            star.addEventListener('click', handleCriteriaStarClick);
+        });
+    }
+    
+    // Función manejadora de clicks en estrellas
+    function handleCriteriaStarClick(event) {
+        const star = event.target;
+        const criterion = star.getAttribute('data-criterion');
+        const value = parseInt(star.getAttribute('data-value'));
+        
+        console.log(`DEBUG criteriaClick: Star clicked - criterio=${criterion}, valor=${value}`);
+        console.log(`DEBUG criteriaClick: currentUniversidad=${!!currentUniversidad}, currentProgramIndex=${currentProgramIndex}`);
+        
+        // Si no hay programa actual, no hacer nada
+        if (!currentUniversidad) {
+            console.log(`DEBUG criteriaClick: Abortando - No hay universidad actual`);
+            return;
+        }
+        
+        if (currentProgramIndex === undefined || currentProgramIndex === null || isNaN(Number(currentProgramIndex))) {
+            console.log(`DEBUG criteriaClick: Abortando - currentProgramIndex no es válido: ${currentProgramIndex} (tipo: ${typeof currentProgramIndex})`);
+            return;
+        }
+        
+        // Verificar que el índice está dentro de los límites
+        const programIndex = Number(currentProgramIndex);
+        if (programIndex < 0 || programIndex >= currentUniversidad.programas.length) {
+            console.log(`DEBUG criteriaClick: Abortando - Índice ${programIndex} fuera de rango (0-${currentUniversidad.programas.length-1})`);
+            return;
+        }
+        
+        const programa = currentUniversidad.programas[programIndex];
+        
+        console.log(`DEBUG criteriaClick: Procesando click en criterio=${criterion}, valor=${value}, programa=${programa._id}`);
+        
+        // Mostrar modal de confirmación
+        showCriteriaConfirmation(programa._id, criterion, value);
+    }
+    
+    // Configurar inicialmente los event listeners
+    attachEventListeners();
+    
+    // También configurar observador para cuando se cargue nuevo contenido del modal
+    const universityModal = document.getElementById('universityModal');
+    if (universityModal) {
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    // Re-configurar event listeners cuando cambie el contenido
+                    setTimeout(attachEventListeners, 100);
                 }
             });
-            
-            // Actualizar valor en el elemento de visualización
-            const valueElement = document.getElementById(`criteria${criterion.charAt(0).toUpperCase() + criterion.slice(1)}`);
-            if (valueElement) {
-                valueElement.textContent = value;
-                valueElement.className = `current-value criteria-${value}`;
-                console.log(`DEBUG criteriaClick: Actualizado elemento visual para ${criterion} a ${value}`);
-            } else {
-                console.log(`DEBUG criteriaClick: No se encontró elemento visual para ${criterion}`);
-            }
-            
-            // Guardar valor en el programa actual
-            console.log(`DEBUG criteriaClick: Llamando a saveCriterionToServer con ${criterion}, ${value}`);
-            saveCriterionToServer(criterion, value)
-                .then(() => {
-                    // Verificar que se guardó correctamente llamando al endpoint de prueba
-                    if (currentUniversidad && currentProgramIndex !== undefined) {
-                        const programa = currentUniversidad.programas[currentProgramIndex];
-                        if (programa && programa._id) {
-                            console.log(`DEBUG: Verificando guardado de criterio en programa ${programa._id}`);
-                            fetch(`/api/programas/${programa._id}/criterios`)
-                                .then(response => response.json())
-                                .then(data => {
-                                    console.log(`DEBUG: Verificación de guardado - Respuesta:`, data);
-                                })
-                                .catch(error => {
-                                    console.error(`DEBUG: Error al verificar guardado:`, error);
-                                });
-                        }
-                    }
-                });
         });
-    });
+        
+        observer.observe(universityModal, {
+            childList: true,
+            subtree: true
+        });
+        
+        console.log("DEBUG: MutationObserver configurado para el modal de universidad");
+    }
+    
+    // Función pública para reconfigurar manualmente
+    window.refreshCriteriaListeners = attachEventListeners;
     
     // Botón de prueba en consola para verificar criterios
     console.log("Para verificar criterios de un programa, ejecuta en la consola: verificarCriterios(id_del_programa)");
@@ -1810,14 +1831,17 @@ function updateCriteriaValue(elementId, value) {
     element.classList.remove('show');
     
     // Limpiar clases anteriores
-    element.classList.remove('criteria-1', 'criteria-2', 'criteria-3', 'criteria-4', 'criteria-5');
+    element.classList.remove('criteria-0', 'criteria-1', 'criteria-2', 'criteria-3', 'criteria-4', 'criteria-5');
     
-    if (value !== 'N/A' && !isNaN(value)) {
+    // Always show numeric value (including 0)
+    if (!isNaN(value)) {
         // Añadir clase según el valor
         element.classList.add(`criteria-${value}`);
         element.textContent = value;
     } else {
-        element.textContent = 'N/A';
+        // This should not happen anymore as all programs have criterios
+        element.textContent = '0';
+        element.classList.add('criteria-0');
     }
     
     // Forzar reflow
@@ -1827,16 +1851,27 @@ function updateCriteriaValue(elementId, value) {
     element.classList.add('show');
 }
 
-// Función para actualizar las bolitas de criterios
+// Función para actualizar las estrellas de criterios
 function updateCriteriaDots(containerId, value) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
-    // Actualizar las bolitas
+    // Actualizar las estrellas (antes eran dots, ahora son stars)
+    const stars = container.querySelectorAll('.criteria-star');
+    stars.forEach(star => {
+        const starValue = parseInt(star.getAttribute('data-value'));
+        if (!isNaN(value) && starValue <= parseInt(value)) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+    
+    // Fallback: también buscar dots para compatibilidad hacia atrás
     const dots = container.querySelectorAll('.criteria-dot');
     dots.forEach(dot => {
         const dotValue = parseInt(dot.getAttribute('data-value'));
-        if (value !== 'N/A' && !isNaN(value) && dotValue <= parseInt(value)) {
+        if (!isNaN(value) && dotValue <= parseInt(value)) {
             dot.classList.add('active');
         } else {
             dot.classList.remove('active');
@@ -1844,18 +1879,21 @@ function updateCriteriaDots(containerId, value) {
     });
     
     // Actualizar también los elementos de descripción de nivel
-    const criterion = container.querySelector('.criteria-dot').getAttribute('data-criterion');
-    const criterionBlock = container.closest('.criteria-block');
-    if (criterionBlock) {
-        const levelItems = criterionBlock.querySelectorAll('.criteria-level-item');
-        levelItems.forEach(item => {
-            const itemValue = parseInt(item.getAttribute('data-value'));
-            if (value !== 'N/A' && !isNaN(value) && itemValue === parseInt(value)) {
-                item.setAttribute('data-active', 'true');
-            } else {
-                item.removeAttribute('data-active');
-            }
-        });
+    const criterionElement = container.querySelector('.criteria-star') || container.querySelector('.criteria-dot');
+    if (criterionElement) {
+        const criterion = criterionElement.getAttribute('data-criterion');
+        const criterionBlock = container.closest('.criteria-block');
+        if (criterionBlock) {
+            const levelItems = criterionBlock.querySelectorAll('.criteria-level-item');
+            levelItems.forEach(item => {
+                const itemValue = parseInt(item.getAttribute('data-value'));
+                if (value !== 'N/A' && !isNaN(value) && itemValue === parseInt(value)) {
+                    item.setAttribute('data-active', 'true');
+                } else {
+                    item.removeAttribute('data-active');
+                }
+            });
+        }
     }
 }
 
@@ -1937,7 +1975,7 @@ async function saveCriterionToServer(criterion, value) {
         
         // Recalcular y actualizar promedio
         const promedio = calculateCriteriaAvg(programa.criterios);
-        updateCriteriaValue('criteriaPromedio', promedio);
+        // updateCriteriaValue('criteriaPromedio', promedio); // Removed - N/A labels no longer shown
         
         console.log(`Criterio ${criterion} actualizado a ${value} para programa ${programa._id}`);
     } catch (error) {
@@ -1973,22 +2011,343 @@ function closeInfoPanel() {
 
 // Populate table (obsoleto - mantenido para compatibilidad)
 function populateTable() {
-    console.log("Populate table called - now using DataTables instead");
+    console.log("Populating table with all programs");
     
-    // No hacemos nada aquí, ya que ahora usamos DataTables para gestionar la tabla
-    // Esta función se mantiene para compatibilidad con el código existente
+    const tableBody = document.getElementById('tableBody');
+    if (!tableBody) return;
     
-    // Si estamos en la vista de tabla, inicializamos DataTable
-    const activeTab = document.querySelector('.tab.active');
-    if (activeTab && activeTab.dataset.tab === 'tabla' && typeof initializeDataTable === 'function') {
-        // Dar tiempo para que el DOM se actualice
-        setTimeout(function() {
-            if (typeof $ !== 'undefined' && $('#programsDataTable').length) {
-                if (!$.fn.DataTable.isDataTable('#programsDataTable')) {
-                    initializeDataTable();
-                }
-            }
-        }, 100);
+    // Clear existing content
+    tableBody.innerHTML = '';
+    
+    // Collect all programs from all universities
+    let allPrograms = [];
+    universidadesData.programas_doctorado.universidades.forEach(universidad => {
+        universidad.programas.forEach(programa => {
+            allPrograms.push({
+                ...programa,
+                universidad: universidad.nombre,
+                ciudad: universidad.ciudad,
+                ciudad_metrics: universidad.ciudad_metrics,
+                stats: universidad.stats || programa.stats
+            });
+        });
+    });
+    
+    // Populate table rows
+    allPrograms.forEach(programa => {
+        const tr = document.createElement('tr');
+        tr.dataset.id = programa._id;
+        
+        // Calculate criterios average
+        const criteriosAvg = programa.criterios ? 
+            Object.values(programa.criterios).reduce((a, b) => a + b, 0) / Object.values(programa.criterios).length : 0;
+        
+        tr.innerHTML = `
+            <td>${programa.universidad}</td>
+            <td>${programa.ciudad}</td>
+            <td>${programa.nombre}</td>
+            <td>
+                <span class="status-badge status-${programa.status || 'pendiente'}">
+                    ${programa.status || 'pendiente'}
+                </span>
+            </td>
+            <td>${programa.calificacion ? programa.calificacion.valor : '-'}</td>
+            <td>${criteriosAvg.toFixed(1)}</td>
+            <td>
+                ${programa.url ? `<a href="${programa.url}" target="_blank">🔗</a>` : '-'}
+            </td>
+            <td>
+                <button class="btn-sm" onclick="showLineas('${programa._id}')">Ver</button>
+            </td>
+            <td>
+                <button class="btn-sm btn-edit" onclick="editProgram('${programa._id}')">✏️</button>
+                <button class="btn-sm btn-duplicate" onclick="duplicateProgram('${programa._id}')">📋</button>
+                <button class="btn-sm btn-delete" onclick="deleteProgram('${programa._id}')">🗑️</button>
+            </td>
+        `;
+        
+        tableBody.appendChild(tr);
+    });
+    
+    // Initialize DataTable if not already initialized
+    if (typeof $ !== 'undefined' && $.fn.DataTable) {
+        if (!$.fn.DataTable.isDataTable('#programsDataTable')) {
+            $('#programsDataTable').DataTable({
+                responsive: true,
+                pageLength: 25,
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                },
+                order: [[0, 'asc'], [2, 'asc']],
+                dom: 'Bfrtip',
+                buttons: ['copy', 'csv', 'excel', 'pdf']
+            });
+        }
+    }
+    
+    // Setup table filters
+    setupTableFilters();
+}
+
+// Setup table filters
+function setupTableFilters() {
+    const filters = {
+        universidad: document.getElementById('filterUniversidad'),
+        ciudad: document.getElementById('filterCiudad'),
+        programa: document.getElementById('filterPrograma'),
+        status: document.getElementById('filterStatus')
+    };
+    
+    // Add event listeners to filters
+    Object.values(filters).forEach(filter => {
+        if (filter) {
+            filter.addEventListener('input', applyTableFilters);
+            filter.addEventListener('change', applyTableFilters);
+        }
+    });
+}
+
+// Apply table filters
+function applyTableFilters() {
+    const filters = {
+        universidad: document.getElementById('filterUniversidad').value.toLowerCase(),
+        ciudad: document.getElementById('filterCiudad').value.toLowerCase(),
+        programa: document.getElementById('filterPrograma').value.toLowerCase(),
+        status: document.getElementById('filterStatus').value
+    };
+    
+    const rows = document.querySelectorAll('#tableBody tr');
+    rows.forEach(row => {
+        const universidad = row.cells[0].textContent.toLowerCase();
+        const ciudad = row.cells[1].textContent.toLowerCase();
+        const programa = row.cells[2].textContent.toLowerCase();
+        const status = row.querySelector('.status-badge').textContent.trim();
+        
+        const matchUniversidad = !filters.universidad || universidad.includes(filters.universidad);
+        const matchCiudad = !filters.ciudad || ciudad.includes(filters.ciudad);
+        const matchPrograma = !filters.programa || programa.includes(filters.programa);
+        const matchStatus = !filters.status || status === filters.status;
+        
+        row.style.display = matchUniversidad && matchCiudad && matchPrograma && matchStatus ? '' : 'none';
+    });
+}
+
+// Reset table filters
+window.resetTableFilters = function() {
+    document.getElementById('filterUniversidad').value = '';
+    document.getElementById('filterCiudad').value = '';
+    document.getElementById('filterPrograma').value = '';
+    document.getElementById('filterStatus').value = '';
+    applyTableFilters();
+}
+
+// Edit program
+window.editProgram = async function(programId) {
+    // Find the program data
+    let programData = null;
+    for (const uni of universidadesData.programas_doctorado.universidades) {
+        const prog = uni.programas.find(p => p._id === programId);
+        if (prog) {
+            programData = { ...prog, universidad: uni.nombre, ciudad: uni.ciudad };
+            break;
+        }
+    }
+    
+    if (!programData) return;
+    
+    // Populate the edit form
+    document.getElementById('editProgramId').value = programData._id;
+    document.getElementById('editUniversidad').value = programData.universidad;
+    document.getElementById('editCiudad').value = programData.ciudad;
+    document.getElementById('editPrograma').value = programData.nombre;
+    document.getElementById('editStatus').value = programData.status || 'pendiente';
+    document.getElementById('editUrl').value = programData.url || '';
+    document.getElementById('editLineas').value = programData.lineas_investigacion ? 
+        programData.lineas_investigacion.join('\n\n') : '';
+    document.getElementById('editResumen').value = programData.resumen || '';
+    document.getElementById('editCalificacion').value = programData.calificacion ? 
+        programData.calificacion.valor : '';
+    
+    // Populate criterios
+    if (programData.criterios) {
+        document.getElementById('editRelevancia').value = programData.criterios.relevancia || 0;
+        document.getElementById('editClaridad').value = programData.criterios.claridad || 0;
+        document.getElementById('editTransparencia').value = programData.criterios.transparencia || 0;
+        document.getElementById('editActividades').value = programData.criterios.actividades || 0;
+        document.getElementById('editResultados').value = programData.criterios.resultados || 0;
+    }
+    
+    // Show modal
+    document.getElementById('editProgramModal').style.display = 'block';
+}
+
+// Close edit modal
+window.closeEditModal = function() {
+    document.getElementById('editProgramModal').style.display = 'none';
+}
+
+// Handle edit form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const editForm = document.getElementById('editProgramForm');
+    if (editForm) {
+        editForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const programId = document.getElementById('editProgramId').value;
+    const updates = {
+        universidad: document.getElementById('editUniversidad').value,
+        ciudad: document.getElementById('editCiudad').value,
+        programa: document.getElementById('editPrograma').value,
+        status: document.getElementById('editStatus').value,
+        url: document.getElementById('editUrl').value,
+        linea_investigacion: document.getElementById('editLineas').value,
+        resumen: document.getElementById('editResumen').value
+    };
+    
+    // Add calificacion if provided
+    const calificacionValue = document.getElementById('editCalificacion').value;
+    if (calificacionValue) {
+        updates.calificacion = {
+            valor: parseInt(calificacionValue),
+            fecha: new Date().toISOString()
+        };
+    }
+    
+    // Add criterios
+    updates.criterios = {
+        relevancia: parseInt(document.getElementById('editRelevancia').value) || 0,
+        claridad: parseInt(document.getElementById('editClaridad').value) || 0,
+        transparencia: parseInt(document.getElementById('editTransparencia').value) || 0,
+        actividades: parseInt(document.getElementById('editActividades').value) || 0,
+        resultados: parseInt(document.getElementById('editResultados').value) || 0
+    };
+    
+    try {
+        const response = await fetch(`${PROGRAMAS_URL}/${programId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+        
+        if (response.ok) {
+            alert('Programa actualizado exitosamente');
+            closeEditModal();
+            await fetchUniversidadesData();
+            populateTable();
+        } else {
+            alert('Error al actualizar el programa');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al actualizar el programa');
+    }
+        });
+    }
+});
+
+// Duplicate program
+window.duplicateProgram = async function(programId) {
+    if (!confirm('¿Deseas duplicar este programa?')) return;
+    
+    // Find the program data
+    let programData = null;
+    for (const uni of universidadesData.programas_doctorado.universidades) {
+        const prog = uni.programas.find(p => p._id === programId);
+        if (prog) {
+            programData = { ...prog, universidad: uni.nombre, ciudad: uni.ciudad };
+            break;
+        }
+    }
+    
+    if (!programData) return;
+    
+    // Create duplicate
+    const newProgram = {
+        universidad: programData.universidad,
+        ciudad: programData.ciudad,
+        programa: programData.nombre + ' (Copia)',
+        linea_investigacion: programData.linea_investigacion || '',
+        url: programData.url || '',
+        status: 'pendiente',
+        criterios: programData.criterios || {
+            relevancia: 0,
+            claridad: 0,
+            transparencia: 0,
+            actividades: 0,
+            resultados: 0
+        }
+    };
+    
+    try {
+        const response = await fetch(PROGRAMAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newProgram)
+        });
+        
+        if (response.ok) {
+            alert('Programa duplicado exitosamente');
+            await fetchUniversidadesData();
+            populateTable();
+        } else {
+            alert('Error al duplicar el programa');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al duplicar el programa');
+    }
+}
+
+// Delete program
+window.deleteProgram = async function(programId) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este programa?')) return;
+    
+    try {
+        const response = await fetch(`${PROGRAMAS_URL}/${programId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            alert('Programa eliminado exitosamente');
+            await fetchUniversidadesData();
+            populateTable();
+        } else {
+            alert('Error al eliminar el programa');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al eliminar el programa');
+    }
+}
+
+// Show lineas de investigacion
+window.showLineas = function(programId) {
+    // Find the program data
+    let programData = null;
+    for (const uni of universidadesData.programas_doctorado.universidades) {
+        const prog = uni.programas.find(p => p._id === programId);
+        if (prog) {
+            programData = prog;
+            break;
+        }
+    }
+    
+    if (!programData || !programData.lineas_investigacion) {
+        alert('No hay líneas de investigación disponibles');
+        return;
+    }
+    
+    const lineas = programData.lineas_investigacion.join('\n\n');
+    alert(`Líneas de Investigación:\n\n${lineas}`);
+}
+
+// Export table
+window.exportarTabla = function() {
+    if (typeof $ !== 'undefined' && $.fn.DataTable.isDataTable('#programsDataTable')) {
+        const table = $('#programsDataTable').DataTable();
+        table.button('.buttons-excel').trigger();
+    } else {
+        alert('La función de exportación requiere DataTables');
     }
 }
 
@@ -2419,18 +2778,30 @@ function filterProgramsToRate() {
 function updateRankings() {
     console.log("Updating rankings...");
     
-    // Get all rated programs
+    // Get all rated programs with criterios
     const ratedPrograms = [];
     
     universidadesData.programas_doctorado.universidades.forEach(universidad => {
         universidad.programas.forEach(programa => {
             if (programa.calificacion && programa.calificacion.valor) {
+                // Calculate criterios average
+                let criteriosAvg = 0;
+                let criteriosData = null;
+                
+                if (programa.criterios) {
+                    const criteriosValues = Object.values(programa.criterios);
+                    criteriosAvg = criteriosValues.reduce((a, b) => a + b, 0) / criteriosValues.length;
+                    criteriosData = programa.criterios;
+                }
+                
                 ratedPrograms.push({
                     id: programa._id,
                     nombre: programa.nombre,
                     universidad: universidad.nombre,
                     ciudad: universidad.ciudad,
                     rating: programa.calificacion.valor,
+                    criterios: criteriosData,
+                    criteriosAvg: criteriosAvg,
                     fecha: programa.calificacion.fecha || new Date().toISOString(),
                     status: programa.status || 'pendiente',
                     favorite: programa.favorite || false
@@ -2439,8 +2810,11 @@ function updateRankings() {
         });
     });
     
-    // Update stats
+    // Update stats including criteria
     updateRankingStats(ratedPrograms);
+    
+    // Update criteria stats
+    updateCriteriaStats(ratedPrograms);
     
     // Sort by rating (highest first)
     ratedPrograms.sort((a, b) => b.rating - a.rating);
@@ -2451,8 +2825,9 @@ function updateRankings() {
     // Update ranking filters
     updateRankingFilters();
     
-    // Update distribution chart
+    // Update all charts
     updateDistributionChart(ratedPrograms);
+    updateCriteriaCharts(ratedPrograms);
 }
 
 // Update ranking stats
@@ -2528,6 +2903,279 @@ function updateRankingStats(ratedPrograms) {
     document.getElementById('topCiudad').textContent = topCity;
 }
 
+// Update criteria stats
+function updateCriteriaStats(ratedPrograms) {
+    const criteriaKeys = ['relevancia', 'claridad', 'transparencia', 'actividades', 'resultados'];
+    const criteriaTotals = {
+        relevancia: { sum: 0, count: 0 },
+        claridad: { sum: 0, count: 0 },
+        transparencia: { sum: 0, count: 0 },
+        actividades: { sum: 0, count: 0 },
+        resultados: { sum: 0, count: 0 }
+    };
+    
+    // Calculate sums and counts
+    ratedPrograms.forEach(program => {
+        if (program.criterios) {
+            criteriaKeys.forEach(key => {
+                if (program.criterios[key] !== undefined && program.criterios[key] !== null) {
+                    criteriaTotals[key].sum += program.criterios[key];
+                    criteriaTotals[key].count++;
+                }
+            });
+        }
+    });
+    
+    // Calculate averages and update UI
+    let totalAvg = 0;
+    let totalCount = 0;
+    
+    criteriaKeys.forEach(key => {
+        const avg = criteriaTotals[key].count > 0 ? 
+            (criteriaTotals[key].sum / criteriaTotals[key].count) : 0;
+        
+        // Update average display
+        const avgElement = document.getElementById(`avg${key.charAt(0).toUpperCase() + key.slice(1)}`);
+        if (avgElement) {
+            avgElement.textContent = avg.toFixed(1);
+        }
+        
+        // Update progress bar
+        const barElement = document.getElementById(`bar${key.charAt(0).toUpperCase() + key.slice(1)}`);
+        if (barElement) {
+            barElement.style.width = `${(avg / 5) * 100}%`;
+        }
+        
+        if (criteriaTotals[key].count > 0) {
+            totalAvg += avg;
+            totalCount++;
+        }
+    });
+    
+    // Update total average
+    const overallAvg = totalCount > 0 ? (totalAvg / totalCount) : 0;
+    const avgTotalElement = document.getElementById('avgCriteriosTotal');
+    if (avgTotalElement) {
+        avgTotalElement.textContent = overallAvg.toFixed(1);
+    }
+    
+    const barTotalElement = document.getElementById('barCriteriosTotal');
+    if (barTotalElement) {
+        barTotalElement.style.width = `${(overallAvg / 5) * 100}%`;
+    }
+}
+
+// Update criteria charts
+function updateCriteriaCharts(ratedPrograms) {
+    // Update radar chart
+    updateCriteriaRadarChart(ratedPrograms);
+    
+    // Update comparison chart
+    updateCriteriaComparisonChart(ratedPrograms);
+    
+    // Update correlation chart
+    updateCorrelationChart(ratedPrograms);
+}
+
+// Update criteria radar chart
+function updateCriteriaRadarChart(ratedPrograms) {
+    const ctx = document.getElementById('criteriaRadarChart');
+    if (!ctx) return;
+    
+    // Group by university and calculate averages
+    const universityData = {};
+    
+    ratedPrograms.forEach(program => {
+        if (program.criterios) {
+            if (!universityData[program.universidad]) {
+                universityData[program.universidad] = {
+                    relevancia: [],
+                    claridad: [],
+                    transparencia: [],
+                    actividades: [],
+                    resultados: []
+                };
+            }
+            
+            Object.keys(program.criterios).forEach(key => {
+                if (program.criterios[key] !== undefined && program.criterios[key] !== null) {
+                    universityData[program.universidad][key].push(program.criterios[key]);
+                }
+            });
+        }
+    });
+    
+    // Calculate averages and prepare datasets
+    const datasets = [];
+    const colors = ['rgba(255, 99, 132, 0.5)', 'rgba(54, 162, 235, 0.5)', 'rgba(255, 205, 86, 0.5)', 
+                    'rgba(75, 192, 192, 0.5)', 'rgba(153, 102, 255, 0.5)'];
+    let colorIndex = 0;
+    
+    Object.keys(universityData).slice(0, 5).forEach(universidad => {
+        const data = [];
+        ['relevancia', 'claridad', 'transparencia', 'actividades', 'resultados'].forEach(key => {
+            const values = universityData[universidad][key];
+            const avg = values.length > 0 ? 
+                values.reduce((a, b) => a + b, 0) / values.length : 0;
+            data.push(avg);
+        });
+        
+        datasets.push({
+            label: universidad,
+            data: data,
+            backgroundColor: colors[colorIndex % colors.length],
+            borderColor: colors[colorIndex % colors.length].replace('0.5', '1'),
+            borderWidth: 2
+        });
+        colorIndex++;
+    });
+    
+    // Create or update chart
+    if (window.criteriaRadarChartInstance) {
+        window.criteriaRadarChartInstance.destroy();
+    }
+    
+    window.criteriaRadarChartInstance = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Relevancia', 'Claridad', 'Transparencia', 'Actividades', 'Resultados'],
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scale: {
+                ticks: {
+                    beginAtZero: true,
+                    max: 5
+                }
+            }
+        }
+    });
+}
+
+// Update criteria comparison chart
+function updateCriteriaComparisonChart(ratedPrograms) {
+    const ctx = document.getElementById('criteriaComparisonChart');
+    if (!ctx) return;
+    
+    // Calculate averages for each criterion
+    const criteriaAverages = {
+        relevancia: [],
+        claridad: [],
+        transparencia: [],
+        actividades: [],
+        resultados: []
+    };
+    
+    ratedPrograms.forEach(program => {
+        if (program.criterios) {
+            Object.keys(criteriaAverages).forEach(key => {
+                if (program.criterios[key] !== undefined && program.criterios[key] !== null) {
+                    criteriaAverages[key].push(program.criterios[key]);
+                }
+            });
+        }
+    });
+    
+    const data = [];
+    const labels = [];
+    
+    Object.keys(criteriaAverages).forEach(key => {
+        const values = criteriaAverages[key];
+        if (values.length > 0) {
+            const avg = values.reduce((a, b) => a + b, 0) / values.length;
+            data.push(avg);
+            labels.push(key.charAt(0).toUpperCase() + key.slice(1));
+        }
+    });
+    
+    // Create or update chart
+    if (window.criteriaComparisonChartInstance) {
+        window.criteriaComparisonChartInstance.destroy();
+    }
+    
+    window.criteriaComparisonChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Promedio de Criterios',
+                data: data,
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 5
+                }
+            }
+        }
+    });
+}
+
+// Update correlation chart
+function updateCorrelationChart(ratedPrograms) {
+    const ctx = document.getElementById('correlationChart');
+    if (!ctx) return;
+    
+    // Prepare scatter data
+    const scatterData = ratedPrograms
+        .filter(p => p.criteriosAvg > 0)
+        .map(p => ({
+            x: p.criteriosAvg,
+            y: p.rating
+        }));
+    
+    // Create or update chart
+    if (window.correlationChartInstance) {
+        window.correlationChartInstance.destroy();
+    }
+    
+    window.correlationChartInstance = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'Calificación vs Promedio de Criterios',
+                data: scatterData,
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: {
+                        display: true,
+                        text: 'Promedio de Criterios'
+                    },
+                    min: 0,
+                    max: 5
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Calificación'
+                    },
+                    min: 0,
+                    max: 10
+                }
+            }
+        }
+    });
+}
+
 // Update ranking filters
 function updateRankingFilters() {
     const universitySelect = document.getElementById('rankingUniversityFilter');
@@ -2582,7 +3230,7 @@ function populateRankingTable(ratedPrograms) {
     
     // Show message if no rated programs
     if (ratedPrograms.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="no-data">No hay programas calificados</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="9" class="no-data">No hay programas calificados</td></tr>';
         return;
     }
     
@@ -2609,6 +3257,26 @@ function populateRankingTable(ratedPrograms) {
         const date = new Date(program.fecha);
         const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
         
+        // Create mini criteria display
+        let criteriaHTML = '';
+        if (program.criterios) {
+            const criteriaValues = [
+                program.criterios.relevancia || 0,
+                program.criterios.claridad || 0,
+                program.criterios.transparencia || 0,
+                program.criterios.actividades || 0,
+                program.criterios.resultados || 0
+            ];
+            criteriaHTML = criteriaValues.map(v => `<span class="mini-criteria">${v}</span>`).join(' ');
+        } else {
+            criteriaHTML = '<span class="no-criteria">Sin criterios</span>';
+        }
+        
+        // Calculate combined score (60% calificacion + 40% criterios)
+        const combinedScore = program.criteriosAvg > 0 ? 
+            (program.rating * 0.6 + (program.criteriosAvg * 2) * 0.4).toFixed(1) : 
+            program.rating.toFixed(1);
+        
         row.innerHTML = `
             <td>${index + 1}</td>
             <td>${program.nombre}</td>
@@ -2619,6 +3287,13 @@ function populateRankingTable(ratedPrograms) {
                     ${getStarsHTML(program.rating)}
                 </div>
             </td>
+            <td>
+                <div class="criteria-display">
+                    ${criteriaHTML}
+                </div>
+                <div class="criteria-avg-label">Promedio: ${program.criteriosAvg.toFixed(1)}</div>
+            </td>
+            <td class="combined-score">${combinedScore}</td>
             <td>${formattedDate}</td>
             <td>
                 <button class="view-program-btn" data-id="${program.id}">Ver</button>
@@ -3376,3 +4051,212 @@ async function fixGeographicData() {
         }, 1000);
     }
 }
+
+// Show criteria rating confirmation modal
+function showCriteriaConfirmation(programId, criterion, value) {
+    const criteriaNames = {
+        relevancia: "Relevancia personal y afinidad temática",
+        claridad: "Claridad y especificidad de las líneas de investigación", 
+        transparencia: "Transparencia en información y procesos",
+        actividades: "Estructura y variedad de actividades formativas",
+        resultados: "Transparencia en resultados y calidad"
+    };
+    
+    // Set modal content
+    document.getElementById('criteria-name').textContent = criteriaNames[criterion] || criterion;
+    document.getElementById('criteria-rating-stars').innerHTML = '★'.repeat(value) + '☆'.repeat(5 - value);
+    document.getElementById('criteria-rating-value').textContent = value;
+    document.getElementById('criteria-program-id').value = programId;
+    document.getElementById('criteria-criterion').value = criterion;
+    document.getElementById('criteria-value').value = value;
+    
+    // Show modal
+    document.getElementById('criteria-rating-modal').style.display = 'block';
+}
+
+// Close criteria rating modal
+function closeCriteriaModal() {
+    document.getElementById('criteria-rating-modal').style.display = 'none';
+}
+
+// Confirm criteria rating
+async function confirmCriteriaRating() {
+    const programId = document.getElementById('criteria-program-id').value;
+    const criterion = document.getElementById('criteria-criterion').value;
+    const value = parseInt(document.getElementById('criteria-value').value);
+    
+    console.log(`DEBUG confirmCriteriaRating: Guardando criterio ${criterion}=${value} para programa ${programId}`);
+    
+    try {
+        // Update the server
+        await saveCriterionToServer(criterion, value, programId);
+        
+        // Update the UI
+        updateCriteriaStars(criterion, value);
+        updateCriteriaValue(criterion, value);
+        updateCriteriaAverage();
+        
+        // Close modal
+        closeCriteriaModal();
+        
+        // Show success message
+        alert(`Criterio "${criterion}" calificado con ${value} estrellas correctamente.`);
+        
+    } catch (error) {
+        console.error('Error saving criteria rating:', error);
+        alert(`Error al guardar calificación: ${error.message}`);
+    }
+}
+
+// Save criterion to server
+async function saveCriterionToServer(criterion, value, programId = null) {
+    console.log(`DEBUG saveCriterionToServer: criterion=${criterion}, value=${value}, programId=${programId}`);
+    
+    // Use provided programId or get from current program
+    let targetProgramId = programId;
+    if (!targetProgramId && currentUniversidad && currentProgramIndex !== undefined) {
+        const programIndex = Number(currentProgramIndex);
+        if (programIndex >= 0 && programIndex < currentUniversidad.programas.length) {
+            targetProgramId = currentUniversidad.programas[programIndex]._id;
+        }
+    }
+    
+    if (!targetProgramId) {
+        console.error('DEBUG saveCriterionToServer: No program ID available');
+        throw new Error('No se pudo identificar el programa');
+    }
+    
+    // Get current criterios from the program
+    let currentCriterios = {};
+    if (currentUniversidad && currentProgramIndex !== undefined) {
+        const programIndex = Number(currentProgramIndex);
+        if (programIndex >= 0 && programIndex < currentUniversidad.programas.length) {
+            currentCriterios = currentUniversidad.programas[programIndex].criterios || {};
+        }
+    }
+    
+    // Prepare update data with the complete criterios object
+    const updatedCriterios = {
+        ...currentCriterios,
+        [criterion]: value
+    };
+    
+    const updateData = {
+        criterios: updatedCriterios
+    };
+    
+    console.log(`DEBUG saveCriterionToServer: Enviando a servidor:`, updateData);
+    
+    const response = await fetch(`/api/programas/${targetProgramId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updateData)
+    });
+    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('DEBUG saveCriterionToServer: Server response:', result);
+    
+    // Update local data
+    if (currentUniversidad && currentProgramIndex !== undefined) {
+        const programIndex = Number(currentProgramIndex);
+        if (programIndex >= 0 && programIndex < currentUniversidad.programas.length) {
+            if (!currentUniversidad.programas[programIndex].criterios) {
+                currentUniversidad.programas[programIndex].criterios = {};
+            }
+            currentUniversidad.programas[programIndex].criterios[criterion] = value;
+        }
+    }
+    
+    return result;
+}
+
+// Update criteria stars UI
+function updateCriteriaStars(criterion, value) {
+    const starsContainer = document.getElementById(`view-criteria-${criterion}-stars`);
+    if (!starsContainer) return;
+    
+    const stars = starsContainer.querySelectorAll('.criteria-star');
+    stars.forEach((star, index) => {
+        if (index < value) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+}
+
+// Update criteria value display
+function updateCriteriaValue(criterion, value) {
+    const valueElement = document.getElementById(`criteria${criterion.charAt(0).toUpperCase() + criterion.slice(1)}`);
+    if (valueElement) {
+        valueElement.textContent = value;
+        valueElement.className = `current-value criteria-${value} show`;
+    }
+}
+
+// Update criteria average
+function updateCriteriaAverage() {
+    console.log('DEBUG updateCriteriaAverage called');
+    
+    if (!currentUniversidad || currentProgramIndex === undefined) {
+        console.log('DEBUG updateCriteriaAverage - No universidad or program index');
+        return;
+    }
+    
+    const programIndex = Number(currentProgramIndex);
+    if (programIndex < 0 || programIndex >= currentUniversidad.programas.length) {
+        console.log('DEBUG updateCriteriaAverage - Invalid program index');
+        return;
+    }
+    
+    const programa = currentUniversidad.programas[programIndex];
+    if (!programa.criterios) {
+        console.log('DEBUG updateCriteriaAverage - No criterios in program');
+        return;
+    }
+    
+    const criterios = programa.criterios;
+    const values = Object.values(criterios).filter(v => v !== undefined && v !== null && !isNaN(v));
+    
+    console.log('DEBUG updateCriteriaAverage - values:', values);
+    
+    if (values.length > 0) {
+        const sum = values.reduce((a, b) => Number(a) + Number(b), 0);
+        const average = (sum / values.length).toFixed(1);
+        console.log('DEBUG updateCriteriaAverage - calculated average:', average);
+        
+        const avgElement = document.getElementById('criteriaPromedio');
+        if (avgElement) {
+            avgElement.textContent = average;
+            avgElement.className = `value criteria-value criteria-avg show`;
+        }
+    } else {
+        console.log('DEBUG updateCriteriaAverage - No valid values to calculate average');
+    }
+}
+
+// Setup criteria modal events
+document.addEventListener('DOMContentLoaded', function() {
+    // Close modal events
+    const closeModalBtn = document.querySelector('.close-criteria-modal');
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeCriteriaModal);
+    }
+    
+    const cancelBtn = document.getElementById('cancel-criteria-rating');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeCriteriaModal);
+    }
+    
+    // Confirm button
+    const confirmBtn = document.getElementById('confirm-criteria-rating');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', confirmCriteriaRating);
+    }
+});

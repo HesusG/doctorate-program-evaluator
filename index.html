@@ -160,53 +160,64 @@
             <!-- Vista Tabla -->
             <div id="tabla-view" class="view hidden">
                 <div class="table-header">
-                    <h3>Universidades y Programas</h3>
+                    <h3>Todos los Programas de Doctorado</h3>
                     <div class="table-actions">
-                        <button class="add-btn" onclick="agregarUniversidad()">+ Agregar Universidad</button>
                         <button class="add-program-btn" onclick="mostrarAgregarPrograma()">+ Agregar Programa</button>
-                        <button class="save-btn" id="saveTableChanges">💾 Guardar Cambios</button>
+                        <button class="export-btn" onclick="exportarTabla()">📥 Exportar</button>
                     </div>
                 </div>
                 
-                <!-- Panel principal de universidades -->
-                <div class="universities-container">
-                    <!-- Las universidades se cargarán dinámicamente -->
-                </div>
-                
-                <!-- Paginación para universidades -->
-                <div class="universities-pagination">
-                    <button class="pagination-btn pagination-prev" disabled>&lt; Anterior</button>
-                    <span class="pagination-info">Página <span class="current-page">1</span> de <span class="total-pages">1</span></span>
-                    <button class="pagination-btn pagination-next" disabled>Siguiente &gt;</button>
-                </div>
-                
-                <!-- Plantilla para los paneles de universidad -->
-                <template id="university-panel-template">
-                    <div class="university-panel">
-                        <div class="university-header">
-                            <div class="university-title-section">
-                                <button class="toggle-university-btn">▼</button>
-                                <h4 class="university-name">Nombre de Universidad</h4>
-                            </div>
-                            <div class="university-meta">
-                                <span class="university-city">Ciudad</span>
-                                <span class="program-count">0 programas</span>
-                            </div>
-                            <div class="university-actions">
-                                <button class="add-program-uni-btn">+ Programa</button>
-                                <button class="edit-university-btn">✏️ Editar</button>
-                            </div>
+                <!-- Filtros mejorados -->
+                <div class="table-filters">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Universidad:</label>
+                            <input type="text" id="filterUniversidad" placeholder="Filtrar por universidad...">
                         </div>
-                        <div class="programs-container hidden">
-                            <!-- Los programas se cargarán dinámicamente -->
+                        <div class="filter-group">
+                            <label>Ciudad:</label>
+                            <input type="text" id="filterCiudad" placeholder="Filtrar por ciudad...">
                         </div>
-                        <div class="university-pagination">
-                            <button class="pagination-prev" disabled>← Anterior</button>
-                            <span class="pagination-info">Página <span class="current-page">1</span> de <span class="total-pages">1</span></span>
-                            <button class="pagination-next" disabled>Siguiente →</button>
+                        <div class="filter-group">
+                            <label>Programa:</label>
+                            <input type="text" id="filterPrograma" placeholder="Filtrar por programa...">
                         </div>
+                        <div class="filter-group">
+                            <label>Status:</label>
+                            <select id="filterStatus">
+                                <option value="">Todos</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="considerando">Considerando</option>
+                                <option value="interesado">Interesado</option>
+                                <option value="aplicando">Aplicando</option>
+                                <option value="descartado">Descartado</option>
+                            </select>
+                        </div>
+                        <button class="reset-filters-btn" onclick="resetTableFilters()">🔄 Limpiar Filtros</button>
                     </div>
-                </template>
+                </div>
+                
+                <!-- Tabla de datos -->
+                <div class="table-container">
+                    <table id="programsDataTable" class="display">
+                        <thead>
+                            <tr>
+                                <th>Universidad</th>
+                                <th>Ciudad</th>
+                                <th>Programa</th>
+                                <th>Status</th>
+                                <th>Calificación</th>
+                                <th>Criterios</th>
+                                <th>URL</th>
+                                <th>Líneas</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Los datos se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
                 
                 <!-- Plantilla para las tarjetas de programa -->
                 <template id="program-card-template">
@@ -343,6 +354,90 @@
                         </div>
                     </div>
                 </template>
+                
+                <!-- Modal para Editar Programa -->
+                <div id="editProgramModal" class="modal">
+                    <div class="modal-content modal-lg">
+                        <div class="modal-header">
+                            <h4>Editar Programa</h4>
+                            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+                        </div>
+                        <div class="modal-body">
+                            <form id="editProgramForm">
+                                <input type="hidden" id="editProgramId">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Universidad:</label>
+                                        <input type="text" id="editUniversidad" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Ciudad:</label>
+                                        <input type="text" id="editCiudad" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Programa:</label>
+                                        <input type="text" id="editPrograma" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Status:</label>
+                                        <select id="editStatus">
+                                            <option value="pendiente">Pendiente</option>
+                                            <option value="considerando">Considerando</option>
+                                            <option value="interesado">Interesado</option>
+                                            <option value="aplicando">Aplicando</option>
+                                            <option value="descartado">Descartado</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label>URL:</label>
+                                        <input type="url" id="editUrl">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label>Líneas de Investigación:</label>
+                                        <textarea id="editLineas" rows="4"></textarea>
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label>Resumen:</label>
+                                        <textarea id="editResumen" rows="3"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Calificación (1-10):</label>
+                                        <input type="number" id="editCalificacion" min="1" max="10">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label>Criterios:</label>
+                                        <div class="criterios-grid">
+                                            <div>
+                                                <label>Relevancia:</label>
+                                                <input type="number" id="editRelevancia" min="0" max="5">
+                                            </div>
+                                            <div>
+                                                <label>Claridad:</label>
+                                                <input type="number" id="editClaridad" min="0" max="5">
+                                            </div>
+                                            <div>
+                                                <label>Transparencia:</label>
+                                                <input type="number" id="editTransparencia" min="0" max="5">
+                                            </div>
+                                            <div>
+                                                <label>Actividades:</label>
+                                                <input type="number" id="editActividades" min="0" max="5">
+                                            </div>
+                                            <div>
+                                                <label>Resultados:</label>
+                                                <input type="number" id="editResultados" min="0" max="5">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-actions">
+                                    <button type="submit" class="save-btn">Guardar Cambios</button>
+                                    <button type="button" class="cancel-btn" onclick="closeEditModal()">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Modal de Confirmación para Guardar -->
@@ -814,6 +909,55 @@
                                 <div class="stats-text" id="topCiudad">-</div>
                             </div>
                         </div>
+                        
+                        <!-- Nuevas estadísticas de criterios -->
+                        <div class="criteria-stats-section">
+                            <h4>Promedios de Criterios</h4>
+                            <div class="criteria-stats-grid">
+                                <div class="criteria-stat-card">
+                                    <h5>Relevancia</h5>
+                                    <div class="criteria-avg" id="avgRelevancia">0.0</div>
+                                    <div class="criteria-bar">
+                                        <div class="criteria-bar-fill" id="barRelevancia" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="criteria-stat-card">
+                                    <h5>Claridad</h5>
+                                    <div class="criteria-avg" id="avgClaridad">0.0</div>
+                                    <div class="criteria-bar">
+                                        <div class="criteria-bar-fill" id="barClaridad" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="criteria-stat-card">
+                                    <h5>Transparencia</h5>
+                                    <div class="criteria-avg" id="avgTransparencia">0.0</div>
+                                    <div class="criteria-bar">
+                                        <div class="criteria-bar-fill" id="barTransparencia" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="criteria-stat-card">
+                                    <h5>Actividades</h5>
+                                    <div class="criteria-avg" id="avgActividades">0.0</div>
+                                    <div class="criteria-bar">
+                                        <div class="criteria-bar-fill" id="barActividades" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="criteria-stat-card">
+                                    <h5>Resultados</h5>
+                                    <div class="criteria-avg" id="avgResultados">0.0</div>
+                                    <div class="criteria-bar">
+                                        <div class="criteria-bar-fill" id="barResultados" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="criteria-stat-card">
+                                    <h5>Promedio Total</h5>
+                                    <div class="criteria-avg total" id="avgCriteriosTotal">0.0</div>
+                                    <div class="criteria-bar">
+                                        <div class="criteria-bar-fill total" id="barCriteriosTotal" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="ranking-table-container">
@@ -826,6 +970,8 @@
                                     <th>Universidad</th>
                                     <th>Ciudad</th>
                                     <th>Calificación</th>
+                                    <th>Criterios</th>
+                                    <th>Promedio Total</th>
                                     <th>Fecha</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -833,16 +979,39 @@
                             <tbody id="rankingTableBody">
                                 <!-- Ranking rows will be added here -->
                                 <tr>
-                                    <td colspan="7" class="no-data">No hay programas calificados</td>
+                                    <td colspan="9" class="no-data">No hay programas calificados</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                     
-                    <div class="chart-section">
-                        <h4>Distribución de Calificaciones</h4>
-                        <div class="chart-container">
-                            <canvas id="gradesDistributionChart"></canvas>
+                    <div class="charts-grid">
+                        <div class="chart-section">
+                            <h4>Distribución de Calificaciones</h4>
+                            <div class="chart-container">
+                                <canvas id="gradesDistributionChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-section">
+                            <h4>Análisis de Criterios por Universidad</h4>
+                            <div class="chart-container">
+                                <canvas id="criteriaRadarChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-section">
+                            <h4>Comparación de Criterios</h4>
+                            <div class="chart-container">
+                                <canvas id="criteriaComparisonChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-section">
+                            <h4>Correlación Calificación vs Criterios</h4>
+                            <div class="chart-container">
+                                <canvas id="correlationChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1060,13 +1229,12 @@
                                     </div>
                                     <div class="criteria-rating-inline">
                                         <div class="criteria-stars" id="view-criteria-relevancia-stars">
-                                            <span class="criteria-dot" data-criterion="relevancia" data-value="1">●</span>
-                                            <span class="criteria-dot" data-criterion="relevancia" data-value="2">●</span>
-                                            <span class="criteria-dot" data-criterion="relevancia" data-value="3">●</span>
-                                            <span class="criteria-dot" data-criterion="relevancia" data-value="4">●</span>
-                                            <span class="criteria-dot" data-criterion="relevancia" data-value="5">●</span>
+                                            <span class="criteria-star" data-criterion="relevancia" data-value="1">★</span>
+                                            <span class="criteria-star" data-criterion="relevancia" data-value="2">★</span>
+                                            <span class="criteria-star" data-criterion="relevancia" data-value="3">★</span>
+                                            <span class="criteria-star" data-criterion="relevancia" data-value="4">★</span>
+                                            <span class="criteria-star" data-criterion="relevancia" data-value="5">★</span>
                                         </div>
-                                        <span class="current-value" id="criteriaRelevancia">N/A</span>
                                     </div>
                                     <div class="criteria-levels">
                                         <div class="criteria-level-item" data-value="1">
@@ -1098,13 +1266,12 @@
                                     </div>
                                     <div class="criteria-rating-inline">
                                         <div class="criteria-stars" id="view-criteria-claridad-stars">
-                                            <span class="criteria-dot" data-criterion="claridad" data-value="1">●</span>
-                                            <span class="criteria-dot" data-criterion="claridad" data-value="2">●</span>
-                                            <span class="criteria-dot" data-criterion="claridad" data-value="3">●</span>
-                                            <span class="criteria-dot" data-criterion="claridad" data-value="4">●</span>
-                                            <span class="criteria-dot" data-criterion="claridad" data-value="5">●</span>
+                                            <span class="criteria-star" data-criterion="claridad" data-value="1">★</span>
+                                            <span class="criteria-star" data-criterion="claridad" data-value="2">★</span>
+                                            <span class="criteria-star" data-criterion="claridad" data-value="3">★</span>
+                                            <span class="criteria-star" data-criterion="claridad" data-value="4">★</span>
+                                            <span class="criteria-star" data-criterion="claridad" data-value="5">★</span>
                                         </div>
-                                        <span class="current-value" id="criteriaClaridad">N/A</span>
                                     </div>
                                     <div class="criteria-levels">
                                         <div class="criteria-level-item" data-value="1">
@@ -1136,13 +1303,12 @@
                                     </div>
                                     <div class="criteria-rating-inline">
                                         <div class="criteria-stars" id="view-criteria-transparencia-stars">
-                                            <span class="criteria-dot" data-criterion="transparencia" data-value="1">●</span>
-                                            <span class="criteria-dot" data-criterion="transparencia" data-value="2">●</span>
-                                            <span class="criteria-dot" data-criterion="transparencia" data-value="3">●</span>
-                                            <span class="criteria-dot" data-criterion="transparencia" data-value="4">●</span>
-                                            <span class="criteria-dot" data-criterion="transparencia" data-value="5">●</span>
+                                            <span class="criteria-star" data-criterion="transparencia" data-value="1">★</span>
+                                            <span class="criteria-star" data-criterion="transparencia" data-value="2">★</span>
+                                            <span class="criteria-star" data-criterion="transparencia" data-value="3">★</span>
+                                            <span class="criteria-star" data-criterion="transparencia" data-value="4">★</span>
+                                            <span class="criteria-star" data-criterion="transparencia" data-value="5">★</span>
                                         </div>
-                                        <span class="current-value" id="criteriaTransparencia">N/A</span>
                                     </div>
                                     <div class="criteria-levels">
                                         <div class="criteria-level-item" data-value="1">
@@ -1174,13 +1340,12 @@
                                     </div>
                                     <div class="criteria-rating-inline">
                                         <div class="criteria-stars" id="view-criteria-actividades-stars">
-                                            <span class="criteria-dot" data-criterion="actividades" data-value="1">●</span>
-                                            <span class="criteria-dot" data-criterion="actividades" data-value="2">●</span>
-                                            <span class="criteria-dot" data-criterion="actividades" data-value="3">●</span>
-                                            <span class="criteria-dot" data-criterion="actividades" data-value="4">●</span>
-                                            <span class="criteria-dot" data-criterion="actividades" data-value="5">●</span>
+                                            <span class="criteria-star" data-criterion="actividades" data-value="1">★</span>
+                                            <span class="criteria-star" data-criterion="actividades" data-value="2">★</span>
+                                            <span class="criteria-star" data-criterion="actividades" data-value="3">★</span>
+                                            <span class="criteria-star" data-criterion="actividades" data-value="4">★</span>
+                                            <span class="criteria-star" data-criterion="actividades" data-value="5">★</span>
                                         </div>
-                                        <span class="current-value" id="criteriaActividades">N/A</span>
                                     </div>
                                     <div class="criteria-levels">
                                         <div class="criteria-level-item" data-value="1">
@@ -1212,13 +1377,12 @@
                                     </div>
                                     <div class="criteria-rating-inline">
                                         <div class="criteria-stars" id="view-criteria-resultados-stars">
-                                            <span class="criteria-dot" data-criterion="resultados" data-value="1">●</span>
-                                            <span class="criteria-dot" data-criterion="resultados" data-value="2">●</span>
-                                            <span class="criteria-dot" data-criterion="resultados" data-value="3">●</span>
-                                            <span class="criteria-dot" data-criterion="resultados" data-value="4">●</span>
-                                            <span class="criteria-dot" data-criterion="resultados" data-value="5">●</span>
+                                            <span class="criteria-star" data-criterion="resultados" data-value="1">★</span>
+                                            <span class="criteria-star" data-criterion="resultados" data-value="2">★</span>
+                                            <span class="criteria-star" data-criterion="resultados" data-value="3">★</span>
+                                            <span class="criteria-star" data-criterion="resultados" data-value="4">★</span>
+                                            <span class="criteria-star" data-criterion="resultados" data-value="5">★</span>
                                         </div>
-                                        <span class="current-value" id="criteriaResultados">N/A</span>
                                     </div>
                                     <div class="criteria-levels">
                                         <div class="criteria-level-item" data-value="1">
@@ -1262,6 +1426,27 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for Criteria Rating Confirmation -->
+    <div id="criteria-rating-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Confirmar Calificación de Criterio</h4>
+                <span class="close-criteria-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de calificar <strong id="criteria-name"></strong> con <span id="criteria-rating-stars"></span> (<span id="criteria-rating-value"></span> estrellas)?</p>
+                <input type="hidden" id="criteria-program-id">
+                <input type="hidden" id="criteria-criterion">
+                <input type="hidden" id="criteria-value">
+                
+                <div class="form-actions">
+                    <button type="button" id="confirm-criteria-rating" class="save-btn">Confirmar</button>
+                    <button type="button" id="cancel-criteria-rating" class="cancel-btn">Cancelar</button>
                 </div>
             </div>
         </div>

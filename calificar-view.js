@@ -97,13 +97,43 @@ function updateRatingFilterButtons() {
 // Load program statistics from the API
 async function loadProgramStats() {
     try {
-        const response = await fetch('/api/programas/stats');
+        const response = await fetch('/api/universidades');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        programStats = await response.json();
-        console.log('Program stats loaded:', programStats);
+        const data = await response.json();
+        
+        // Calculate stats from the data
+        const universities = new Set();
+        const statusCounts = {
+            pendiente: 0,
+            considerando: 0,
+            interesado: 0,
+            aplicando: 0,
+            descartado: 0
+        };
+        let totalCount = 0;
+        
+        data.programas_doctorado.universidades.forEach(universidad => {
+            universities.add(universidad.nombre);
+            universidad.programas.forEach(programa => {
+                totalCount++;
+                const status = programa.status || 'pendiente';
+                statusCounts[status]++;
+            });
+        });
+        
+        programStats = {
+            totalCount: totalCount,
+            universityCount: universities.size,
+            statusCounts: Object.entries(statusCounts).map(([status, count]) => ({
+                status: status,
+                count: count
+            }))
+        };
+        
+        console.log('Program stats calculated:', programStats);
     } catch (error) {
         console.error('Error loading program stats:', error);
         throw error;
@@ -113,12 +143,27 @@ async function loadProgramStats() {
 // Load all programs from the API
 async function loadAllPrograms() {
     try {
-        const response = await fetch('/api/programas');
+        const response = await fetch('/api/universidades');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        allPrograms = await response.json();
+        const data = await response.json();
+        allPrograms = [];
+        
+        // Extract programs from universities structure
+        data.programas_doctorado.universidades.forEach(universidad => {
+            universidad.programas.forEach(programa => {
+                allPrograms.push({
+                    ...programa,
+                    universidad: universidad.nombre,
+                    ciudad: universidad.ciudad,
+                    displayName: programa.nombre, // Use 'nombre' field
+                    statusText: programa.status ? programa.status.charAt(0).toUpperCase() + programa.status.slice(1) : 'Pendiente'
+                });
+            });
+        });
+        
         console.log('All programs loaded:', allPrograms);
     } catch (error) {
         console.error('Error loading programs:', error);
@@ -410,7 +455,9 @@ function editProgram(programId) {
     resetCriteriaValues('resultados');
     
     // Set criteria values if they exist
+    console.log('DEBUG editProgram - program.criterios:', program.criterios);
     if (program.criterios) {
+        console.log('DEBUG editProgram - found criterios, setting values:', program.criterios);
         if (program.criterios.relevancia) {
             setCriteriaValue('relevancia', program.criterios.relevancia);
         }
@@ -426,6 +473,8 @@ function editProgram(programId) {
         if (program.criterios.resultados) {
             setCriteriaValue('resultados', program.criterios.resultados);
         }
+    } else {
+        console.log('DEBUG editProgram - no criterios found for program');
     }
     
     // Open modal
@@ -503,6 +552,11 @@ async function saveProgram() {
     const actividades = document.getElementById('edit-criteria-actividades').value;
     const resultados = document.getElementById('edit-criteria-resultados').value;
     
+    // DEBUG: Log criterios values
+    console.log('DEBUG saveProgram - criterios values:', {
+        relevancia, claridad, transparencia, actividades, resultados
+    });
+    
     // Only add criteria if at least one is set
     if (relevancia || claridad || transparencia || actividades || resultados) {
         updateData.criterios = {};
@@ -512,7 +566,14 @@ async function saveProgram() {
         if (transparencia) updateData.criterios.transparencia = parseInt(transparencia);
         if (actividades) updateData.criterios.actividades = parseInt(actividades);
         if (resultados) updateData.criterios.resultados = parseInt(resultados);
+        
+        console.log('DEBUG saveProgram - criterios object created:', updateData.criterios);
+    } else {
+        console.log('DEBUG saveProgram - no criterios values found, skipping criterios object');
     }
+    
+    // DEBUG: Log complete update data being sent
+    console.log('DEBUG saveProgram - complete updateData being sent:', updateData);
     
     try {
         // Send update to server
@@ -747,13 +808,14 @@ function exportToJSON() {
         const exportData = allPrograms.map(program => {
             return {
                 _id: program._id,
-                programa: program.programa,
+                programa: program.nombre || program.programa,
                 universidad: program.universidad,
                 ciudad: program.ciudad,
                 status: program.status || 'pendiente',
                 calificacion: program.calificacion || { valor: 0, fecha: null },
+                criterios: program.criterios || {},
                 url: program.url || '',
-                linea_investigacion: program.linea_investigacion || program.lineas_investigacion || ''
+                linea_investigacion: program.lineas_investigacion || program.linea_investigacion || ''
             };
         });
         
@@ -796,6 +858,12 @@ function exportToCSV() {
             'Estado', 
             'Calificación',
             'Fecha Calificación',
+            'Relevancia',
+            'Claridad',
+            'Transparencia',
+            'Actividades',
+            'Resultados',
+            'Promedio Criterios',
             'URL',
             'Líneas de Investigación'
         ];
@@ -820,15 +888,28 @@ function exportToCSV() {
                 }
             }
             
+            // Calculate criterios average
+            let criteriosAvg = 0;
+            if (program.criterios) {
+                const values = Object.values(program.criterios);
+                criteriosAvg = values.reduce((a, b) => a + b, 0) / values.length;
+            }
+            
             // Escape values for CSV format
             return [
                 program._id,
-                escapeCsvValue(program.programa),
+                escapeCsvValue(program.nombre || program.programa),
                 escapeCsvValue(program.universidad),
                 escapeCsvValue(program.ciudad),
                 program.status || 'pendiente',
                 calificacion,
                 fechaCalificacion,
+                program.criterios?.relevancia || 0,
+                program.criterios?.claridad || 0,
+                program.criterios?.transparencia || 0,
+                program.criterios?.actividades || 0,
+                program.criterios?.resultados || 0,
+                criteriosAvg.toFixed(1),
                 program.url || '',
                 escapeCsvValue(lineas)
             ];

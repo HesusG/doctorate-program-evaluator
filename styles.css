@@ -804,6 +804,11 @@ tr:hover {
 }
 
 /* Colores según valor */
+.criteria-0 {
+    background-color: #f5f5f5;
+    color: #9e9e9e;
+}
+
 .criteria-1 {
     background-color: #ffebee;
     color: #c62828;
@@ -857,6 +862,11 @@ tr:hover {
 .criteria-value.show {
     opacity: 1;
     transform: translateY(0);
+}
+
+.criteria-0 {
+    background-color: #f5f5f5;
+    color: #9e9e9e;
 }
 
 .criteria-1 {
@@ -957,12 +967,31 @@ tr:hover {
     color: #444;
 }
 
-/* Estilos para las bolitas de calificación en la vista del programa */
+/* Estilos para las estrellas de calificación en la vista del programa */
 .program-criteria .criteria-stars {
     display: flex;
-    gap: 15px;
+    gap: 5px;
 }
 
+/* Estilos para estrellas (nuevo) */
+.program-criteria .criteria-star {
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #ddd;
+    user-select: none;
+}
+
+.program-criteria .criteria-star:hover {
+    transform: scale(1.2);
+    color: #ffc107;
+}
+
+.program-criteria .criteria-star.active {
+    color: #ffc107;
+}
+
+/* Mantener compatibilidad con dots para legacy */
 .program-criteria .criteria-dot {
     font-size: 24px;
     cursor: pointer;
@@ -997,6 +1026,48 @@ tr:hover {
 
 .program-criteria .criteria-dot[data-value="5"].active {
     color: #3f51b5;
+}
+
+/* Modal de confirmación de criterios */
+#criteria-rating-modal .modal-content {
+    max-width: 500px;
+    margin: 100px auto;
+}
+
+#criteria-rating-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#criteria-rating-modal .modal-header h4 {
+    margin: 0;
+    color: #333;
+}
+
+#criteria-rating-modal .close-criteria-modal {
+    cursor: pointer;
+    font-size: 24px;
+    color: #999;
+    transition: color 0.2s;
+}
+
+#criteria-rating-modal .close-criteria-modal:hover {
+    color: #333;
+}
+
+#criteria-rating-modal #criteria-rating-stars {
+    color: #ffc107;
+    font-size: 24px;
+    margin: 0 5px;
+}
+
+#criteria-rating-modal .form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
 }
 
 .criteria-help {
@@ -3587,4 +3658,315 @@ tr:hover {
 .calificar-content .rating-stars .star.filled {
     color: #f1c40f;
     text-shadow: 0 1px 3px rgba(241, 196, 15, 0.3);
+}
+
+/* Table view styles */
+.table-container {
+    margin-top: 20px;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    overflow-x: auto;
+}
+
+.table-filters {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.table-filters .filter-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    align-items: end;
+}
+
+.table-filters .filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.table-filters .filter-group label {
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #764ba2;
+}
+
+.table-filters input,
+.table-filters select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.reset-filters-btn {
+    padding: 8px 16px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.reset-filters-btn:hover {
+    background: #764ba2;
+    transform: translateY(-1px);
+}
+
+#programsDataTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#programsDataTable th {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+}
+
+#programsDataTable td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+#programsDataTable tr:hover {
+    background: #f8f9fa;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #f0f0f0;
+    color: #333;
+}
+
+.btn-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-edit {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-duplicate {
+    background: #2196F3;
+    color: white;
+}
+
+.btn-delete {
+    background: #f44336;
+    color: white;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Edit modal styles */
+.modal-lg {
+    max-width: 800px;
+    width: 90%;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.criterios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.criterios-grid input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.export-btn {
+    padding: 10px 20px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.export-btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+/* Ranking enhancements */
+.criteria-stats-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+}
+
+.criteria-stats-section h4 {
+    margin-bottom: 20px;
+    color: #764ba2;
+    font-size: 1.2rem;
+}
+
+.criteria-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.criteria-stat-card {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.criteria-stat-card h5 {
+    margin: 0 0 10px 0;
+    color: #667eea;
+    font-size: 0.9rem;
+}
+
+.criteria-avg {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #764ba2;
+    margin-bottom: 10px;
+}
+
+.criteria-avg.total {
+    color: #f093fb;
+}
+
+.criteria-bar {
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.criteria-bar-fill {
+    height: 100%;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    transition: width 0.5s ease;
+}
+
+.criteria-bar-fill.total {
+    background: linear-gradient(45deg, #f093fb, #f5576c);
+}
+
+/* Charts grid */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.chart-section {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.chart-section h4 {
+    margin-bottom: 15px;
+    color: #764ba2;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+/* Ranking table enhancements */
+.criteria-display {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+
+.mini-criteria {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.no-criteria {
+    color: #999;
+    font-style: italic;
+}
+
+.criteria-avg-label {
+    font-size: 11px;
+    color: #666;
+}
+
+.combined-score {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #f093fb;
+}
+
+.ranking-table td {
+    vertical-align: middle;
+}
+
+/* Criteria rating modal - ensure it appears on top */
+#criteria-rating-modal {
+    z-index: 9999 !important;
+}
+
+#criteria-rating-modal .modal-content {
+    z-index: 10000 !important;
+    position: relative;
+}
+
+/* Also ensure other confirmation modals are on top */
+#rating-confirm-modal,
+#saveConfirmModal,
+#confirmModal {
+    z-index: 9998 !important;
+}
+
+/* University info modal should be below confirmation modals */
+#universityModal {
+    z-index: 5000;
 }
