@@ -1105,6 +1105,187 @@
                             <div id="geoFixLog" class="enrich-log"></div>
                         </div>
                     </div>
+                    
+                    <div class="admin-section">
+                        <h4>📋 Criterios de Evaluación</h4>
+                        
+                        <div class="current-criteria">
+                            <h5>Criterios Actuales:</h5>
+                            <ul id="current-criteria-list">
+                                <li>1. Relevancia</li>
+                                <li>2. Claridad</li>
+                                <li>3. Transparencia</li>
+                                <li>4. Actividades</li>
+                                <li>5. Resultados</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="criteria-form">
+                            <h5>Cambiar Etiquetas:</h5>
+                            <div class="simple-criteria-inputs">
+                                <div class="criteria-input-row">
+                                    <label>Criterio 1:</label>
+                                    <input type="text" id="criterio1-label" placeholder="Relevancia" value="Relevancia">
+                                </div>
+                                <div class="criteria-input-row">
+                                    <label>Criterio 2:</label>
+                                    <input type="text" id="criterio2-label" placeholder="Claridad" value="Claridad">
+                                </div>
+                                <div class="criteria-input-row">
+                                    <label>Criterio 3:</label>
+                                    <input type="text" id="criterio3-label" placeholder="Transparencia" value="Transparencia">
+                                </div>
+                                <div class="criteria-input-row">
+                                    <label>Criterio 4:</label>
+                                    <input type="text" id="criterio4-label" placeholder="Actividades" value="Actividades">
+                                </div>
+                                <div class="criteria-input-row">
+                                    <label>Criterio 5:</label>
+                                    <input type="text" id="criterio5-label" placeholder="Resultados" value="Resultados">
+                                </div>
+                            </div>
+                            
+                            <h5>Cambiar Descripciones de Niveles (1-5):</h5>
+                            <div class="criteria-levels-section">
+                                <!-- Criterio 1 - Relevancia -->
+                                <div class="criteria-level-group">
+                                    <h6>🔹 Criterio 1 - Relevancia:</h6>
+                                    <div class="level-inputs">
+                                        <div class="level-row">
+                                            <span>1:</span>
+                                            <input type="text" id="relevancia-nivel1" placeholder="Sin relevancia personal" value="Sin relevancia personal">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>2:</span>
+                                            <input type="text" id="relevancia-nivel2" placeholder="Relevancia mínima" value="Relevancia mínima">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>3:</span>
+                                            <input type="text" id="relevancia-nivel3" placeholder="Relevancia moderada" value="Relevancia moderada">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>4:</span>
+                                            <input type="text" id="relevancia-nivel4" placeholder="Alta relevancia" value="Alta relevancia">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>5:</span>
+                                            <input type="text" id="relevancia-nivel5" placeholder="Totalmente alineado con objetivos" value="Totalmente alineado con objetivos">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Criterio 2 - Claridad -->
+                                <div class="criteria-level-group">
+                                    <h6>🔹 Criterio 2 - Claridad:</h6>
+                                    <div class="level-inputs">
+                                        <div class="level-row">
+                                            <span>1:</span>
+                                            <input type="text" id="claridad-nivel1" placeholder="Información muy vaga o inexistente" value="Información muy vaga o inexistente">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>2:</span>
+                                            <input type="text" id="claridad-nivel2" placeholder="Información general y poco específica" value="Información general y poco específica">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>3:</span>
+                                            <input type="text" id="claridad-nivel3" placeholder="Información clara pero básica" value="Información clara pero básica">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>4:</span>
+                                            <input type="text" id="claridad-nivel4" placeholder="Información detallada y bien estructurada" value="Información detallada y bien estructurada">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>5:</span>
+                                            <input type="text" id="claridad-nivel5" placeholder="Información muy detallada con proyectos específicos" value="Información muy detallada con proyectos específicos">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Criterio 3 - Transparencia -->
+                                <div class="criteria-level-group">
+                                    <h6>🔹 Criterio 3 - Transparencia:</h6>
+                                    <div class="level-inputs">
+                                        <div class="level-row">
+                                            <span>1:</span>
+                                            <input type="text" id="transparencia-nivel1" placeholder="Información muy limitada o difícil de encontrar" value="Información muy limitada o difícil de encontrar">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>2:</span>
+                                            <input type="text" id="transparencia-nivel2" placeholder="Información básica disponible" value="Información básica disponible">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>3:</span>
+                                            <input type="text" id="transparencia-nivel3" placeholder="Información moderadamente accesible" value="Información moderadamente accesible">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>4:</span>
+                                            <input type="text" id="transparencia-nivel4" placeholder="Buena transparencia informativa" value="Buena transparencia informativa">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>5:</span>
+                                            <input type="text" id="transparencia-nivel5" placeholder="Excelente transparencia con información completa y accesible" value="Excelente transparencia con información completa y accesible">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Criterio 4 - Actividades -->
+                                <div class="criteria-level-group">
+                                    <h6>🔹 Criterio 4 - Actividades:</h6>
+                                    <div class="level-inputs">
+                                        <div class="level-row">
+                                            <span>1:</span>
+                                            <input type="text" id="actividades-nivel1" placeholder="Muy pocas actividades formativas" value="Muy pocas actividades formativas">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>2:</span>
+                                            <input type="text" id="actividades-nivel2" placeholder="Actividades básicas y limitadas" value="Actividades básicas y limitadas">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>3:</span>
+                                            <input type="text" id="actividades-nivel3" placeholder="Variedad moderada de actividades" value="Variedad moderada de actividades">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>4:</span>
+                                            <input type="text" id="actividades-nivel4" placeholder="Buena variedad de actividades formativas" value="Buena variedad de actividades formativas">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>5:</span>
+                                            <input type="text" id="actividades-nivel5" placeholder="Amplia gama de actividades especializadas y de calidad" value="Amplia gama de actividades especializadas y de calidad">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Criterio 5 - Resultados -->
+                                <div class="criteria-level-group">
+                                    <h6>🔹 Criterio 5 - Resultados:</h6>
+                                    <div class="level-inputs">
+                                        <div class="level-row">
+                                            <span>1:</span>
+                                            <input type="text" id="resultados-nivel1" placeholder="Sin información sobre resultados" value="Sin información sobre resultados">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>2:</span>
+                                            <input type="text" id="resultados-nivel2" placeholder="Información mínima o desactualizada" value="Información mínima o desactualizada">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>3:</span>
+                                            <input type="text" id="resultados-nivel3" placeholder="Algunos indicadores básicos" value="Algunos indicadores básicos">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>4:</span>
+                                            <input type="text" id="resultados-nivel4" placeholder="Buenos indicadores, informes de acreditación" value="Buenos indicadores, informes de acreditación">
+                                        </div>
+                                        <div class="level-row">
+                                            <span>5:</span>
+                                            <input type="text" id="resultados-nivel5" placeholder="Información completa con tesis defendidas, inserción laboral, evaluaciones externas" value="Información completa con tesis defendidas, inserción laboral, evaluaciones externas">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button id="guardar-criterios" class="save-btn">💾 Guardar Cambios</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

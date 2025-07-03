@@ -929,6 +929,108 @@ app.get('/api/programas/:id/criterios', async (req, res) => {
   }
 });
 
+// ===== CRITERIA CONFIGURATION MANAGEMENT API =====
+
+// Get criteria configuration from database
+app.get('/api/admin/criteria-labels', async (req, res) => {
+  try {
+    const db = client.db();
+    let criteriaConfig = await db.collection('criteria_config').findOne({ type: 'criteria_config' });
+    
+    // If no configuration exists, return error (should be initialized first)
+    if (!criteriaConfig) {
+      return res.status(404).json({ 
+        message: 'Criteria configuration not found. Please run initialization script first.',
+        suggestion: 'Run: node initialize-criteria.js'
+      });
+    }
+    
+    res.json(criteriaConfig);
+  } catch (error) {
+    console.error('Error fetching criteria configuration:', error);
+    res.status(500).json({ message: 'Error fetching criteria configuration', error: error.message });
+  }
+});
+
+// Update criteria configuration in database
+app.put('/api/admin/criteria-labels', async (req, res) => {
+  try {
+    const { criteria, updatedBy = 'admin' } = req.body;
+    
+    if (!criteria || !Array.isArray(criteria)) {
+      return res.status(400).json({ message: 'Invalid criteria configuration. Expected array of criteria.' });
+    }
+    
+    // Validate criteria structure
+    for (let i = 0; i < criteria.length; i++) {
+      const criterion = criteria[i];
+      if (!criterion.id || !criterion.key || !criterion.label || !criterion.levels) {
+        return res.status(400).json({ 
+          message: `Invalid criterion structure at index ${i}. Missing required fields.` 
+        });
+      }
+    }
+    
+    const db = client.db();
+    const updateData = {
+      type: 'criteria_config',
+      version: '1.0',
+      criteria: criteria,
+      lastUpdated: new Date().toISOString(),
+      updatedBy: updatedBy
+    };
+    
+    const result = await db.collection('criteria_config').replaceOne(
+      { type: 'criteria_config' },
+      updateData,
+      { upsert: true }
+    );
+    
+    console.log('Criteria configuration updated:', result);
+    res.json({ 
+      message: 'Criteria configuration updated successfully', 
+      criteria: updateData.criteria,
+      lastUpdated: updateData.lastUpdated 
+    });
+    
+  } catch (error) {
+    console.error('Error updating criteria configuration:', error);
+    res.status(500).json({ message: 'Error updating criteria configuration', error: error.message });
+  }
+});
+
+// Get criteria for public use (used by modals and forms)
+app.get('/api/criteria-labels', async (req, res) => {
+  try {
+    const db = client.db();
+    const criteriaConfig = await db.collection('criteria_config').findOne({ type: 'criteria_config' });
+    
+    if (!criteriaConfig) {
+      return res.status(404).json({ message: 'Criteria configuration not found' });
+    }
+    
+    // Return simplified format for frontend
+    const simplifiedCriteria = criteriaConfig.criteria.reduce((acc, criterion) => {
+      acc[criterion.key] = {
+        id: criterion.id,
+        label: criterion.label,
+        description: criterion.description,
+        levels: criterion.levels
+      };
+      return acc;
+    }, {});
+    
+    res.json({
+      criteria: simplifiedCriteria,
+      lastUpdated: criteriaConfig.lastUpdated
+    });
+    
+  } catch (error) {
+    console.error('Error fetching public criteria:', error);
+    res.status(500).json({ message: 'Error fetching criteria', error: error.message });
+  }
+});
+
 // Start server
 async function startServer() {
   await connectToMongo();

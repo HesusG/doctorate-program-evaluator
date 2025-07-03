@@ -4259,4 +4259,187 @@ document.addEventListener('DOMContentLoaded', function() {
     if (confirmBtn) {
         confirmBtn.addEventListener('click', confirmCriteriaRating);
     }
+    
+    // Setup criteria admin panel with MongoDB integration
+    setupCriteriaAdminPanel();
+    
+    // Cargar criterios guardados desde MongoDB
+    cargarCriteriosGuardados();
 });
+
+// ===== MONGODB CRITERIA ADMIN PANEL =====
+
+async function guardarCriterios() {
+    try {
+        // Preparar la estructura de criterios para MongoDB
+        const criteriaArray = [
+            {
+                id: 1,
+                key: 'relevancia',
+                label: document.getElementById('criterio1-label').value || 'Relevancia Personal y Afinidad Temática',
+                description: 'Evalúa qué tan alineadas están las líneas de investigación con tus intereses académicos o profesionales.',
+                levels: {
+                    1: document.getElementById('relevancia-nivel1').value || 'Las líneas están en un área general, pero no conectan con tu tema.',
+                    2: document.getElementById('relevancia-nivel2').value || 'Solo hay una línea lejana a tu interés.',
+                    3: document.getElementById('relevancia-nivel3').value || 'Una o dos líneas son parcialmente compatibles.',
+                    4: document.getElementById('relevancia-nivel4').value || 'Una línea muy alineada y otras relacionadas.',
+                    5: document.getElementById('relevancia-nivel5').value || 'Varias líneas directamente relacionadas con tu tema.'
+                }
+            },
+            {
+                id: 2,
+                key: 'claridad',
+                label: document.getElementById('criterio2-label').value || 'Claridad y Especificidad de las Líneas de Investigación',
+                description: 'Evalúa qué tan bien explicadas están las líneas de investigación.',
+                levels: {
+                    1: document.getElementById('claridad-nivel1').value || 'Solo hay títulos genéricos.',
+                    2: document.getElementById('claridad-nivel2').value || 'Descripciones breves que no aclaran bien los temas.',
+                    3: document.getElementById('claridad-nivel3').value || 'Las líneas están explicadas pero sin ejemplos o desglose.',
+                    4: document.getElementById('claridad-nivel4').value || 'Hay subtemas o subdivisiones, aunque sin ejemplos concretos.',
+                    5: document.getElementById('claridad-nivel5').value || 'Las líneas incluyen subtemas, proyectos pasados o actuales, y vinculación con grupos reales.'
+                }
+            },
+            {
+                id: 3,
+                key: 'entorno',
+                label: document.getElementById('criterio3-label').value || 'Entorno del Programa (Cultura, Mentoría y Bienestar Estudiantil)',
+                description: 'Evalúa la experiencia general del estudiante según reseñas y testimonios.',
+                levels: {
+                    1: document.getElementById('transparencia-nivel1').value || 'Ambiente tóxico o negativo frecuente.',
+                    2: document.getElementById('transparencia-nivel2').value || 'Apoyo inconsistente; problemas con tutores.',
+                    3: document.getElementById('transparencia-nivel3').value || 'Entorno funcional pero con experiencias mixtas.',
+                    4: document.getElementById('transparencia-nivel4').value || 'Opiniones mayormente positivas sobre mentores y comunidad.',
+                    5: document.getElementById('transparencia-nivel5').value || 'Comunidad activa, apoyo cercano, y bienestar destacado.'
+                }
+            },
+            {
+                id: 4,
+                key: 'infraestructura',
+                label: document.getElementById('criterio4-label').value || 'Infraestructura Académica y Recursos',
+                description: 'Evalúa si el programa ofrece recursos físicos y digitales adecuados.',
+                levels: {
+                    1: document.getElementById('actividades-nivel1').value || 'No hay imágenes, ni menciones de laboratorios o bibliotecas. Fotos muestran deterioro.',
+                    2: document.getElementById('actividades-nivel2').value || 'Hay mención de aulas y bibliotecas, pero sin detalle sobre software o accesibilidad.',
+                    3: document.getElementById('actividades-nivel3').value || 'Fotos y reseñas muestran instalaciones razonables y uso de alguna plataforma digital.',
+                    4: document.getElementById('actividades-nivel4').value || 'Laboratorios, software académico y bibliotecas digitales disponibles y visibles.',
+                    5: document.getElementById('actividades-nivel5').value || 'Infraestructura moderna, especializada, accesible, con coworking, bases de datos remotas, y aulas inteligentes.'
+                }
+            },
+            {
+                id: 5,
+                key: 'actividades',
+                label: document.getElementById('criterio5-label').value || 'Enfoque y Flexibilidad de las Actividades Formativas',
+                description: 'Evalúa la existencia de un plan formativo más allá de la tesis, y qué tan flexible es.',
+                levels: {
+                    1: document.getElementById('resultados-nivel1').value || 'No hay formación adicional o es rígida.',
+                    2: document.getElementById('resultados-nivel2').value || 'Solo actividades fijas (seminarios, publicaciones), sin personalización.',
+                    3: document.getElementById('resultados-nivel3').value || 'Algunas opciones de personalización, combinando formación específica y transversal.',
+                    4: document.getElementById('resultados-nivel4').value || 'Plan estructurado y flexible con valoración diferenciada según tipo de actividad.',
+                    5: document.getElementById('resultados-nivel5').value || 'Itinerario completamente personalizable, con movilidad, cotutelas, proyectos externos, y validación formal.'
+                }
+            }
+        ];
+        
+        // Enviar a MongoDB
+        const response = await fetch('/api/admin/criteria-labels', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                criteria: criteriaArray,
+                updatedBy: 'admin'
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Criterios guardados en MongoDB:', result);
+        
+        // Actualizar la lista visual
+        const lista = document.getElementById('current-criteria-list');
+        lista.innerHTML = `
+            <li>1. ${criteriaArray[0].label}</li>
+            <li>2. ${criteriaArray[1].label}</li>
+            <li>3. ${criteriaArray[2].label}</li>
+            <li>4. ${criteriaArray[3].label}</li>
+            <li>5. ${criteriaArray[4].label}</li>
+        `;
+        
+        alert('✅ Criterios guardados en la base de datos correctamente');
+        
+    } catch (error) {
+        console.error('Error updating criteria:', error);
+        alert('❌ Error al actualizar criterios: ' + error.message);
+    }
+}
+
+// Cargar criterios desde MongoDB al inicio
+async function cargarCriteriosGuardados() {
+    try {
+        const response = await fetch('/api/admin/criteria-labels');
+        if (!response.ok) {
+            console.warn('No se pudo cargar configuración de criterios:', response.status);
+            return;
+        }
+        
+        const data = await response.json();
+        console.log('Criterios cargados desde MongoDB:', data);
+        
+        if (data.criteria && Array.isArray(data.criteria)) {
+            // Actualizar labels
+            data.criteria.forEach(criterion => {
+                const labelInput = document.getElementById(`criterio${criterion.id}-label`);
+                if (labelInput) {
+                    labelInput.value = criterion.label;
+                }
+                
+                // Actualizar niveles
+                for (let level = 1; level <= 5; level++) {
+                    const levelInput = document.getElementById(`${criterion.key}-nivel${level}`);
+                    if (levelInput && criterion.levels && criterion.levels[level]) {
+                        levelInput.value = criterion.levels[level];
+                    }
+                }
+            });
+            
+            // Actualizar lista visual
+            const lista = document.getElementById('current-criteria-list');
+            lista.innerHTML = data.criteria.map(criterion => 
+                `<li>${criterion.id}. ${criterion.label}</li>`
+            ).join('');
+        }
+        
+    } catch (error) {
+        console.error('Error loading criteria from database:', error);
+        // Fallback a valores por defecto si falla la carga
+        console.log('Using default values as fallback');
+    }
+}
+
+// Función para agregar un botón de carga manual
+function setupCriteriaAdminPanel() {
+    const saveBtn = document.getElementById('guardar-criterios');
+    
+    if (saveBtn) {
+        saveBtn.addEventListener('click', guardarCriterios);
+    }
+    
+    // Agregar botón de carga
+    const criteriaForm = document.querySelector('.criteria-form');
+    if (criteriaForm && !document.getElementById('cargar-criterios')) {
+        const loadBtn = document.createElement('button');
+        loadBtn.id = 'cargar-criterios';
+        loadBtn.type = 'button';
+        loadBtn.className = 'save-btn';
+        loadBtn.style.marginRight = '10px';
+        loadBtn.style.background = 'linear-gradient(45deg, #667eea, #764ba2)';
+        loadBtn.innerHTML = '📥 Cargar desde DB';
+        loadBtn.addEventListener('click', cargarCriteriosGuardados);
+        
+        criteriaForm.insertBefore(loadBtn, saveBtn);
+    }
+}
